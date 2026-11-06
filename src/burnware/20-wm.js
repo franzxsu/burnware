@@ -243,7 +243,7 @@ const Start = {
   async run() {
     const v = await WM.prompt('Run', 'Type the name of a program, folder or web page, and Burnware will open it for you.', 'burn://home');
     if (!v) return;
-    const s = v.trim().toLowerCase(), alias = { notepad: 'notepad', paint: 'paint', mspaint: 'paint', minesweeper: 'mines', mines: 'mines', winmine: 'mines', solitaire: 'solitaire', sol: 'solitaire', snake: 'snake', cmd: 'terminal', command: 'terminal', terminal: 'terminal', prompt: 'terminal', browser: 'browser', navigator: 'browser', music: 'music', mixburner: 'music', kuboamp: 'music', amp: 'music', chat: 'chat', smoke: 'chat', signals: 'chat', kubochat: 'chat', omnigacha: 'omni', gacha: 'omni', pebble: 'pebble', pebbledash: 'pebble', rally: 'pebble', sizzle: 'sizzle', sizzlesand: 'sizzle', sand: 'sizzle', video: 'video', mediaplayer: 'video', 'rain.wav': 'rainwav', rainwav: 'rainwav', kaiju: 'kaiju', settings: 'settings', control: 'settings', help: 'help', explorer: 'explorer' };
+    const s = v.trim().toLowerCase(), alias = { notepad: 'notepad', paint: 'paint', mspaint: 'paint', minesweeper: 'mines', mines: 'mines', winmine: 'mines', solitaire: 'solitaire', sol: 'solitaire', snake: 'snake', cmd: 'terminal', command: 'terminal', terminal: 'terminal', prompt: 'terminal', browser: 'browser', navigator: 'browser', music: 'music', mixburner: 'music', kuboamp: 'music', amp: 'music', chat: 'chat', smoke: 'chat', signals: 'chat', time: 'datetime', date: 'datetime', clock: 'datetime', timemachine: 'datetime', news: 'browser', kubochat: 'chat', omnigacha: 'omni', gacha: 'omni', pebble: 'pebble', pebbledash: 'pebble', rally: 'pebble', sizzle: 'sizzle', sizzlesand: 'sizzle', sand: 'sizzle', video: 'video', mediaplayer: 'video', 'rain.wav': 'rainwav', rainwav: 'rainwav', kaiju: 'kaiju', settings: 'settings', control: 'settings', help: 'help', explorer: 'explorer' };
     if (alias[s]) WM.open(alias[s]);
     else if (/^(c:|c:\\)/i.test(s)) { const n = FS.resolve(v.trim()); if (n && n.type === 'dir') WM.open('explorer', { path: v.trim() }); else if (n) Files.openFile(v.trim()); else WM.alert('Run', `Cannot find the file '${v}'. Make sure you typed the name correctly, and then try again.`, 'err'); }
     else if (/^(https?:|www\.|burn:)/.test(s) || s.includes('.')) WM.open('browser', { url: v.trim() });
@@ -258,7 +258,8 @@ const Start = {
     setVol(); Sound.setOn(Store.data.sound);
     $('#netIco').src = Icons.url('net', 1);
     $('#net').onclick = () => WM.alert('Dial-up Networking', 'Connected to SparkNet at 56,600 bps.\nDuration: forever.\nBytes received: a lot of animated GIFs.', 'info');
-    const tick = () => { $('#clock').textContent = fmtClock(); $('#clock').title = new Date().toDateString(); };
-    tick(); setInterval(tick, 10000);
+    const ck = $('#clock'); ck.setAttribute('role', 'button'); ck.tabIndex = 0; ck.setAttribute('aria-label', 'Clock. Opens the time machine');
+    onTap(ck, () => { Sound.click(); WM.open('datetime'); }); ck.addEventListener('keydown', (e) => { if (e.key === 'Enter') WM.open('datetime'); });
+    Clock.tick(); setInterval(() => Clock.tick(), 10000);
   },
 };

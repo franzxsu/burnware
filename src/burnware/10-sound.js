@@ -65,15 +65,15 @@ const Sound = (() => {
     /* the handshake: dial tone, the number, then the screech everyone remembers */
     modem() {
       if (!ctx) return 0; const t = now() + 0.05;
-      tone(350, t, 0.6, { vol: 0.05 }); tone(440, t, 0.6, { vol: 0.05 });
+      tone(350, t, 0.35, { vol: 0.05 }); tone(440, t, 0.35, { vol: 0.05 });
       const dtmf = { 1: [697, 1209], 2: [697, 1336], 3: [697, 1477], 4: [770, 1209], 5: [770, 1336], 6: [770, 1477], 7: [852, 1209], 8: [852, 1336], 9: [852, 1477], 0: [941, 1336] };
-      [...'5550198'].forEach((d, k) => { const [a, b] = dtmf[d], s = t + 0.7 + k * 0.11; tone(a, s, 0.08, { vol: 0.06, attack: 0.003 }); tone(b, s, 0.08, { vol: 0.06, attack: 0.003 }); });
-      const s = t + 1.6;
-      tone(2100, s, 0.9, { vol: 0.05, attack: 0.02 });
-      tone(980, s + 1.0, 0.25, { type: 'square', vol: 0.03 }); tone(1650, s + 1.25, 0.25, { type: 'square', vol: 0.03 });
-      for (let k = 0; k < 10; k++) noise(s + 1.5 + k * 0.12, 0.16, { vol: 0.05, freq: 1200 + (k % 3) * 600, q: 0.6 });
-      tone(1800, s + 1.5, 1.2, { type: 'sawtooth', vol: 0.02, slide: 0.6 });
-      return 3.4;
+      [...'5550198'].forEach((d, k) => { const [a, b] = dtmf[d], s = t + 0.4 + k * 0.075; tone(a, s, 0.08, { vol: 0.06, attack: 0.003 }); tone(b, s, 0.08, { vol: 0.06, attack: 0.003 }); });
+      const s = t + 1.0;
+      tone(2100, s, 0.5, { vol: 0.05, attack: 0.02 });
+      tone(980, s + 0.55, 0.16, { type: 'square', vol: 0.03 }); tone(1650, s + 0.7, 0.16, { type: 'square', vol: 0.03 });
+      for (let k = 0; k < 6; k++) noise(s + 0.85 + k * 0.09, 0.12, { vol: 0.05, freq: 1200 + (k % 3) * 600, q: 0.6 });
+      tone(1800, s + 0.85, 0.6, { type: 'sawtooth', vol: 0.02, slide: 0.6 });
+      return 2.1;
     },
     /* a short looping tune for the 90s homepage; returns a stop function */
     jingle(notes, bpm = 140, wave = 'square') {

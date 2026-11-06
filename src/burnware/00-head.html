@@ -323,4 +323,14 @@ a.tool { color: inherit; text-decoration: none; box-shadow: inset -1px -1px var(
 @keyframes hostbob { to { transform: translateY(-6px); } }
 @media (max-width: 560px) { .appblurb, .vlbl, .vctl .vvol { display: none; } }
 @media (prefers-reduced-motion: reduce) { .appveil img { animation: none; } }
+/* Date/Time Properties: the time machine */
+#clock { cursor: pointer; }
+.dtp { padding: 10px 12px 0; display: grid; gap: 8px; }
+.dtrow { display: flex; gap: 4px; align-items: center; }
+.dtrow .btn { min-width: 32px; }
+.calbox { padding: 6px 8px; background: var(--field); display: grid; gap: 4px; }
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; font-size: 12px; }
+.cal .dow { font-weight: 700; color: #555; }
+.cal .today { background: var(--sel); color: var(--seltxt); }
+.dtp .small { margin: 0; font-size: 11px; color: #444; }
 </style>

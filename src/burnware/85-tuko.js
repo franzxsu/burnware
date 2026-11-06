@@ -16,6 +16,7 @@ const TUKO_LINES = [
   'Pebble Dash tip: brake before the corner, not in it. I learned this the hard way. I am a gecko.',
   'Sizzle Sand tip: if the oil catches fire, use a lid. Not water. Never water.',
   'Omnigacha keeps asking me to pull. I do not have thumbs.',
+  'Click the clock in the corner to time travel. SparkNet News in Wildfire Navigator follows you to that year.',
   'Rain.wav is my favourite. It sounds like the roof of my old house.',
   'Kaiju Rampage is not ready yet. I am still growing. Forty metres is a lot of metres.',
   'You can make your own painting the wallpaper. Paint > File > Set As Wallpaper.',

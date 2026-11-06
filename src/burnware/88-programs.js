@@ -115,6 +115,7 @@ APPS.kaiju = {
 
 /* the new programs go first in the Start menu, and on the desktop right after the system icons */
 APP_ORDER.unshift('omni', 'pebble', 'sizzle', 'video', 'kaiju');
+APP_ORDER.push('datetime');
 APPS.rainwav = Object.assign({}, APPS.video, { title: 'Rain.wav', open(win) { APPS.video.open(win, { src: 'media/rain-wav.mp4', title: 'rain-wav.mp4', autoplay: true }); } });
 Desktop.items.splice(3, 0,
   { label: 'Omnigacha', icon: 'gacha', open: () => WM.open('omni') },

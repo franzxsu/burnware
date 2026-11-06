@@ -9,7 +9,7 @@ const Boot = {
     $('#power')?.remove();
     Sound.init();
     if (!fast && !calm()) await this.bios();
-    await this.splash(fast ? 600 : 2600);
+    await this.splash(fast ? 450 : 1300);
     this.ready = true;
     Sound.startup();
     Desktop.render(); Wall.paint();
@@ -29,11 +29,11 @@ const Boot = {
       o.addEventListener('pointerdown', () => { skip = true; }); addEventListener('keydown', () => { skip = true; }, { once: true });
       const next = () => {
         if (skip) return end();
-        if (k === 3 && mem < 65536) { mem = Math.min(65536, mem + 4096); pre.textContent = L.slice(0, 3).join('\n') + '\nMemory Testing : ' + mem + 'K' + (mem === 65536 ? ' OK' : ''); Sound.key(); return setTimeout(next, 45); }
-        if (k >= L.length) return setTimeout(end, 450);
-        k++; pre.textContent = L.slice(0, k).map((l, i) => i === 3 ? 'Memory Testing : 65536K OK' : l).join('\n'); setTimeout(next, k === 1 ? 300 : 170);
+        if (k === 3 && mem < 65536) { mem = Math.min(65536, mem + 8192); pre.textContent = L.slice(0, 3).join('\n') + '\nMemory Testing : ' + mem + 'K' + (mem === 65536 ? ' OK' : ''); Sound.key(); return setTimeout(next, 40); }
+        if (k >= L.length) return setTimeout(end, 250);
+        k++; pre.textContent = L.slice(0, k).map((l, i) => i === 3 ? 'Memory Testing : 65536K OK' : l).join('\n'); setTimeout(next, k === 1 ? 160 : 85);
       };
-      Sound.bsod(); setTimeout(next, 200);
+      Sound.bsod(); setTimeout(next, 120);
     });
   },
   splash(ms) {
@@ -51,7 +51,7 @@ const Boot = {
   async shutdown(restart) {
     this.ready = false; Sound.shutdown(); Music.stop(); Start.toggle(false);
     const o = h('div#splash.over', h('h1', 'Burn', h('i', 'ware')), h('small', restart ? 'Burnware is restarting...' : 'Burnware is shutting down...')); document.body.append(o);
-    await wait(2200); WM.closeAll(); o.remove();
+    await wait(1300); WM.closeAll(); o.remove();
     if (restart) { await this.powerOn(false); return; }
     const off = h('div#off.over', { role: 'button', tabIndex: 0, 'aria-label': 'Turn the computer back on' }, h('div', 'It\'s now safe to turn off', h('br'), 'your computer.', h('small', '(or click to turn it back on)')));
     document.body.append(off);
