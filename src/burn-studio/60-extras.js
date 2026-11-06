@@ -75,7 +75,7 @@ const Typing = {
   init() {
     addEventListener('keydown', (e) => {
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || e.target.closest('input, textarea, select')) return;
-      if (e.code === 'KeyZ' || e.code === 'KeyX') { App.octave = clamp(App.octave + (e.code === 'KeyX' ? 1 : -1), -2, 2); Play.render(); toast('Octave ' + (App.octave >= 0 ? '+' : '') + App.octave); return; }
+      if (e.code === 'KeyZ' || e.code === 'KeyX') { App.octave = clamp(App.octave + (e.code === 'KeyX' ? 1 : -1), -3, 3); Play.render(); toast('Octave ' + (App.octave >= 0 ? '+' : '') + App.octave); return; }
       if (e.code === 'KeyR' && !e.shiftKey) { $('#bRec').click(); return; }
       const off = this.map[e.code]; if (off === undefined) return;
       const t = App.song.tracks[App.track]; let n;

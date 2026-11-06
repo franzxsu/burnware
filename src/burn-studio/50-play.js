@@ -11,7 +11,7 @@ const Play = {
     surf.style.setProperty('--tc', KINDS[t.kind].color);
     const tabs = h('div.seg', { role: 'group', 'aria-label': 'Play with' }, modes.map(m => { const b = h('button' + (m === App.surface ? '.on' : ''), { pads: 'Drum pads', keys: 'Keyboard', chords: 'Chords' }[m]); b.onclick = () => { App.surface = m; Play.render(); }; return b; }));
     const kids = [h('b', { style: { color: KINDS[t.kind].color, letterSpacing: '.06em' } }, 'PLAY ' + KINDS[t.kind].name.toUpperCase()), tabs];
-    if (App.surface === 'keys') kids.push(h('div.knob', h('button.btn', { 'aria-label': 'Octave down', on: { click: () => { App.octave = clamp(App.octave - 1, -2, 2); Play.render(); } } }, '◀'), h('span', 'Oct ' + (App.octave >= 0 ? '+' : '') + App.octave), h('button.btn', { 'aria-label': 'Octave up', on: { click: () => { App.octave = clamp(App.octave + 1, -2, 2); Play.render(); } } }, '▶')));
+    if (App.surface === 'keys') kids.push(h('div.knob', h('button.btn', { 'aria-label': 'Octave down', on: { click: () => { App.octave = clamp(App.octave - 1, -3, 3); Play.render(); } } }, '◀'), h('span', 'Oct ' + (App.octave >= 0 ? '+' : '') + App.octave), h('button.btn', { 'aria-label': 'Octave up', on: { click: () => { App.octave = clamp(App.octave + 1, -3, 3); Play.render(); } } }, '▶')));
     kids.push(h('span', { style: { flex: 1 } }), h('span.lbl', App.rec ? '● recording into scene ' + 'ABCD'[App.scene] : 'press ● to record'));
     bar.replaceChildren(...kids);
     Live.allOff();
@@ -33,7 +33,7 @@ const Play = {
     return box;
   },
   keys() {
-    const s = App.song, i = App.track, t = s.tracks[i], wide = $('#surface').clientWidth || innerWidth, whites = wide > 700 ? 15 : wide > 460 ? 11 : 8;
+    const s = App.song, i = App.track, t = s.tracks[i], wide = $('#surface').clientWidth || innerWidth, whites = wide > 1000 ? 22 : wide > 700 ? 15 : wide > 460 ? 11 : 8;
     const lo = KINDS[t.kind].low + App.octave * 12, start = lo - ((lo % 12) + 12) % 12, box = h('div.keys');   // start on a C
     const W = [0, 2, 4, 5, 7, 9, 11], blackAfter = { 0: 1, 2: 3, 5: 6, 7: 8, 9: 10 };
     const whiteNotes = []; for (let k = 0; whiteNotes.length < whites; k++) { const m = start + Math.floor(k / 7) * 12 + W[k % 7]; whiteNotes.push(m); }

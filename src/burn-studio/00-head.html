@@ -67,6 +67,12 @@ select { font: inherit; }
 #grid { display: grid; grid-template-columns: 52px repeat(16, minmax(20px, 1fr)); gap: 2px; padding: 4px; min-width: 380px; position: relative; touch-action: none; }
 .rowlbl { font: 11px var(--mono); color: var(--mute); display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; white-space: nowrap; overflow: hidden; }
 .rowlbl.root { color: var(--txt); }
+.rowlbl { position: sticky; left: 0; z-index: 2; background: #15161a; }
+.stepnum, #grid > div:first-child { position: sticky; top: 0; z-index: 3; background: #15161a; }
+.chords.any { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.chords { grid-template-columns: repeat(4, minmax(0, 1fr)); } .chord { min-width: 0; overflow: hidden; white-space: nowrap; }
+.chords.any .chord { font-size: 14px; gap: 0; border-radius: 6px; } .chords.any .chord small { font-size: 9px; }
+.chords.many { grid-template-columns: repeat(4, 1fr); }
 .cell { height: 26px; border-radius: 4px; background: #23252c; position: relative; }
 .cell.beat { background: #2a2c34; }
 .cell.rootrow { background: #262a24; } .cell.rootrow.beat { background: #2d3229; }
@@ -124,5 +130,10 @@ select { font: inherit; }
 #app { grid-template-columns: minmax(0, 1fr); }
 #app > *, #mid > * { min-width: 0; }
 @media (max-width: 640px) { .trk { flex: 1 1 0; min-width: 0; } .lcd { font-size: 14px; gap: 10px; } #edbar input[type=range] { width: 64px !important; } }
+@media (max-width: 640px) {
+  #app { grid-template-rows: auto auto minmax(250px, 1fr) auto; overflow-y: auto; }
+  #playbar > b, #playbar > .lbl { display: none; }
+  #playbar .seg button, #edbar .seg button { padding: 5px 7px; }
+}
 @media (prefers-reduced-motion: reduce) { .btn.rec.on { animation: none; } }
 </style>

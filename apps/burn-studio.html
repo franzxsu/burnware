@@ -77,6 +77,12 @@ select { font: inherit; }
 #grid { display: grid; grid-template-columns: 52px repeat(16, minmax(20px, 1fr)); gap: 2px; padding: 4px; min-width: 380px; position: relative; touch-action: none; }
 .rowlbl { font: 11px var(--mono); color: var(--mute); display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; white-space: nowrap; overflow: hidden; }
 .rowlbl.root { color: var(--txt); }
+.rowlbl { position: sticky; left: 0; z-index: 2; background: #15161a; }
+.stepnum, #grid > div:first-child { position: sticky; top: 0; z-index: 3; background: #15161a; }
+.chords.any { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.chords { grid-template-columns: repeat(4, minmax(0, 1fr)); } .chord { min-width: 0; overflow: hidden; white-space: nowrap; }
+.chords.any .chord { font-size: 14px; gap: 0; border-radius: 6px; } .chords.any .chord small { font-size: 9px; }
+.chords.many { grid-template-columns: repeat(4, 1fr); }
 .cell { height: 26px; border-radius: 4px; background: #23252c; position: relative; }
 .cell.beat { background: #2a2c34; }
 .cell.rootrow { background: #262a24; } .cell.rootrow.beat { background: #2d3229; }
@@ -134,6 +140,11 @@ select { font: inherit; }
 #app { grid-template-columns: minmax(0, 1fr); }
 #app > *, #mid > * { min-width: 0; }
 @media (max-width: 640px) { .trk { flex: 1 1 0; min-width: 0; } .lcd { font-size: 14px; gap: 10px; } #edbar input[type=range] { width: 64px !important; } }
+@media (max-width: 640px) {
+  #app { grid-template-rows: auto auto minmax(250px, 1fr) auto; overflow-y: auto; }
+  #playbar > b, #playbar > .lbl { display: none; }
+  #playbar .seg button, #edbar .seg button { padding: 5px 7px; }
+}
 @media (prefers-reduced-motion: reduce) { .btn.rec.on { animation: none; } }
 </style>
 </head>
@@ -196,18 +207,18 @@ const SCALES = {
 };
 const KINDS = {
   drums: { name: 'Drums', color: 'var(--c-drums)', presets: ['808', 'Studio', 'Lo-fi'] },
-  bass: { name: 'Bass', color: 'var(--c-bass)', presets: ['Sub', 'Pluck', 'Acid'], low: 33 },
-  keys: { name: 'Keys', color: 'var(--c-keys)', presets: ['E-Piano', 'Organ', 'Piano'], low: 52 },
-  synth: { name: 'Synth', color: 'var(--c-synth)', presets: ['Lead', 'Pad', 'Chip'], low: 64 },
+  bass: { name: 'Bass', color: 'var(--c-bass)', presets: ['Sub', 'Pluck', 'Acid'], low: 33, range: [24, 55] },
+  keys: { name: 'Keys', color: 'var(--c-keys)', presets: ['E-Piano', 'Organ', 'Piano'], low: 52, range: [36, 84] },
+  synth: { name: 'Synth', color: 'var(--c-synth)', presets: ['Lead', 'Pad', 'Chip'], low: 64, range: [48, 96] },
 };
 const LANES = [['Kick', '#ff5d4a'], ['Snare', '#ff9a3a'], ['Clap', '#ffd23a'], ['Closed hat', '#8ee05a'], ['Open hat', '#3fd1a8'], ['Low tom', '#3fc7ff'], ['High tom', '#6f8cff'], ['Crash', '#c98cff']];
-/* the rows a melodic track shows: two octaves of the scale, from its lowest note up */
-function scaleRows(kind, song) {
-  const K = KINDS[kind], sc = SCALES[song.scale].steps, root = song.key, rows = [];
-  let base = K.low - ((K.low - root) % 12 + 12) % 12;   // the key's root at or below the track's low note
-  for (let o = 0; o < 2; o++) for (const s of sc) rows.push(base + o * 12 + s);
-  rows.push(base + 24);
-  return rows.filter(m => m >= K.low - 2).reverse();
+/* the rows a melodic track shows: three or four octaves, scale notes only or all twelve,
+   stretched to fit any note already in the pattern so nothing hides off the grid */
+function scaleRows(kind, song, all, pat) {
+  let [lo, hi] = KINDS[kind].range;
+  for (const n of pat || []) { lo = Math.min(lo, n.n); hi = Math.max(hi, n.n); }
+  const rows = []; for (let m = lo; m <= hi; m++) if (all || inScale(m, song)) rows.push(m);
+  return rows.reverse();
 }
 const inScale = (m, song) => SCALES[song.scale].steps.includes(((m - song.key) % 12 + 12) % 12);
 /* chords on the scale's degrees, stacked in thirds (pentatonic and blues borrow the parent scale) */
@@ -520,6 +531,7 @@ const UI = {
     const kids = [h('b', { style: { color: K.color, letterSpacing: '.06em' } }, K.name.toUpperCase()), pre, slider('Vol', t.vol, v => { t.vol = v; }), slider('Verb', t.rev, v => { t.rev = v; })];
     if (s.bars > 1) kids.push(h('div.seg', { role: 'group', 'aria-label': 'Bar' }, Array.from({ length: s.bars }, (_, k) => { const b = h('button' + (k === App.bar ? '.on' : ''), 'Bar ' + (k + 1)); b.onclick = () => { App.bar = k; UI.edbar(); UI.grid(); }; return b; })));
     if (t.kind !== 'drums') kids.push(h('div.seg', { role: 'group', 'aria-label': 'Note length', title: 'How long a new note is' }, [[1, '1/16'], [2, '1/8'], [4, '1/4'], [8, '1/2']].map(([l, nm]) => { const b = h('button' + (l === App.len ? '.on' : ''), nm); b.onclick = () => { App.len = l; UI.edbar(); }; return b; })));
+    if (t.kind !== 'drums') kids.push(h('div.seg', { role: 'group', 'aria-label': 'Which notes the grid shows', title: 'Show only the notes in your scale, or all twelve' }, [[false, 'Scale'], [true, 'All 12']].map(([v, nm]) => { const b = h('button' + (!!App.allNotes === v ? '.on' : ''), nm); b.onclick = () => { App.allNotes = v; UI.edbar(); UI.grid(); }; return b; })));
     kids.push(h('span.grow'));
     const clr = h('button.btn', { title: 'Clear this track in this scene' }, 'Clear'); let armed = 0;
     clr.onclick = () => { if (Date.now() - armed < 2500) { t.pats[App.scene] = []; App.changed(); UI.grid(); clr.textContent = 'Clear'; toast(K.name + ' cleared in scene ' + 'ABCD'[App.scene]); return; } armed = Date.now(); clr.textContent = 'Sure?'; setTimeout(() => { clr.textContent = 'Clear'; }, 2500); };
@@ -532,7 +544,7 @@ const UI = {
   grid() {
     const s = App.song, t = s.tracks[App.track], drums = t.kind === 'drums', b0 = App.bar * 16, g = $('#grid'), pat = t.pats[App.scene];
     g.style.setProperty('--tc', KINDS[t.kind].color);
-    const rows = this.rows = drums ? LANES.map((l, i) => ({ n: i, label: l[0], color: l[1] })) : scaleRows(t.kind, s).map(m => ({ n: m, label: noteName(m), root: ((m - s.key) % 12 + 12) % 12 === 0 }));
+    const rows = this.rows = drums ? LANES.map((l, i) => ({ n: i, label: l[0], color: l[1] })) : scaleRows(t.kind, s, App.allNotes, pat).map(m => ({ n: m, label: noteName(m), root: ((m - s.key) % 12 + 12) % 12 === 0 }));
     const at = (el, r, c) => { el.style.gridRow = String(r); el.style.gridColumn = String(c); return el; };   // every square has a fixed place, so notes laid on top can't push them around
     const kids = [at(h('div'), 1, 1)]; for (let c = 0; c < 16; c++) kids.push(at(h('div.stepnum.q' + (Math.floor(c / 4) + 1), String(c + 1)), 1, c + 2));
     this.cols = Array.from({ length: 16 }, () => []);
@@ -546,6 +558,15 @@ const UI = {
     });
     if (!drums) for (const n of pat) { const el = this.noteEl(n, rows, b0); if (el) kids.push(el); }
     g.replaceChildren(...kids); this.headAt = -1;
+    /* new track or view: scroll to where the notes are (or the track's home octave) */
+    const view = [App.track, App.scene, s.scale, s.key, !!App.allNotes].join(':');
+    if (!drums && view !== this.view) {
+      const ns = pat.map(n => n.n).sort((a, b) => a - b), mid = ns.length ? ns[ns.length >> 1] : KINDS[t.kind].low + 7;
+      let ri = 0, bd = 1e9; rows.forEach((r, k) => { const d = Math.abs(r.n - mid); if (d < bd) { bd = d; ri = k; } });
+      const lbl = g.querySelectorAll('.rowlbl')[ri], wrap = $('#gridwrap');
+      if (lbl && wrap) wrap.scrollTop = Math.max(0, lbl.offsetTop - wrap.clientHeight / 2 + 13);
+    }
+    this.view = drums ? null : view;
   },
   noteEl(n, rows = this.rows, b0 = App.bar * 16) {
     const ri = rows.findIndex(r => r.n === n.n); if (ri < 0) return null;
@@ -658,7 +679,7 @@ const Play = {
     surf.style.setProperty('--tc', KINDS[t.kind].color);
     const tabs = h('div.seg', { role: 'group', 'aria-label': 'Play with' }, modes.map(m => { const b = h('button' + (m === App.surface ? '.on' : ''), { pads: 'Drum pads', keys: 'Keyboard', chords: 'Chords' }[m]); b.onclick = () => { App.surface = m; Play.render(); }; return b; }));
     const kids = [h('b', { style: { color: KINDS[t.kind].color, letterSpacing: '.06em' } }, 'PLAY ' + KINDS[t.kind].name.toUpperCase()), tabs];
-    if (App.surface === 'keys') kids.push(h('div.knob', h('button.btn', { 'aria-label': 'Octave down', on: { click: () => { App.octave = clamp(App.octave - 1, -2, 2); Play.render(); } } }, '◀'), h('span', 'Oct ' + (App.octave >= 0 ? '+' : '') + App.octave), h('button.btn', { 'aria-label': 'Octave up', on: { click: () => { App.octave = clamp(App.octave + 1, -2, 2); Play.render(); } } }, '▶')));
+    if (App.surface === 'keys') kids.push(h('div.knob', h('button.btn', { 'aria-label': 'Octave down', on: { click: () => { App.octave = clamp(App.octave - 1, -3, 3); Play.render(); } } }, '◀'), h('span', 'Oct ' + (App.octave >= 0 ? '+' : '') + App.octave), h('button.btn', { 'aria-label': 'Octave up', on: { click: () => { App.octave = clamp(App.octave + 1, -3, 3); Play.render(); } } }, '▶')));
     kids.push(h('span', { style: { flex: 1 } }), h('span.lbl', App.rec ? '● recording into scene ' + 'ABCD'[App.scene] : 'press ● to record'));
     bar.replaceChildren(...kids);
     Live.allOff();
@@ -680,7 +701,7 @@ const Play = {
     return box;
   },
   keys() {
-    const s = App.song, i = App.track, t = s.tracks[i], wide = $('#surface').clientWidth || innerWidth, whites = wide > 700 ? 15 : wide > 460 ? 11 : 8;
+    const s = App.song, i = App.track, t = s.tracks[i], wide = $('#surface').clientWidth || innerWidth, whites = wide > 1000 ? 22 : wide > 700 ? 15 : wide > 460 ? 11 : 8;
     const lo = KINDS[t.kind].low + App.octave * 12, start = lo - ((lo % 12) + 12) % 12, box = h('div.keys');   // start on a C
     const W = [0, 2, 4, 5, 7, 9, 11], blackAfter = { 0: 1, 2: 3, 5: 6, 7: 8, 9: 10 };
     const whiteNotes = []; for (let k = 0; whiteNotes.length < whites; k++) { const m = start + Math.floor(k / 7) * 12 + W[k % 7]; whiteNotes.push(m); }
@@ -707,6 +728,73 @@ const Play = {
     this.fingers(box, (e) => this.under(e, '.chord'), (el, id) => { el.classList.add('down'); voice(set[+el.dataset.k]).forEach((m, j) => Live.on('c' + id + ':' + j, i, m, 0.7)); }, (el, id) => { el.classList.remove('down'); for (let j = 0; j < 5; j++) Live.off('c' + id + ':' + j); });
     return box;
   },
+};
+/* ---- 55-chords.js ---- */
+/* ============================================================
+   Chords, expanded: the chords in your key, "borrowed" chords
+   from outside it (the ♭VII, iv and ♭VI that make songs sound
+   like songs), or any of the 24 major and minor chords. Each can
+   be played plain, as a 7th, sus4, add9 or power chord.
+   ============================================================ */
+const DEGREE = ['I', '♭II', 'II', '♭III', 'III', 'IV', '♯IV', 'V', '♭VI', 'VI', '♭VII', 'VII'];
+const FLAVORS = [['triad', 'Plain'], ['7th', '7th'], ['sus4', 'sus4'], ['add9', 'add9'], ['power', '5']];
+const isMinorKey = (song) => ['minor', 'dorian', 'mpent', 'blues'].includes(song.scale);
+function parentSteps(song) { return isMinorKey(song) ? (song.scale === 'dorian' ? SCALES.dorian : SCALES.minor).steps : (song.scale === 'mixo' ? SCALES.mixo : SCALES.major).steps; }
+/* r = semitones above the key, q = maj / min / dim / dom */
+function chordInfo(r, q) { const deg = q === 'maj' || q === 'dom' ? DEGREE[r] : DEGREE[r].toLowerCase(); return { r, q, roman: deg + (q === 'dim' ? '°' : q === 'dom' ? '7' : '') }; }
+function chordBank(song, mode) {
+  if (mode === 'any') { const out = []; for (const q of ['maj', 'min']) for (let pc = 0; pc < 12; pc++) out.push(chordInfo((pc - song.key + 12) % 12, q)); return out; }
+  if (mode === 'borrowed') {
+    const list = isMinorKey(song)
+      ? [[0, 'maj'], [2, 'min'], [5, 'maj'], [7, 'maj'], [1, 'maj'], [9, 'min'], [2, 'maj'], [11, 'dim']]
+      : [[0, 'min'], [3, 'maj'], [5, 'min'], [8, 'maj'], [10, 'maj'], [2, 'maj'], [4, 'maj'], [1, 'maj']];
+    return list.map(([r, q]) => chordInfo(r, q));
+  }
+  const sc = parentSteps(song), out = sc.map((st, d) => {
+    const third = (sc[(d + 2) % 7] - st + 12) % 12, fifth = (sc[(d + 4) % 7] - st + 12) % 12;
+    return chordInfo(st, third === 3 ? (fifth === 6 ? 'dim' : 'min') : 'maj');
+  });
+  out.push(chordInfo(7, 'dom'));
+  return out;
+}
+/* the notes (semitones above the chord's root) and the chord's name for a flavour */
+function chordShape(c, flavor, song) {
+  const sc = parentSteps(song), majSeventhFits = sc.includes((c.r + 11) % 12);
+  const base = { maj: [0, 4, 7], min: [0, 3, 7], dim: [0, 3, 6], dom: [0, 4, 7, 10] }[c.q];
+  const tag = { maj: '', min: 'm', dim: 'dim', dom: '7' }[c.q];
+  if (flavor === '7th') return c.q === 'maj' ? (majSeventhFits ? [[0, 4, 7, 11], 'maj7'] : [[0, 4, 7, 10], '7']) : c.q === 'min' ? [[0, 3, 7, 10], 'm7'] : c.q === 'dim' ? [[0, 3, 6, 10], 'm7♭5'] : [base, '7'];
+  if (flavor === 'sus4') return [[0, 5, 7], c.q === 'dom' ? '7sus4' : 'sus4'];
+  if (flavor === 'add9') return [base.slice(0, 3).concat(14), c.q === 'min' ? 'm(add9)' : c.q === 'dim' ? 'dim(add9)' : 'add9'];
+  if (flavor === 'power') return [[0, 7, 12], '5'];
+  return [base, tag];
+}
+Play.chords = function () {
+  const s = App.song, i = App.track, t = s.tracks[i], mode = App.chordMode || 'key', flavor = App.flavor || 'triad';
+  const bank = chordBank(s, mode), box = h('div.chords' + (mode === 'any' ? '.any' : ''));
+  /* in All 24 the buttons are small: the big text is just the chord (C, C#m), the type goes underneath */
+  const chords = bank.map(c => { const [iv, tag] = chordShape(c, flavor, s), root = (s.key + c.r) % 12, short = mode === 'any';
+    const big = short ? NOTE_NAMES[root] + (c.q === 'min' ? 'm' : '') : NOTE_NAMES[root] + tag, small = short ? (flavor === 'triad' ? c.roman : tag.replace(/^m\((.*)\)$/, '$1').replace(/^m(?=7)/, '') + ' ' + c.roman) : c.roman;
+    return { name: NOTE_NAMES[root] + tag, big, small, tones: iv.map(x => s.key + c.r + x) }; });
+  const voice = (c) => {   // fit the chord into this track's range; the bass plays the root, plus an octave
+    const lo = KINDS[t.kind].low;
+    if (t.kind === 'bass') { let r = c.tones[0]; while (r < lo) r += 12; while (r > lo + 11) r -= 12; return [r, r + 12]; }
+    return c.tones.map(m => { let v = m; while (v < lo + 3) v += 12; while (v > lo + 19) v -= 12; return v; }).sort((a, b) => a - b).filter((m, k, a) => a.indexOf(m) === k);
+  };
+  chords.forEach((c, k) => box.append(h('div.chord', { 'data-k': k, role: 'button', 'aria-label': c.name + ' chord' }, c.big, h('small', c.small))));
+  this.fingers(box, (e) => this.under(e, '.chord'), (el, id) => { el.classList.add('down'); voice(chords[+el.dataset.k]).forEach((m, j) => Live.on('c' + id + ':' + j, i, m, 0.7)); }, (el, id) => { el.classList.remove('down'); for (let j = 0; j < 6; j++) Live.off('c' + id + ':' + j); });
+  return box;
+};
+/* the chord controls sit in the play bar, after the Keyboard / Chords tabs */
+const playRender = Play.render;
+Play.render = function () {
+  playRender.call(this);
+  if (App.surface !== 'chords') return;
+  const bar = $('#playbar'), tabs = bar.querySelector('.seg');
+  const seg = (label, opts, cur, set) => h('div.seg', { role: 'group', 'aria-label': label }, opts.map(([v, nm]) => { const b = h('button' + (v === cur ? '.on' : ''), nm); b.onclick = () => { set(v); Play.render(); }; return b; }));
+  const which = seg('Which chords', [['key', 'In key'], ['borrowed', 'Borrowed'], ['any', 'All 24']], App.chordMode || 'key', v => { App.chordMode = v; });
+  const flav = seg('Chord type', FLAVORS, App.flavor || 'triad', v => { App.flavor = v; });
+  which.title = 'In key: always sounds right. Borrowed: outside the key, for colour. All 24: every major and minor chord.';
+  tabs.after(which, flav);
 };
 /* ---- 60-extras.js ---- */
 /* ============================================================
@@ -786,7 +874,7 @@ const Typing = {
   init() {
     addEventListener('keydown', (e) => {
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || e.target.closest('input, textarea, select')) return;
-      if (e.code === 'KeyZ' || e.code === 'KeyX') { App.octave = clamp(App.octave + (e.code === 'KeyX' ? 1 : -1), -2, 2); Play.render(); toast('Octave ' + (App.octave >= 0 ? '+' : '') + App.octave); return; }
+      if (e.code === 'KeyZ' || e.code === 'KeyX') { App.octave = clamp(App.octave + (e.code === 'KeyX' ? 1 : -1), -3, 3); Play.render(); toast('Octave ' + (App.octave >= 0 ? '+' : '') + App.octave); return; }
       if (e.code === 'KeyR' && !e.shiftKey) { $('#bRec').click(); return; }
       const off = this.map[e.code]; if (off === undefined) return;
       const t = App.song.tracks[App.track]; let n;

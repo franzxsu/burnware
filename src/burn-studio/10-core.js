@@ -30,18 +30,18 @@ const SCALES = {
 };
 const KINDS = {
   drums: { name: 'Drums', color: 'var(--c-drums)', presets: ['808', 'Studio', 'Lo-fi'] },
-  bass: { name: 'Bass', color: 'var(--c-bass)', presets: ['Sub', 'Pluck', 'Acid'], low: 33 },
-  keys: { name: 'Keys', color: 'var(--c-keys)', presets: ['E-Piano', 'Organ', 'Piano'], low: 52 },
-  synth: { name: 'Synth', color: 'var(--c-synth)', presets: ['Lead', 'Pad', 'Chip'], low: 64 },
+  bass: { name: 'Bass', color: 'var(--c-bass)', presets: ['Sub', 'Pluck', 'Acid'], low: 33, range: [24, 55] },
+  keys: { name: 'Keys', color: 'var(--c-keys)', presets: ['E-Piano', 'Organ', 'Piano'], low: 52, range: [36, 84] },
+  synth: { name: 'Synth', color: 'var(--c-synth)', presets: ['Lead', 'Pad', 'Chip'], low: 64, range: [48, 96] },
 };
 const LANES = [['Kick', '#ff5d4a'], ['Snare', '#ff9a3a'], ['Clap', '#ffd23a'], ['Closed hat', '#8ee05a'], ['Open hat', '#3fd1a8'], ['Low tom', '#3fc7ff'], ['High tom', '#6f8cff'], ['Crash', '#c98cff']];
-/* the rows a melodic track shows: two octaves of the scale, from its lowest note up */
-function scaleRows(kind, song) {
-  const K = KINDS[kind], sc = SCALES[song.scale].steps, root = song.key, rows = [];
-  let base = K.low - ((K.low - root) % 12 + 12) % 12;   // the key's root at or below the track's low note
-  for (let o = 0; o < 2; o++) for (const s of sc) rows.push(base + o * 12 + s);
-  rows.push(base + 24);
-  return rows.filter(m => m >= K.low - 2).reverse();
+/* the rows a melodic track shows: three or four octaves, scale notes only or all twelve,
+   stretched to fit any note already in the pattern so nothing hides off the grid */
+function scaleRows(kind, song, all, pat) {
+  let [lo, hi] = KINDS[kind].range;
+  for (const n of pat || []) { lo = Math.min(lo, n.n); hi = Math.max(hi, n.n); }
+  const rows = []; for (let m = lo; m <= hi; m++) if (all || inScale(m, song)) rows.push(m);
+  return rows.reverse();
 }
 const inScale = (m, song) => SCALES[song.scale].steps.includes(((m - song.key) % 12 + 12) % 12);
 /* chords on the scale's degrees, stacked in thirds (pentatonic and blues borrow the parent scale) */

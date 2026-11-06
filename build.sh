@@ -91,7 +91,7 @@ JS="10-core.js 15-audio.js 20-world.js 30-voxels.js 32-city.js 34-damage.js 35-f
 
 # ---------- Burn Studio ----------
 D=src/burn-studio
-JS="10-core.js 20-synth.js 30-seq.js 40-ui.js 50-play.js 60-extras.js 99-main.js"
+JS="10-core.js 20-synth.js 30-seq.js 40-ui.js 50-play.js 55-chords.js 60-extras.js 99-main.js"
 {
   open_page "Burn Studio: a music maker. Drums, bass, keys and synths, loops, a piano and WAV export." "$BASE_BW" "../"
   head_part $D/00-head.html

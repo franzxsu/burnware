@@ -53,6 +53,7 @@ const UI = {
     const kids = [h('b', { style: { color: K.color, letterSpacing: '.06em' } }, K.name.toUpperCase()), pre, slider('Vol', t.vol, v => { t.vol = v; }), slider('Verb', t.rev, v => { t.rev = v; })];
     if (s.bars > 1) kids.push(h('div.seg', { role: 'group', 'aria-label': 'Bar' }, Array.from({ length: s.bars }, (_, k) => { const b = h('button' + (k === App.bar ? '.on' : ''), 'Bar ' + (k + 1)); b.onclick = () => { App.bar = k; UI.edbar(); UI.grid(); }; return b; })));
     if (t.kind !== 'drums') kids.push(h('div.seg', { role: 'group', 'aria-label': 'Note length', title: 'How long a new note is' }, [[1, '1/16'], [2, '1/8'], [4, '1/4'], [8, '1/2']].map(([l, nm]) => { const b = h('button' + (l === App.len ? '.on' : ''), nm); b.onclick = () => { App.len = l; UI.edbar(); }; return b; })));
+    if (t.kind !== 'drums') kids.push(h('div.seg', { role: 'group', 'aria-label': 'Which notes the grid shows', title: 'Show only the notes in your scale, or all twelve' }, [[false, 'Scale'], [true, 'All 12']].map(([v, nm]) => { const b = h('button' + (!!App.allNotes === v ? '.on' : ''), nm); b.onclick = () => { App.allNotes = v; UI.edbar(); UI.grid(); }; return b; })));
     kids.push(h('span.grow'));
     const clr = h('button.btn', { title: 'Clear this track in this scene' }, 'Clear'); let armed = 0;
     clr.onclick = () => { if (Date.now() - armed < 2500) { t.pats[App.scene] = []; App.changed(); UI.grid(); clr.textContent = 'Clear'; toast(K.name + ' cleared in scene ' + 'ABCD'[App.scene]); return; } armed = Date.now(); clr.textContent = 'Sure?'; setTimeout(() => { clr.textContent = 'Clear'; }, 2500); };
@@ -65,7 +66,7 @@ const UI = {
   grid() {
     const s = App.song, t = s.tracks[App.track], drums = t.kind === 'drums', b0 = App.bar * 16, g = $('#grid'), pat = t.pats[App.scene];
     g.style.setProperty('--tc', KINDS[t.kind].color);
-    const rows = this.rows = drums ? LANES.map((l, i) => ({ n: i, label: l[0], color: l[1] })) : scaleRows(t.kind, s).map(m => ({ n: m, label: noteName(m), root: ((m - s.key) % 12 + 12) % 12 === 0 }));
+    const rows = this.rows = drums ? LANES.map((l, i) => ({ n: i, label: l[0], color: l[1] })) : scaleRows(t.kind, s, App.allNotes, pat).map(m => ({ n: m, label: noteName(m), root: ((m - s.key) % 12 + 12) % 12 === 0 }));
     const at = (el, r, c) => { el.style.gridRow = String(r); el.style.gridColumn = String(c); return el; };   // every square has a fixed place, so notes laid on top can't push them around
     const kids = [at(h('div'), 1, 1)]; for (let c = 0; c < 16; c++) kids.push(at(h('div.stepnum.q' + (Math.floor(c / 4) + 1), String(c + 1)), 1, c + 2));
     this.cols = Array.from({ length: 16 }, () => []);
@@ -79,6 +80,15 @@ const UI = {
     });
     if (!drums) for (const n of pat) { const el = this.noteEl(n, rows, b0); if (el) kids.push(el); }
     g.replaceChildren(...kids); this.headAt = -1;
+    /* new track or view: scroll to where the notes are (or the track's home octave) */
+    const view = [App.track, App.scene, s.scale, s.key, !!App.allNotes].join(':');
+    if (!drums && view !== this.view) {
+      const ns = pat.map(n => n.n).sort((a, b) => a - b), mid = ns.length ? ns[ns.length >> 1] : KINDS[t.kind].low + 7;
+      let ri = 0, bd = 1e9; rows.forEach((r, k) => { const d = Math.abs(r.n - mid); if (d < bd) { bd = d; ri = k; } });
+      const lbl = g.querySelectorAll('.rowlbl')[ri], wrap = $('#gridwrap');
+      if (lbl && wrap) wrap.scrollTop = Math.max(0, lbl.offsetTop - wrap.clientHeight / 2 + 13);
+    }
+    this.view = drums ? null : view;
   },
   noteEl(n, rows = this.rows, b0 = App.bar * 16) {
     const ri = rows.findIndex(r => r.n === n.n); if (ri < 0) return null;
