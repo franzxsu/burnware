@@ -118,14 +118,14 @@ APPS.help = {
       <li><b>Kaiju Rampage:</b> still being built.</li></ul>
       <p>Each of the big ones runs in its own window. Use <b>Full screen</b> or <b>New tab</b> in its toolbar to give it the whole screen.</p>
       <h3>The time machine</h3>
-      <p>Click the clock on the taskbar to pick a year. Burnware moves to it, and <b>SparkNet News</b> in Wildfire Navigator shows real headlines from that year, read live from Wikipedia. Any year from 1000 to now works.</p>
+      <p>Click the clock on the taskbar to pick a year. Burnware moves to it, and <b>SparkNet News</b> in Torch shows real headlines from that year, read live from Wikipedia. Any year from 1000 to now works.</p>
       <h3>Everything else</h3>
       <ul><li><b>Paint:</b> pencil, brush, spray, fill, shapes. File &gt; Set as Wallpaper.</li>
       <li><b>Minesweeper:</b> right-click (or turn on the flag button) to flag a mine. Click a number with the right flags around it to clear its neighbours.</li>
       <li><b>Solitaire:</b> drag cards, or double-click a card to send it home. Click the deck to draw.</li>
       <li><b>Snake:</b> arrow keys or WASD, or swipe on a touch screen.</li>
       <li><b>Command Prompt:</b> a command line. Type <code>help</code>.</li>
-      <li><b>Wildfire Navigator:</b> the World Wide Web, as it was. Try the bookmarks.</li>
+      <li><b>Torch:</b> the World Wide Web, as it was. Try the bookmarks.</li>
       <li><b>Smoke Signals:</b> chat with DialUpDan. Here he uses his offline replies; when this computer runs inside Claude, Claude plays him live.</li>
       <li><b>MixBurner:</b> plays music made from scratch in code.</li></ul>
       <h3>Secrets</h3>

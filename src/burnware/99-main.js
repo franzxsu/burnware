@@ -5,7 +5,7 @@
 function startBurnware(data) {
   Store.load(); FS.load();
   Wall.scheme(Store.data.scheme);
-  Desktop.init(); Start.init(); Tuko.init();
+  Desktop.init(); Start.init(); Tuko.init(); NewsBoard.init();
   AI.get();   // find out early whether Claude can play DialUpDan here
   let rz = null;
   addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { Wall.paint(); for (const w of WM.wins) if (w.onResize) w.onResize(); }, 150); });

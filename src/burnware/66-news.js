@@ -1,6 +1,6 @@
 /* ============================================================
    The time machine. Click the clock to pick the year Burnware
-   lives in; SparkNet News in Wildfire Navigator then shows real
+   lives in; SparkNet News in Torch then shows real
    headlines from that year, read live from the Events section of
    Wikipedia's article about it (and kept in this browser after).
    ============================================================ */
@@ -54,7 +54,11 @@ const News = {
 };
 /* ---------- the taskbar clock and Date/Time Properties ---------- */
 const Clock = {
-  tick() { const c = $('#clock'); if (!c) return; c.textContent = fmtClock(); c.title = News.dateString() + ' (click to time travel)'; },
+  tick() {
+    const c = $('#clock'); if (!c) return; const d = new Date();
+    c.replaceChildren(h('b', fmtClock(d)), h('small', `${d.getMonth() + 1}/${d.getDate()}/${News.year()}`)); c.title = News.dateString() + ' (click to time travel)';
+    if (typeof NewsBoard !== 'undefined') NewsBoard.refreshButton();
+  },
 };
 APPS.datetime = {
   title: 'Date/Time Properties', icon: 'clock', w: 340, h: 330, resizable: false, single: true, center: true,
@@ -67,7 +71,7 @@ APPS.datetime = {
       mLabel.textContent = MONTHS[now.getMonth()] + ' ' + y;
       const first = new Date(y, now.getMonth(), 1).getDay(), days = new Date(y, now.getMonth() + 1, 0).getDate();
       cal.replaceChildren(...['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => h('span.dow', d)), ...Array.from({ length: first }, () => h('span')), ...Array.from({ length: days }, (_, i) => h('span' + (i + 1 === now.getDate() ? '.today' : ''), String(i + 1))));
-      note.textContent = y === News.max() ? 'That is now. SparkNet News will show this year so far.' : `Wildfire Navigator's news will come from ${y}.`;
+      note.textContent = y === News.max() ? 'That is now. SparkNet News will show this year so far.' : `Torch's news will come from ${y}.`;
     };
     const step = (d) => { yr.value = clamp(y + d, News.MIN, News.max()); draw(); Sound.click(); };
     yr.addEventListener('input', draw);
@@ -76,7 +80,7 @@ APPS.datetime = {
       h('div.dtrow', h('button.btn', { text: '◀', 'aria-label': 'Earlier', on: { click: () => step(-1) } }), yr, h('button.btn', { text: '▶', 'aria-label': 'Later', on: { click: () => step(1) } }), h('button.btn', { text: 'Now', on: { click: () => { yr.value = News.max(); draw(); } } })),
       h('div.calbox.sunk', mLabel, cal), note,
       h('p.small', 'The time machine sets the year Burnware lives in. Real headlines come from Wikipedia.')),
-      h('div.dlgbtns', h('button.btn.def', { text: 'OK', on: { click: () => { const v = apply(); WM.close(win); Tuko.say(`Whoosh. It is ${v} now. Open SparkNet News in Wildfire Navigator to read the headlines.`, 7000); } } }), h('button.btn', { text: 'Cancel', on: { click: () => WM.close(win) } }), h('button.btn', { text: 'Apply', on: { click: apply } })));
+      h('div.dlgbtns', h('button.btn.def', { text: 'OK', on: { click: () => { const v = apply(); WM.close(win); Tuko.say(`Whoosh. It is ${v} now. Open SparkNet News in Torch to read the headlines.`, 7000); } } }), h('button.btn', { text: 'Cancel', on: { click: () => WM.close(win) } }), h('button.btn', { text: 'Apply', on: { click: apply } })));
     draw();
   },
 };

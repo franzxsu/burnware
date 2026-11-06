@@ -23,7 +23,7 @@ const Boot = {
       const o = h('div#bios.over', { 'aria-label': 'Starting up' }); document.body.append(o);
       const logo = h('div.logo', 'Ember BIOS v4.51PG\nAn Energy Star Ally\n   ▲ ▲ ▲');
       const pre = h('div'); o.append(logo, pre);
-      const L = ['BurnBIOS (C) 1998 Ember Systems, Inc.', '', 'Main Processor : Pentium(R)-ish 233MHz', 'Memory Testing : ', '', 'Detecting IDE Primary Master ... BURN-HD 2.1GB', 'Detecting IDE Primary Slave  ... None', 'Detecting IDE Secondary Master ... CD-ROM 24X', 'Gecko ........................ 1 detected (Tuko)', 'Weekly tokens ................ 100% (now burning)', '', 'Starting Burnware...'];
+      const L = ['BurnBIOS (C) 1998 Ember Systems, Inc.', '', 'Main Processor : Pentium(R)-ish 233MHz', 'Memory Testing : ', '', 'Detecting IDE Primary Master ... BURN-HD 2.1GB', 'Detecting IDE Primary Slave  ... None', 'Detecting IDE Secondary Master ... CD-ROM 24X', 'Gecko ........................ 1 detected (Tuko)', 'System date .................. ' + (() => { const d = new Date(); return String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0') + '/' + News.year(); })(), 'Weekly tokens ................ 100% (now burning)', '', 'Starting Burnware...'];
       let k = 0, mem = 0, skip = false;
       const end = () => { o.remove(); res(); };
       o.addEventListener('pointerdown', () => { skip = true; }); addEventListener('keydown', () => { skip = true; }, { once: true });

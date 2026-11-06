@@ -350,6 +350,31 @@ a.tool { color: inherit; text-decoration: none; box-shadow: inset -1px -1px var(
 .cal .dow { font-weight: 700; color: #555; }
 .cal .today { background: var(--sel); color: var(--seltxt); }
 .dtp .small { margin: 0; font-size: 11px; color: #444; }
+@media (pointer: coarse) { .swatches { grid-template-columns: repeat(14, 22px); grid-template-rows: 22px 22px; gap: 2px; } .ptools { grid-template-columns: 34px 34px; } .ptools .tool { width: 34px; height: 34px; } .palette { overflow-x: auto; } }
+#clock { display: grid; justify-items: end; line-height: 1.05; padding: 0 4px; }
+#clock b { font-weight: 400; } #clock small { font-size: 10px; }
+/* News & Interests: a taskbar button that opens a board of headlines from the time machine's year */
+#newsbtn { flex: 0 1 230px; min-width: 30px; height: 24px; display: flex; align-items: center; gap: 5px; padding: 0 6px; border: 0; background: var(--face); cursor: pointer; text-align: left; box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--mid); }
+#newsbtn.on { box-shadow: inset 1px 1px var(--dk), inset -1px -1px var(--hi), inset 2px 2px var(--lo); background: repeating-conic-gradient(var(--hi) 0 25%, var(--face) 0 50%) 0 0 / 2px 2px; }
+#newsbtn img { flex: none; }
+#newsbtn span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; font-size: 11px; }
+#newsbtn span b { color: var(--t1); }
+#newsboard { position: absolute; bottom: 100%; margin-bottom: -2px; left: var(--gl); width: min(400px, calc(100vw - var(--gl) - var(--gr))); max-height: min(560px, calc(100dvh - 60px)); display: flex; flex-direction: column; z-index: 9001; background: var(--face); padding: 3px; box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--face2), inset -2px -2px var(--lo), inset 2px 2px var(--hi), 2px 2px 0 rgba(0,0,0,.25); }
+#newsboard .nbhead { display: flex; align-items: center; gap: 6px; padding: 6px 8px; color: #fff; background: linear-gradient(90deg, var(--t1), var(--t2)); font-weight: 700; }
+#newsboard .nbhead span { flex: 1; font: 700 15px/1 var(--pix); }
+#newsboard .nbhead .btn { min-width: 26px; padding: 2px 6px; color: var(--ink); }
+#newsboard .nbbody { overflow-y: auto; padding: 6px; display: grid; gap: 6px; background: #f3efe6; }
+.nbcard { background: #fff; padding: 8px 10px; box-shadow: inset 1px 1px var(--lo), inset -1px -1px var(--hi); }
+.nbcard h4 { margin: 0 0 6px; font: 700 11px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--t1); display: flex; gap: 6px; align-items: center; }
+.nbcard ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.nbcard li button { all: unset; cursor: pointer; display: block; font: 13px/1.35 Georgia, "Times New Roman", serif; }
+.nbcard li button b { font: 700 11px var(--ui); color: #7a1010; display: block; }
+.nbcard li button:hover, .nbcard li button:focus-visible { text-decoration: underline; }
+.nbweather { display: flex; gap: 10px; align-items: center; font-size: 13px; }
+.nbweather .deg { font: 700 30px/1 var(--pix); color: var(--t1); }
+.nbfoot { display: flex; justify-content: space-between; gap: 8px; padding: 6px 8px 3px; font-size: 11px; }
+.nbfoot a { color: #0b3a68; cursor: pointer; }
+@media (max-width: 560px) { #newsbtn { flex: none; } #newsbtn span { display: none; } }
 </style>
 </head>
 <body>
@@ -412,10 +437,28 @@ const Store = {
 };
 /* Phones: act when the finger lifts, so the first tap always counts (a tap right after
    using a program in a frame can otherwise get eaten). Mice keep using click. */
-const TapShield = { until: 0 };   // after acting on a finger-up, eat the click that follows so it can't land on whatever opened underneath
-document.addEventListener('click', (e) => { if (Date.now() < TapShield.until) { e.stopPropagation(); e.preventDefault(); } }, true);
+const TapShield = { until: 0, pass: false };   // after acting on a finger-up, eat the click that follows so it can't land on whatever opened underneath
+document.addEventListener('click', (e) => { if (!TapShield.pass && Date.now() < TapShield.until) { e.stopPropagation(); e.preventDefault(); } }, true);
+/* On a touch screen every button answers on finger-up, so no tap ever goes missing (Safari on iPhone can drop
+   them). Things wired with onTap, and the desktop icons, handle their own taps. */
+(() => {
+  let down = null;
+  const SEL = 'button, a, [role="button"], .fitem, .smi, .buddy, .card, .mc';
+  document.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse') { down = null; return; }
+    const el = e.target.closest && e.target.closest(SEL); down = el && !el._tap && !el.closest('.icon') ? { el, x: e.clientX, y: e.clientY, t: Date.now() } : null;
+  }, true);
+  document.addEventListener('pointercancel', () => { down = null; }, true);
+  document.addEventListener('pointerup', (e) => {
+    const d = down; down = null; if (!d || e.pointerType === 'mouse') return;
+    if (Date.now() - d.t > 700 || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 12) return;
+    const el = d.el; if (!el.isConnected || el.disabled || el.classList.contains('card') || el.classList.contains('mc')) return;   // cards and mine cells keep their own drag and long-press rules
+    TapShield.pass = true; try { el.click(); } finally { TapShield.pass = false; }
+    TapShield.until = Date.now() + 450;
+  }, true);
+})();
 function onTap(el, fn) {
-  let down = null, fired = 0;
+  let down = null, fired = 0; el._tap = true;
   el.addEventListener('pointerdown', (e) => { down = e.pointerType === 'mouse' ? null : { t: Date.now(), x: e.clientX, y: e.clientY }; });
   el.addEventListener('pointerup', (e) => {
     if (!down || e.pointerType === 'mouse') return; const d = down; down = null;
@@ -506,6 +549,7 @@ Object.assign(SPR, {
   pan: ['....w....w......', '...w....w.......', '....w....w......', '................', '...kkkkkkkk.....', '..kDDDDDDDDk....', '.kDDwwwwwDDDk...', '.kDwwwyywwDDkkkk', '.kDwwyyyywDDknnn', '.kDDwwyywwDDkkkk', '..kDDwwwwDDk....', '...kkkkkkkk.....', '................', '...or.ro.or.ro..', '...yo.oy.yo.oy..', '................'],
   video: ['................', '.kkkkkkkkkkkkkk.', '.kggggggggggggk.', '.kgkkkkkkkkkkgk.', '.kgkBTBTBTBTkgk.', '.kgkTBwTBTBTkgk.', '.kgkBTwwBTBTkgk.', '.kgkTBwwwTBTkgk.', '.kgkBTwwBTBTkgk.', '.kgkTBwTBTBTkgk.', '.kgkkkkkkkkkkgk.', '.kggggggggrgdgk.', '.kkkkkkkkkkkkkk.', '....kk....kk....', '................', '................'],
   gecko: ['......GGGG......', '.....GyGGyG.....', '.....GkGGkG.....', '......GGGG......', '..G...GGGG...G..', '..GG.GGooGG.GG..', '...GGGGGGGGGG...', '......GoGG......', '......GGoG......', '...GGGGGGGGGG...', '..GG.GGGGGG.GG..', '..G....GG....G..', '.......GG.......', '........GG......', '.........G......', '..........G.....'],
+  news: ['................', '.kkkkkkkkkkkkk..', '.kwwwwwwwwwwwkk.', '.kwkkkkkkkkkwkwk', '.kwkkkkkkkkkwkwk', '.kwwwwwwwwwwwkwk', '.kwdddwwdddwwkwk', '.kwwwwwwwwwwwkwk', '.kwdddwwdddwwkwk', '.kwwwwwwwwwwwkwk', '.kwdddwwdddwwkwk', '.kwwwwwwwwwwwkwk', '.kwdddwwdddwwkwk', '.kwwwwwwwwwwwkk.', '.kkkkkkkkkkkkk..', '................'],
   clock: ['................', '.....kkkkkk.....', '...kkwwwwwwkk...', '..kwwwwkwwwwwk..', '..kwwwwkwwwwwk..', '.kwwwwwkwwwwwwk.', '.kwwwwwkwwwwwwk.', '.kwwwwwkkkkwwwk.', '.kwwwwwwwwwwwwk.', '.kwwwwwwwwwwwwk.', '..kwwwwwwwwwwk..', '..kwrwwwwwwrwk..', '...kkwwwwwwkk...', '.....kkkkkk.....', '................', '................'],
 });
 /* ---- 10-sound.js ---- */
@@ -695,7 +739,7 @@ const FS = {
     return { txt: 'txt', img: 'img', sys: 'sys', snd: 'music', vid: 'video' }[n.kind] || 'txt';
   },
 };
-const README = `Welcome to Burnware!\r\n====================\r\n\r\nYou are using the only operating system built entirely\r\nout of burnt tokens.\r\n\r\nOn the desktop:\r\n  * Omnigacha: a gacha machine that pulls for everything.\r\n    Tap it for tokens. The rates are what they are.\r\n  * Pebble Dash: tiny rally cars, loose gravel, big slides.\r\n  * Sizzle Sand: a kitchen where every grain is simulated.\r\n    Things will catch fire. Water makes it worse.\r\n  * Rain.wav: a lo-fi music video, made from code.\r\n  * Kaiju Rampage: still being built. Tuko is growing.\r\n\r\nThings to try:\r\n  * Drag windows around by their title bar. Resize them\r\n    from the bottom-right corner.\r\n  * Paint something, then use File > Set as Wallpaper.\r\n  * Beat Minesweeper on Expert. (Nobody has. Be the first.)\r\n  * Open Smoke Signals and say hi to DialUpDan.\r\n  * Open Command Prompt and type HELP.\r\n  * Surf the World Wide Web with Wildfire Navigator.\r\n  * There is a locked folder somewhere. Tuko knows things.\r\n\r\nEverything you save stays in this browser.\r\nWhen you are done, use Start > Shut Down like a civilised person.\r\n`;
+const README = `Welcome to Burnware!\r\n====================\r\n\r\nYou are using the only operating system built entirely\r\nout of burnt tokens.\r\n\r\nOn the desktop:\r\n  * Omnigacha: a gacha machine that pulls for everything.\r\n    Tap it for tokens. The rates are what they are.\r\n  * Pebble Dash: tiny rally cars, loose gravel, big slides.\r\n  * Sizzle Sand: a kitchen where every grain is simulated.\r\n    Things will catch fire. Water makes it worse.\r\n  * Rain.wav: a lo-fi music video, made from code.\r\n  * Kaiju Rampage: still being built. Tuko is growing.\r\n\r\nThings to try:\r\n  * Drag windows around by their title bar. Resize them\r\n    from the bottom-right corner.\r\n  * Paint something, then use File > Set as Wallpaper.\r\n  * Beat Minesweeper on Expert. (Nobody has. Be the first.)\r\n  * Open Smoke Signals and say hi to DialUpDan.\r\n  * Open Command Prompt and type HELP.\r\n  * Surf the World Wide Web with Torch.\r\n  * There is a locked folder somewhere. Tuko knows things.\r\n\r\nEverything you save stays in this browser.\r\nWhen you are done, use Start > Shut Down like a civilised person.\r\n`;
 const TODO = `TO DO\r\n-----\r\n[ ] beat Minesweeper on Expert\r\n[x] beat Minesweeper on Beginner (took 3 tries, dont tell anyone)\r\n[ ] DO NOT pick up the phone while the internet is on\r\n[ ] save up for a 2 GB hard drive (who even needs that much??)\r\n[ ] learn HTML. make a homepage. get a guestbook\r\n[ ] find out what Y2K actually is\r\n[ ] defragment the hard drive and watch the little blocks\r\n[ ] stop naming files FINAL_final\r\n`;
 const POEM = `dial-up, at midnight\r\n\r\nthe modem sings its broken song,\r\na whistle, then a hiss,\r\nand somewhere down the copper line\r\nthe whole wide world says this:\r\n\r\n"hello, small hut, so warm and dry,\r\nwhile rain taps on your thatch,\r\nhere is a page, it loads one line\r\nat a time. you'll catch up. relax."\r\n`;
 const TREASURE = `YOU FOUND IT!\r\n\r\nThe password was the snack. Tuko is very proud of you.\r\n\r\nAs a reward, a new wallpaper is waiting for you in\r\nDisplay Properties: "Golden hour".\r\n\r\nAlso, here is a secret: if you type  tuko dance  in the\r\nterminal, something happens.\r\n`;
@@ -868,7 +912,7 @@ const Desktop = {
     { label: 'My Computer', icon: 'computer', open: () => WM.open('explorer', { path: 'C:' }) },
     { label: 'My Documents', icon: 'docs', open: () => WM.open('explorer', { path: 'C:\\My Documents' }) },
     { label: 'Recycle Bin', icon: () => FS.bin.length ? 'binfull' : 'bin', open: () => WM.open('explorer', { path: 'BIN' }) },
-    { label: 'Wildfire Navigator', icon: 'globe', open: () => WM.open('browser') },
+    { label: 'Torch', icon: 'globe', open: () => WM.open('browser') },
     { label: 'Smoke Signals', icon: 'chat', open: () => WM.open('chat') },
     { label: 'Paint', icon: 'paint', open: () => WM.open('paint') },
     { label: 'Minesweeper', icon: 'mines', open: () => WM.open('mines') },
@@ -925,7 +969,7 @@ const Start = {
       const limit = $('#taskbar').getBoundingClientRect().top - 2, r = sub.getBoundingClientRect();
       if (r.bottom > limit) { sub.style.top = -Math.min(r.bottom - limit, r.top - 4) + 'px'; const r2 = sub.getBoundingClientRect(); if (r2.bottom > limit) { sub.style.maxHeight = Math.max(120, limit - r2.top) + 'px'; sub.style.overflowY = 'auto'; } }
     };
-    progItem.addEventListener('pointerenter', showSub); progItem.addEventListener('click', (e) => { e.stopPropagation(); sub.hidden ? showSub() : (sub.hidden = true); });
+    progItem.addEventListener('pointerenter', () => { showSub(); progItem._shownAt = Date.now(); }); progItem.addEventListener('click', (e) => { e.stopPropagation(); if (Date.now() - (progItem._shownAt || 0) < 500) return; sub.hidden ? showSub() : (sub.hidden = true); });
     const items = h('div.items',
       progItem,
       item('docs', 'Documents', () => WM.open('explorer', { path: 'C:\\My Documents' })),
@@ -945,7 +989,7 @@ const Start = {
   async run() {
     const v = await WM.prompt('Run', 'Type the name of a program, folder or web page, and Burnware will open it for you.', 'burn://home');
     if (!v) return;
-    const s = v.trim().toLowerCase(), alias = { notepad: 'notepad', paint: 'paint', mspaint: 'paint', minesweeper: 'mines', mines: 'mines', winmine: 'mines', solitaire: 'solitaire', sol: 'solitaire', snake: 'snake', cmd: 'terminal', command: 'terminal', terminal: 'terminal', prompt: 'terminal', browser: 'browser', navigator: 'browser', music: 'music', mixburner: 'music', kuboamp: 'music', amp: 'music', chat: 'chat', smoke: 'chat', signals: 'chat', time: 'datetime', date: 'datetime', clock: 'datetime', timemachine: 'datetime', news: 'browser', kubochat: 'chat', omnigacha: 'omni', gacha: 'omni', pebble: 'pebble', pebbledash: 'pebble', rally: 'pebble', sizzle: 'sizzle', sizzlesand: 'sizzle', sand: 'sizzle', video: 'video', mediaplayer: 'video', 'rain.wav': 'rainwav', rainwav: 'rainwav', kaiju: 'kaiju', settings: 'settings', control: 'settings', help: 'help', explorer: 'explorer' };
+    const s = v.trim().toLowerCase(), alias = { notepad: 'notepad', paint: 'paint', mspaint: 'paint', minesweeper: 'mines', mines: 'mines', winmine: 'mines', solitaire: 'solitaire', sol: 'solitaire', snake: 'snake', cmd: 'terminal', command: 'terminal', terminal: 'terminal', prompt: 'terminal', browser: 'browser', navigator: 'browser', torch: 'browser', music: 'music', mixburner: 'music', kuboamp: 'music', amp: 'music', chat: 'chat', smoke: 'chat', signals: 'chat', time: 'datetime', date: 'datetime', clock: 'datetime', timemachine: 'datetime', news: 'browser', kubochat: 'chat', omnigacha: 'omni', gacha: 'omni', pebble: 'pebble', pebbledash: 'pebble', rally: 'pebble', sizzle: 'sizzle', sizzlesand: 'sizzle', sand: 'sizzle', video: 'video', mediaplayer: 'video', 'rain.wav': 'rainwav', rainwav: 'rainwav', kaiju: 'kaiju', settings: 'settings', control: 'settings', help: 'help', explorer: 'explorer' };
     if (alias[s]) WM.open(alias[s]);
     else if (/^(c:|c:\\)/i.test(s)) { const n = FS.resolve(v.trim()); if (n && n.type === 'dir') WM.open('explorer', { path: v.trim() }); else if (n) Files.openFile(v.trim()); else WM.alert('Run', `Cannot find the file '${v}'. Make sure you typed the name correctly, and then try again.`, 'err'); }
     else if (/^(https?:|www\.|burn:)/.test(s) || s.includes('.')) WM.open('browser', { url: v.trim() });
@@ -1086,14 +1130,14 @@ APPS.help = {
       <li><b>Kaiju Rampage:</b> still being built.</li></ul>
       <p>Each of the big ones runs in its own window. Use <b>Full screen</b> or <b>New tab</b> in its toolbar to give it the whole screen.</p>
       <h3>The time machine</h3>
-      <p>Click the clock on the taskbar to pick a year. Burnware moves to it, and <b>SparkNet News</b> in Wildfire Navigator shows real headlines from that year, read live from Wikipedia. Any year from 1000 to now works.</p>
+      <p>Click the clock on the taskbar to pick a year. Burnware moves to it, and <b>SparkNet News</b> in Torch shows real headlines from that year, read live from Wikipedia. Any year from 1000 to now works.</p>
       <h3>Everything else</h3>
       <ul><li><b>Paint:</b> pencil, brush, spray, fill, shapes. File &gt; Set as Wallpaper.</li>
       <li><b>Minesweeper:</b> right-click (or turn on the flag button) to flag a mine. Click a number with the right flags around it to clear its neighbours.</li>
       <li><b>Solitaire:</b> drag cards, or double-click a card to send it home. Click the deck to draw.</li>
       <li><b>Snake:</b> arrow keys or WASD, or swipe on a touch screen.</li>
       <li><b>Command Prompt:</b> a command line. Type <code>help</code>.</li>
-      <li><b>Wildfire Navigator:</b> the World Wide Web, as it was. Try the bookmarks.</li>
+      <li><b>Torch:</b> the World Wide Web, as it was. Try the bookmarks.</li>
       <li><b>Smoke Signals:</b> chat with DialUpDan. Here he uses his offline replies; when this computer runs inside Claude, Claude plays him live.</li>
       <li><b>MixBurner:</b> plays music made from scratch in code.</li></ul>
       <h3>Secrets</h3>
@@ -1253,7 +1297,7 @@ APPS.paint = {
       }
       last = [x, y];
     });
-    const end = () => { down = false; snap = null; clearInterval(sprayT); sprayT = null; };
+    const end = (e) => { down = false; snap = null; clearInterval(sprayT); sprayT = null; try { if (e && cv.hasPointerCapture(e.pointerId)) cv.releasePointerCapture(e.pointerId); } catch (x) { /* already let go */ } };
     cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
     // files
     const loadImage = (p) => {
@@ -1663,7 +1707,7 @@ APPS.terminal = {
       exit: () => WM.close(win),
       color: (a) => { const s = { a: ['#0c0c0c', '#b9f5c4'], b: ['#140c00', '#ffb547'], c: ['#000033', '#e6e6ff'], d: ['#0c0c0c', '#d0d0d0'] }[(a[0] || '').toLowerCase()]; if (!s) return print('COLOR a (green), b (amber), c (blue), d (grey)'); out.style.background = s[0]; out.style.color = s[1]; },
       tree: () => { const walk = (n, pre) => n.children.forEach((c, i) => { const lastOne = i === n.children.length - 1; if (c.type === 'dir') { print(pre + (lastOne ? '└── ' : '├── ') + c.name + (c.locked ? '  [locked]' : '')); if (!c.locked) walk(c, pre + (lastOne ? '    ' : '│   ')); } }); print('C:\\'); walk(FS.root, ''); },
-      start: (a) => { const s = a.join(' '); if (!s) return print('START what? Try: start paint', 'err'); const n = FS.resolve(abs(s)); if (n && n.type === 'file') return Files.openFile(abs(s)); const alias = { paint: 'paint', notepad: 'notepad', mines: 'mines', minesweeper: 'mines', solitaire: 'solitaire', snake: 'snake', browser: 'browser', music: 'music', amp: 'music', mixburner: 'music', chat: 'chat', smoke: 'chat', omnigacha: 'omni', gacha: 'omni', pebble: 'pebble', pebbledash: 'pebble', rally: 'pebble', sizzle: 'sizzle', sizzlesand: 'sizzle', video: 'video', rainwav: 'rainwav', kaiju: 'kaiju', settings: 'settings', help: 'help', explorer: 'explorer', terminal: 'terminal' }[s.toLowerCase()]; if (alias) return WM.open(alias); if (/^(www\.|https?:|burn:)/i.test(s)) return WM.open('browser', { url: s }); print(`'${s}' is not recognized as a program.`, 'err'); },
+      start: (a) => { const s = a.join(' '); if (!s) return print('START what? Try: start paint', 'err'); const n = FS.resolve(abs(s)); if (n && n.type === 'file') return Files.openFile(abs(s)); const alias = { paint: 'paint', notepad: 'notepad', mines: 'mines', minesweeper: 'mines', solitaire: 'solitaire', snake: 'snake', browser: 'browser', torch: 'browser', music: 'music', amp: 'music', mixburner: 'music', chat: 'chat', smoke: 'chat', omnigacha: 'omni', gacha: 'omni', pebble: 'pebble', pebbledash: 'pebble', rally: 'pebble', sizzle: 'sizzle', sizzlesand: 'sizzle', video: 'video', rainwav: 'rainwav', kaiju: 'kaiju', settings: 'settings', help: 'help', explorer: 'explorer', terminal: 'terminal' }[s.toLowerCase()]; if (alias) return WM.open(alias); if (/^(www\.|https?:|burn:)/i.test(s)) return WM.open('browser', { url: s }); print(`'${s}' is not recognized as a program.`, 'err'); },
       calc: (a) => { const e = a.join(''); if (!/^[\d+\-*/().%\s]+$/.test(e)) return print('CALC only does numbers and + - * / ( ) %', 'err'); try { const v = Function('"use strict";return (' + e + ')')(); print(String(Math.round(v * 1e10) / 1e10)); } catch (x) { print('That does not compute.', 'err'); } },
       ping: (a) => {
         const host = a[0] || 'sparknet.com'; print(`Pinging ${host} with 32 bytes of data:`); let k = 0;
@@ -1725,7 +1769,7 @@ APPS.terminal = {
 };
 /* ---- 65-browser.js ---- */
 /* ============================================================
-   Wildfire Navigator: the World Wide Web as it was. A dial-up
+   Torch: the World Wide Web as it was. A dial-up
    connection, pages that load a line at a time, and a handful of
    sites: a portal, a search engine, a homepage with a guestbook,
    a Y2K checker and a dancing gecko.
@@ -1759,7 +1803,7 @@ const WEB_PAGES = {
           <li><a data-go="www.totally-real-site.com">A site that does not exist</a></li></ul>
           <h3 style="margin:12px 0 6px;color:#0b3a68">Weather</h3><div>Ember Village: light rain, 24°C. More rain tomorrow. Bring a banana leaf.</div></div>
       </div>
-      <div style="text-align:center;padding:10px;font-size:11px;color:#555">You are visitor number <b style="font:16px var(--mono);background:#000;color:#5cff8a;padding:0 4px">${String(Math.floor(rand(10000, 99999))).padStart(7, '0')}</b><br>Last updated ${new Date().toDateString()} · Best viewed with Wildfire Navigator 3.0</div></div>`,
+      <div style="text-align:center;padding:10px;font-size:11px;color:#555">You are visitor number <b style="font:16px var(--mono);background:#000;color:#5cff8a;padding:0 4px">${String(Math.floor(rand(10000, 99999))).padStart(7, '0')}</b><br>Last updated ${new Date().toDateString()} · Best viewed with Torch 3.0</div></div>`,
     wire(root, nav) { root.querySelector('[data-search]').onsubmit = (e) => { e.preventDefault(); nav('burn://search?q=' + encodeURIComponent(e.target.q.value || 'gecko')); }; },
   },
   'burn://search': {
@@ -1843,7 +1887,7 @@ const WEB_PAGES = {
     html: (q) => `<div style="padding:18px;font:13px/1.5 Verdana,Tahoma,sans-serif;max-width:560px"><h2 style="font:700 18px Verdana,Tahoma,sans-serif;margin:0 0 8px">The page cannot be displayed</h2>
       <p>The page you are looking for (<b>${esc(q)}</b>) is currently unavailable. The Web site might be experiencing technical difficulties, or it might not exist yet because it is the nineties.</p><hr>
       <p>Please try the following:</p><ul><li>Click the <a data-go="burn://home">SparkNet Home</a> page.</li><li>Check that the phone line is plugged in.</li><li>Ask whoever is on the phone to hang up.</li></ul>
-      <p style="color:#777">HTTP 404 - File not found<br>Wildfire Navigator</p></div>`,
+      <p style="color:#777">HTTP 404 - File not found<br>Torch</p></div>`,
   },
 };
 Web.gecko = (cv, wild) => {   // Tuko, dancing in a page
@@ -1857,7 +1901,7 @@ Web.gecko = (cv, wild) => {   // Tuko, dancing in a page
   }, 110);
 };
 APPS.browser = {
-  title: 'Wildfire Navigator', icon: 'globe', w: 680, h: 480, minW: 300, minH: 260,
+  title: 'Torch', icon: 'globe', w: 680, h: 480, minW: 300, minH: 260,
   open(win, args) {
     let hist = [], fwd = [], cur = null, loadT = null;
     const B = (label, title) => h('button.tool', { title, 'aria-label': title, text: label });
@@ -1870,7 +1914,7 @@ APPS.browser = {
     const show = (url) => {
       if (page._stop) { page._stop(); page._stop = null; }
       const P = Web.page(url); cur = url; addr.value = url.startsWith('burn:') ? url : 'http://' + url + '/';
-      WM.setTitle(win, P.title + ' - Wildfire Navigator');
+      WM.setTitle(win, P.title + ' - Torch');
       page.innerHTML = P.html(P.q); page.scrollTop = 0;
       page.querySelectorAll('[data-go]').forEach(a => { a.href = '#'; a.onclick = (e) => { e.preventDefault(); nav(a.dataset.go); }; });
       if (P.wire) P.wire(page, nav);
@@ -1916,7 +1960,7 @@ APPS.browser = {
 /* ---- 66-news.js ---- */
 /* ============================================================
    The time machine. Click the clock to pick the year Burnware
-   lives in; SparkNet News in Wildfire Navigator then shows real
+   lives in; SparkNet News in Torch then shows real
    headlines from that year, read live from the Events section of
    Wikipedia's article about it (and kept in this browser after).
    ============================================================ */
@@ -1970,7 +2014,11 @@ const News = {
 };
 /* ---------- the taskbar clock and Date/Time Properties ---------- */
 const Clock = {
-  tick() { const c = $('#clock'); if (!c) return; c.textContent = fmtClock(); c.title = News.dateString() + ' (click to time travel)'; },
+  tick() {
+    const c = $('#clock'); if (!c) return; const d = new Date();
+    c.replaceChildren(h('b', fmtClock(d)), h('small', `${d.getMonth() + 1}/${d.getDate()}/${News.year()}`)); c.title = News.dateString() + ' (click to time travel)';
+    if (typeof NewsBoard !== 'undefined') NewsBoard.refreshButton();
+  },
 };
 APPS.datetime = {
   title: 'Date/Time Properties', icon: 'clock', w: 340, h: 330, resizable: false, single: true, center: true,
@@ -1983,7 +2031,7 @@ APPS.datetime = {
       mLabel.textContent = MONTHS[now.getMonth()] + ' ' + y;
       const first = new Date(y, now.getMonth(), 1).getDay(), days = new Date(y, now.getMonth() + 1, 0).getDate();
       cal.replaceChildren(...['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => h('span.dow', d)), ...Array.from({ length: first }, () => h('span')), ...Array.from({ length: days }, (_, i) => h('span' + (i + 1 === now.getDate() ? '.today' : ''), String(i + 1))));
-      note.textContent = y === News.max() ? 'That is now. SparkNet News will show this year so far.' : `Wildfire Navigator's news will come from ${y}.`;
+      note.textContent = y === News.max() ? 'That is now. SparkNet News will show this year so far.' : `Torch's news will come from ${y}.`;
     };
     const step = (d) => { yr.value = clamp(y + d, News.MIN, News.max()); draw(); Sound.click(); };
     yr.addEventListener('input', draw);
@@ -1992,7 +2040,7 @@ APPS.datetime = {
       h('div.dtrow', h('button.btn', { text: '◀', 'aria-label': 'Earlier', on: { click: () => step(-1) } }), yr, h('button.btn', { text: '▶', 'aria-label': 'Later', on: { click: () => step(1) } }), h('button.btn', { text: 'Now', on: { click: () => { yr.value = News.max(); draw(); } } })),
       h('div.calbox.sunk', mLabel, cal), note,
       h('p.small', 'The time machine sets the year Burnware lives in. Real headlines come from Wikipedia.')),
-      h('div.dlgbtns', h('button.btn.def', { text: 'OK', on: { click: () => { const v = apply(); WM.close(win); Tuko.say(`Whoosh. It is ${v} now. Open SparkNet News in Wildfire Navigator to read the headlines.`, 7000); } } }), h('button.btn', { text: 'Cancel', on: { click: () => WM.close(win) } }), h('button.btn', { text: 'Apply', on: { click: apply } })));
+      h('div.dlgbtns', h('button.btn.def', { text: 'OK', on: { click: () => { const v = apply(); WM.close(win); Tuko.say(`Whoosh. It is ${v} now. Open SparkNet News in Torch to read the headlines.`, 7000); } } }), h('button.btn', { text: 'Cancel', on: { click: () => WM.close(win) } }), h('button.btn', { text: 'Apply', on: { click: apply } })));
     draw();
   },
 };
@@ -2046,6 +2094,73 @@ WEB_PAGES['burn://news'] = {
   };
 }
 Web.bookmarks.splice(1, 0, ['SparkNet News', 'burn://news']);
+/* ---- 67-newsboard.js ---- */
+/* ============================================================
+   News & Interests: a button on the taskbar that cycles through
+   headlines from the time machine's year, and opens a board of
+   top stories, what happened on today's date that year, the
+   weather in Ember Village and a word from Tuko.
+   ============================================================ */
+const NewsBoard = {
+  open: false, list: null, i: 0, year: null, el: null, btn: null, label: null, cycleT: null,
+  init() {
+    this.btn = h('button#newsbtn', { title: 'News & Interests', 'aria-label': 'News and interests', 'aria-expanded': 'false' }, Icons.img('news', 16), this.label = h('span', 'News'));
+    $('#start').after(this.btn);
+    onTap(this.btn, (e) => { e.stopPropagation(); Sound.click(); this.toggle(); });
+    document.addEventListener('pointerdown', (e) => { if (this.open && !e.target.closest('#newsboard') && !e.target.closest('#newsbtn')) this.toggle(false); });
+    addEventListener('keydown', (e) => { if (e.key === 'Escape' && this.open) this.toggle(false); });
+    this.load();
+    this.cycleT = setInterval(() => { this.i++; this.refreshButton(); }, 9000);
+  },
+  load() {
+    const y = News.year(); this.year = y; this.list = null; this.refreshButton();
+    News.get(y).then(list => { if (this.year !== y) return; this.list = list; this.i = Math.floor(Math.random() * list.length); this.refreshButton(); if (this.open) this.render(); })
+      .catch(() => { if (this.year !== y) return; this.list = []; this.refreshButton(); if (this.open) this.render(); });
+  },
+  refreshButton() {
+    if (!this.btn) return;
+    if (this.year !== News.year()) return this.load();
+    const L = this.list, e = L && L.length ? L[this.i % L.length] : null;
+    this.label.replaceChildren(h('b', String(this.year)), ' ', e ? e.text : L ? 'News & Interests' : 'Dialing the news wire...');
+    this.btn.title = e ? `${e.date ? e.date + ', ' : ''}${this.year}: ${e.text}` : 'News & Interests';
+  },
+  toggle(v) {
+    this.open = v !== undefined ? v : !this.open;
+    this.btn.classList.toggle('on', this.open); this.btn.setAttribute('aria-expanded', String(this.open));
+    if (this.open) { if (Start.open) Start.toggle(false); this.render(); } else if (this.el) { this.el.remove(); this.el = null; }
+  },
+  weather(month) {   // Ember Village gets a lot of rain
+    const W = [['Cool and clear', 19, 'sunny'], ['Breezy', 21, 'cloud'], ['Warm, a little hazy', 26, 'sunny'], ['Hot', 31, 'sunny'], ['Thunderstorms later', 29, 'storm'], ['Rain, then more rain', 25, 'rain'], ['Monsoon rain', 24, 'rain'], ['Typhoon warning', 23, 'storm'], ['Light rain', 24, 'rain'], ['Showers', 25, 'rain'], ['Light rain, cooler', 22, 'rain'], ['Cool evenings', 20, 'cloud']][month];
+    return { text: W[0], deg: W[1], icon: { sunny: '☀', cloud: '☁', rain: '☂', storm: '⚡' }[W[2]] };
+  },
+  render() {
+    if (this.el) this.el.remove();
+    const y = this.year, L = this.list, now = new Date(), today = `${MONTHS[now.getMonth()]} ${now.getDate()}`;
+    const story = (e) => h('li', h('button', { on: { click: () => { this.toggle(false); WM.open('browser', { url: 'burn://news?q=' + y }); } } }, e.date ? h('b', e.date + ', ' + y) : null, e.text));
+    const body = h('div.nbbody');
+    if (!L) body.append(h('div.nbcard', h('h4', 'Top stories'), h('p', { style: { margin: 0 } }, `Dialing the news wire for ${y}...`)));
+    else if (!L.length) body.append(h('div.nbcard', h('h4', 'Top stories'), h('p', { style: { margin: 0 } }, `The news wire is down (couldn't reach Wikipedia for ${y}). Check you're online and open the board again.`)));
+    else {
+      const top = [...L].sort(() => Math.random() - 0.5).slice(0, 5);
+      body.append(h('div.nbcard', h('h4', 'Top stories · ' + y), h('ul', top.map(story))));
+      // on this day: events dated today (in that year), else the nearest dated ones
+      const dated = L.filter(e => /^[A-Z][a-z]+ \d{1,2}\b/.test(e.date)), key = (e) => { const m = e.date.match(/^([A-Z][a-z]+) (\d{1,2})/); const mi = m ? MONTHS.indexOf(m[1]) : -1; return mi < 0 ? 999 : mi * 31 + +m[2]; };
+      const t = now.getMonth() * 31 + now.getDate(); let same = dated.filter(e => key(e) === t), label = 'On this day · ' + today + ', ' + y;
+      if (!same.length && dated.length) { const best = Math.min(...dated.map(e => Math.abs(key(e) - t))); same = dated.filter(e => Math.abs(key(e) - t) === best).slice(0, 2); label = `Closest to ${today}, ${y}`; }
+      if (same.length) body.append(h('div.nbcard', h('h4', label), h('ul', same.slice(0, 3).map(story))));
+    }
+    const W = this.weather(now.getMonth());
+    body.append(h('div.nbcard', h('h4', 'Weather · Ember Village'), h('div.nbweather', h('span', { style: { fontSize: '30px' } }, W.icon), h('span.deg', W.deg + '°'), h('span', W.text, h('br'), h('small', { style: { color: '#666' } }, 'Bring a banana leaf.')))));
+    body.append(h('div.nbcard', h('h4', 'From Tuko'), h('p', { style: { margin: 0 } }, pick(TUKO_LINES))));
+    const stepY = (d) => { News.setYear(News.year() + d); this.load(); this.render(); };
+    this.el = h('div#newsboard', { role: 'dialog', 'aria-label': 'News and interests' },
+      h('div.nbhead', h('span', 'News & Interests'), h('button.btn', { text: '◀', title: 'A year earlier', 'aria-label': 'A year earlier', disabled: y <= News.MIN, on: { click: () => stepY(-1) } }), h('b', String(y)), h('button.btn', { text: '▶', title: 'A year later', 'aria-label': 'A year later', disabled: y >= News.max(), on: { click: () => stepY(1) } })),
+      body,
+      h('div.nbfoot', h('a', { text: 'Open SparkNet News ›', on: { click: () => { this.toggle(false); WM.open('browser', { url: 'burn://news?q=' + y }); } } }), h('a', { text: 'Change the year', on: { click: () => { this.toggle(false); WM.open('datetime'); } } })),
+      h('small', { style: { padding: '0 8px 4px', color: '#666', fontSize: '10px' } }, 'Headlines come from Wikipedia (CC BY-SA).'));
+    $('#taskbar').append(this.el);
+  },
+};
 /* ---- 70-music.js ---- */
 /* ============================================================
    MixBurner: a little skinned music player with a spectrum
@@ -2417,7 +2532,7 @@ const TUKO_LINES = [
   'Pebble Dash tip: brake before the corner, not in it. I learned this the hard way. I am a gecko.',
   'Sizzle Sand tip: if the oil catches fire, use a lid. Not water. Never water.',
   'Omnigacha keeps asking me to pull. I do not have thumbs.',
-  'Click the clock in the corner to time travel. SparkNet News in Wildfire Navigator follows you to that year.',
+  'Click the clock in the corner to time travel. SparkNet News in Torch follows you to that year.',
   'Rain.wav is my favourite. It sounds like the roof of my old house.',
   'Kaiju Rampage is not ready yet. I am still growing. Forty metres is a lot of metres.',
   'You can make your own painting the wallpaper. Paint > File > Set As Wallpaper.',
@@ -2618,7 +2733,7 @@ const Boot = {
       const o = h('div#bios.over', { 'aria-label': 'Starting up' }); document.body.append(o);
       const logo = h('div.logo', 'Ember BIOS v4.51PG\nAn Energy Star Ally\n   ▲ ▲ ▲');
       const pre = h('div'); o.append(logo, pre);
-      const L = ['BurnBIOS (C) 1998 Ember Systems, Inc.', '', 'Main Processor : Pentium(R)-ish 233MHz', 'Memory Testing : ', '', 'Detecting IDE Primary Master ... BURN-HD 2.1GB', 'Detecting IDE Primary Slave  ... None', 'Detecting IDE Secondary Master ... CD-ROM 24X', 'Gecko ........................ 1 detected (Tuko)', 'Weekly tokens ................ 100% (now burning)', '', 'Starting Burnware...'];
+      const L = ['BurnBIOS (C) 1998 Ember Systems, Inc.', '', 'Main Processor : Pentium(R)-ish 233MHz', 'Memory Testing : ', '', 'Detecting IDE Primary Master ... BURN-HD 2.1GB', 'Detecting IDE Primary Slave  ... None', 'Detecting IDE Secondary Master ... CD-ROM 24X', 'Gecko ........................ 1 detected (Tuko)', 'System date .................. ' + (() => { const d = new Date(); return String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0') + '/' + News.year(); })(), 'Weekly tokens ................ 100% (now burning)', '', 'Starting Burnware...'];
       let k = 0, mem = 0, skip = false;
       const end = () => { o.remove(); res(); };
       o.addEventListener('pointerdown', () => { skip = true; }); addEventListener('keydown', () => { skip = true; }, { once: true });
@@ -2675,7 +2790,7 @@ const Boot = {
 function startBurnware(data) {
   Store.load(); FS.load();
   Wall.scheme(Store.data.scheme);
-  Desktop.init(); Start.init(); Tuko.init();
+  Desktop.init(); Start.init(); Tuko.init(); NewsBoard.init();
   AI.get();   // find out early whether Claude can play DialUpDan here
   let rz = null;
   addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { Wall.paint(); for (const w of WM.wins) if (w.onResize) w.onResize(); }, 150); });

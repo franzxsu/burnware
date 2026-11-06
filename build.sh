@@ -27,7 +27,7 @@ head_part() { sed '/claude:viewport-fit-sides/d' "$1"; }
 
 # ---------- Burnware ----------
 D=src/burnware
-BW="00-core.js 05-icons.js 06-icons-more.js 10-sound.js 15-fs.js 20-wm.js 30-files.js 35-notepad.js 40-paint.js 45-mines.js 50-solitaire.js 55-snake.js 60-terminal.js 65-browser.js 66-news.js 70-music.js 72-tracks.js 75-chat.js 80-settings.js 85-tuko.js 88-programs.js 90-boot.js 99-main.js"
+BW="00-core.js 05-icons.js 06-icons-more.js 10-sound.js 15-fs.js 20-wm.js 30-files.js 35-notepad.js 40-paint.js 45-mines.js 50-solitaire.js 55-snake.js 60-terminal.js 65-browser.js 66-news.js 67-newsboard.js 70-music.js 72-tracks.js 75-chat.js 80-settings.js 85-tuko.js 88-programs.js 90-boot.js 99-main.js"
 {
   open_page "$DESC_BW" "$BASE_BW" ""
   printf '<meta property="og:title" content="Burnware">\n<meta property="og:description" content="%s">\n<meta property="og:type" content="website">\n<meta name="twitter:card" content="summary_large_image">\n' "$DESC_BW"

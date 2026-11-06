@@ -1,5 +1,5 @@
 /* ============================================================
-   Wildfire Navigator: the World Wide Web as it was. A dial-up
+   Torch: the World Wide Web as it was. A dial-up
    connection, pages that load a line at a time, and a handful of
    sites: a portal, a search engine, a homepage with a guestbook,
    a Y2K checker and a dancing gecko.
@@ -33,7 +33,7 @@ const WEB_PAGES = {
           <li><a data-go="www.totally-real-site.com">A site that does not exist</a></li></ul>
           <h3 style="margin:12px 0 6px;color:#0b3a68">Weather</h3><div>Ember Village: light rain, 24°C. More rain tomorrow. Bring a banana leaf.</div></div>
       </div>
-      <div style="text-align:center;padding:10px;font-size:11px;color:#555">You are visitor number <b style="font:16px var(--mono);background:#000;color:#5cff8a;padding:0 4px">${String(Math.floor(rand(10000, 99999))).padStart(7, '0')}</b><br>Last updated ${new Date().toDateString()} · Best viewed with Wildfire Navigator 3.0</div></div>`,
+      <div style="text-align:center;padding:10px;font-size:11px;color:#555">You are visitor number <b style="font:16px var(--mono);background:#000;color:#5cff8a;padding:0 4px">${String(Math.floor(rand(10000, 99999))).padStart(7, '0')}</b><br>Last updated ${new Date().toDateString()} · Best viewed with Torch 3.0</div></div>`,
     wire(root, nav) { root.querySelector('[data-search]').onsubmit = (e) => { e.preventDefault(); nav('burn://search?q=' + encodeURIComponent(e.target.q.value || 'gecko')); }; },
   },
   'burn://search': {
@@ -117,7 +117,7 @@ const WEB_PAGES = {
     html: (q) => `<div style="padding:18px;font:13px/1.5 Verdana,Tahoma,sans-serif;max-width:560px"><h2 style="font:700 18px Verdana,Tahoma,sans-serif;margin:0 0 8px">The page cannot be displayed</h2>
       <p>The page you are looking for (<b>${esc(q)}</b>) is currently unavailable. The Web site might be experiencing technical difficulties, or it might not exist yet because it is the nineties.</p><hr>
       <p>Please try the following:</p><ul><li>Click the <a data-go="burn://home">SparkNet Home</a> page.</li><li>Check that the phone line is plugged in.</li><li>Ask whoever is on the phone to hang up.</li></ul>
-      <p style="color:#777">HTTP 404 - File not found<br>Wildfire Navigator</p></div>`,
+      <p style="color:#777">HTTP 404 - File not found<br>Torch</p></div>`,
   },
 };
 Web.gecko = (cv, wild) => {   // Tuko, dancing in a page
@@ -131,7 +131,7 @@ Web.gecko = (cv, wild) => {   // Tuko, dancing in a page
   }, 110);
 };
 APPS.browser = {
-  title: 'Wildfire Navigator', icon: 'globe', w: 680, h: 480, minW: 300, minH: 260,
+  title: 'Torch', icon: 'globe', w: 680, h: 480, minW: 300, minH: 260,
   open(win, args) {
     let hist = [], fwd = [], cur = null, loadT = null;
     const B = (label, title) => h('button.tool', { title, 'aria-label': title, text: label });
@@ -144,7 +144,7 @@ APPS.browser = {
     const show = (url) => {
       if (page._stop) { page._stop(); page._stop = null; }
       const P = Web.page(url); cur = url; addr.value = url.startsWith('burn:') ? url : 'http://' + url + '/';
-      WM.setTitle(win, P.title + ' - Wildfire Navigator');
+      WM.setTitle(win, P.title + ' - Torch');
       page.innerHTML = P.html(P.q); page.scrollTop = 0;
       page.querySelectorAll('[data-go]').forEach(a => { a.href = '#'; a.onclick = (e) => { e.preventDefault(); nav(a.dataset.go); }; });
       if (P.wire) P.wire(page, nav);

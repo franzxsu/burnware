@@ -97,7 +97,7 @@ APPS.paint = {
       }
       last = [x, y];
     });
-    const end = () => { down = false; snap = null; clearInterval(sprayT); sprayT = null; };
+    const end = (e) => { down = false; snap = null; clearInterval(sprayT); sprayT = null; try { if (e && cv.hasPointerCapture(e.pointerId)) cv.releasePointerCapture(e.pointerId); } catch (x) { /* already let go */ } };
     cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
     // files
     const loadImage = (p) => {

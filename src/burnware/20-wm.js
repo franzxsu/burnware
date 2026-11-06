@@ -166,7 +166,7 @@ const Desktop = {
     { label: 'My Computer', icon: 'computer', open: () => WM.open('explorer', { path: 'C:' }) },
     { label: 'My Documents', icon: 'docs', open: () => WM.open('explorer', { path: 'C:\\My Documents' }) },
     { label: 'Recycle Bin', icon: () => FS.bin.length ? 'binfull' : 'bin', open: () => WM.open('explorer', { path: 'BIN' }) },
-    { label: 'Wildfire Navigator', icon: 'globe', open: () => WM.open('browser') },
+    { label: 'Torch', icon: 'globe', open: () => WM.open('browser') },
     { label: 'Smoke Signals', icon: 'chat', open: () => WM.open('chat') },
     { label: 'Paint', icon: 'paint', open: () => WM.open('paint') },
     { label: 'Minesweeper', icon: 'mines', open: () => WM.open('mines') },
@@ -223,7 +223,7 @@ const Start = {
       const limit = $('#taskbar').getBoundingClientRect().top - 2, r = sub.getBoundingClientRect();
       if (r.bottom > limit) { sub.style.top = -Math.min(r.bottom - limit, r.top - 4) + 'px'; const r2 = sub.getBoundingClientRect(); if (r2.bottom > limit) { sub.style.maxHeight = Math.max(120, limit - r2.top) + 'px'; sub.style.overflowY = 'auto'; } }
     };
-    progItem.addEventListener('pointerenter', showSub); progItem.addEventListener('click', (e) => { e.stopPropagation(); sub.hidden ? showSub() : (sub.hidden = true); });
+    progItem.addEventListener('pointerenter', () => { showSub(); progItem._shownAt = Date.now(); }); progItem.addEventListener('click', (e) => { e.stopPropagation(); if (Date.now() - (progItem._shownAt || 0) < 500) return; sub.hidden ? showSub() : (sub.hidden = true); });
     const items = h('div.items',
       progItem,
       item('docs', 'Documents', () => WM.open('explorer', { path: 'C:\\My Documents' })),
@@ -243,7 +243,7 @@ const Start = {
   async run() {
     const v = await WM.prompt('Run', 'Type the name of a program, folder or web page, and Burnware will open it for you.', 'burn://home');
     if (!v) return;
-    const s = v.trim().toLowerCase(), alias = { notepad: 'notepad', paint: 'paint', mspaint: 'paint', minesweeper: 'mines', mines: 'mines', winmine: 'mines', solitaire: 'solitaire', sol: 'solitaire', snake: 'snake', cmd: 'terminal', command: 'terminal', terminal: 'terminal', prompt: 'terminal', browser: 'browser', navigator: 'browser', music: 'music', mixburner: 'music', kuboamp: 'music', amp: 'music', chat: 'chat', smoke: 'chat', signals: 'chat', time: 'datetime', date: 'datetime', clock: 'datetime', timemachine: 'datetime', news: 'browser', kubochat: 'chat', omnigacha: 'omni', gacha: 'omni', pebble: 'pebble', pebbledash: 'pebble', rally: 'pebble', sizzle: 'sizzle', sizzlesand: 'sizzle', sand: 'sizzle', video: 'video', mediaplayer: 'video', 'rain.wav': 'rainwav', rainwav: 'rainwav', kaiju: 'kaiju', settings: 'settings', control: 'settings', help: 'help', explorer: 'explorer' };
+    const s = v.trim().toLowerCase(), alias = { notepad: 'notepad', paint: 'paint', mspaint: 'paint', minesweeper: 'mines', mines: 'mines', winmine: 'mines', solitaire: 'solitaire', sol: 'solitaire', snake: 'snake', cmd: 'terminal', command: 'terminal', terminal: 'terminal', prompt: 'terminal', browser: 'browser', navigator: 'browser', torch: 'browser', music: 'music', mixburner: 'music', kuboamp: 'music', amp: 'music', chat: 'chat', smoke: 'chat', signals: 'chat', time: 'datetime', date: 'datetime', clock: 'datetime', timemachine: 'datetime', news: 'browser', kubochat: 'chat', omnigacha: 'omni', gacha: 'omni', pebble: 'pebble', pebbledash: 'pebble', rally: 'pebble', sizzle: 'sizzle', sizzlesand: 'sizzle', sand: 'sizzle', video: 'video', mediaplayer: 'video', 'rain.wav': 'rainwav', rainwav: 'rainwav', kaiju: 'kaiju', settings: 'settings', control: 'settings', help: 'help', explorer: 'explorer' };
     if (alias[s]) WM.open(alias[s]);
     else if (/^(c:|c:\\)/i.test(s)) { const n = FS.resolve(v.trim()); if (n && n.type === 'dir') WM.open('explorer', { path: v.trim() }); else if (n) Files.openFile(v.trim()); else WM.alert('Run', `Cannot find the file '${v}'. Make sure you typed the name correctly, and then try again.`, 'err'); }
     else if (/^(https?:|www\.|burn:)/.test(s) || s.includes('.')) WM.open('browser', { url: v.trim() });

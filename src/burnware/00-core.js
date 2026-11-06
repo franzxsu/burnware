@@ -40,10 +40,28 @@ const Store = {
 };
 /* Phones: act when the finger lifts, so the first tap always counts (a tap right after
    using a program in a frame can otherwise get eaten). Mice keep using click. */
-const TapShield = { until: 0 };   // after acting on a finger-up, eat the click that follows so it can't land on whatever opened underneath
-document.addEventListener('click', (e) => { if (Date.now() < TapShield.until) { e.stopPropagation(); e.preventDefault(); } }, true);
+const TapShield = { until: 0, pass: false };   // after acting on a finger-up, eat the click that follows so it can't land on whatever opened underneath
+document.addEventListener('click', (e) => { if (!TapShield.pass && Date.now() < TapShield.until) { e.stopPropagation(); e.preventDefault(); } }, true);
+/* On a touch screen every button answers on finger-up, so no tap ever goes missing (Safari on iPhone can drop
+   them). Things wired with onTap, and the desktop icons, handle their own taps. */
+(() => {
+  let down = null;
+  const SEL = 'button, a, [role="button"], .fitem, .smi, .buddy, .card, .mc';
+  document.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse') { down = null; return; }
+    const el = e.target.closest && e.target.closest(SEL); down = el && !el._tap && !el.closest('.icon') ? { el, x: e.clientX, y: e.clientY, t: Date.now() } : null;
+  }, true);
+  document.addEventListener('pointercancel', () => { down = null; }, true);
+  document.addEventListener('pointerup', (e) => {
+    const d = down; down = null; if (!d || e.pointerType === 'mouse') return;
+    if (Date.now() - d.t > 700 || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 12) return;
+    const el = d.el; if (!el.isConnected || el.disabled || el.classList.contains('card') || el.classList.contains('mc')) return;   // cards and mine cells keep their own drag and long-press rules
+    TapShield.pass = true; try { el.click(); } finally { TapShield.pass = false; }
+    TapShield.until = Date.now() + 450;
+  }, true);
+})();
 function onTap(el, fn) {
-  let down = null, fired = 0;
+  let down = null, fired = 0; el._tap = true;
   el.addEventListener('pointerdown', (e) => { down = e.pointerType === 'mouse' ? null : { t: Date.now(), x: e.clientX, y: e.clientY }; });
   el.addEventListener('pointerup', (e) => {
     if (!down || e.pointerType === 'mouse') return; const d = down; down = null;

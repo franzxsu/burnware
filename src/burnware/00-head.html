@@ -333,4 +333,29 @@ a.tool { color: inherit; text-decoration: none; box-shadow: inset -1px -1px var(
 .cal .dow { font-weight: 700; color: #555; }
 .cal .today { background: var(--sel); color: var(--seltxt); }
 .dtp .small { margin: 0; font-size: 11px; color: #444; }
+@media (pointer: coarse) { .swatches { grid-template-columns: repeat(14, 22px); grid-template-rows: 22px 22px; gap: 2px; } .ptools { grid-template-columns: 34px 34px; } .ptools .tool { width: 34px; height: 34px; } .palette { overflow-x: auto; } }
+#clock { display: grid; justify-items: end; line-height: 1.05; padding: 0 4px; }
+#clock b { font-weight: 400; } #clock small { font-size: 10px; }
+/* News & Interests: a taskbar button that opens a board of headlines from the time machine's year */
+#newsbtn { flex: 0 1 230px; min-width: 30px; height: 24px; display: flex; align-items: center; gap: 5px; padding: 0 6px; border: 0; background: var(--face); cursor: pointer; text-align: left; box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--mid); }
+#newsbtn.on { box-shadow: inset 1px 1px var(--dk), inset -1px -1px var(--hi), inset 2px 2px var(--lo); background: repeating-conic-gradient(var(--hi) 0 25%, var(--face) 0 50%) 0 0 / 2px 2px; }
+#newsbtn img { flex: none; }
+#newsbtn span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; font-size: 11px; }
+#newsbtn span b { color: var(--t1); }
+#newsboard { position: absolute; bottom: 100%; margin-bottom: -2px; left: var(--gl); width: min(400px, calc(100vw - var(--gl) - var(--gr))); max-height: min(560px, calc(100dvh - 60px)); display: flex; flex-direction: column; z-index: 9001; background: var(--face); padding: 3px; box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--face2), inset -2px -2px var(--lo), inset 2px 2px var(--hi), 2px 2px 0 rgba(0,0,0,.25); }
+#newsboard .nbhead { display: flex; align-items: center; gap: 6px; padding: 6px 8px; color: #fff; background: linear-gradient(90deg, var(--t1), var(--t2)); font-weight: 700; }
+#newsboard .nbhead span { flex: 1; font: 700 15px/1 var(--pix); }
+#newsboard .nbhead .btn { min-width: 26px; padding: 2px 6px; color: var(--ink); }
+#newsboard .nbbody { overflow-y: auto; padding: 6px; display: grid; gap: 6px; background: #f3efe6; }
+.nbcard { background: #fff; padding: 8px 10px; box-shadow: inset 1px 1px var(--lo), inset -1px -1px var(--hi); }
+.nbcard h4 { margin: 0 0 6px; font: 700 11px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--t1); display: flex; gap: 6px; align-items: center; }
+.nbcard ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.nbcard li button { all: unset; cursor: pointer; display: block; font: 13px/1.35 Georgia, "Times New Roman", serif; }
+.nbcard li button b { font: 700 11px var(--ui); color: #7a1010; display: block; }
+.nbcard li button:hover, .nbcard li button:focus-visible { text-decoration: underline; }
+.nbweather { display: flex; gap: 10px; align-items: center; font-size: 13px; }
+.nbweather .deg { font: 700 30px/1 var(--pix); color: var(--t1); }
+.nbfoot { display: flex; justify-content: space-between; gap: 8px; padding: 6px 8px 3px; font-size: 11px; }
+.nbfoot a { color: #0b3a68; cursor: pointer; }
+@media (max-width: 560px) { #newsbtn { flex: none; } #newsbtn span { display: none; } }
 </style>

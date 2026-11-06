@@ -14,7 +14,7 @@ Press the power button, wait for the BIOS and the boot screen, and you're on the
 | **Rain.wav** | A one-minute lo-fi music video. Every pixel and every note was made in code. Plays in the Media Player. |
 | **Kaiju Rampage** | Still being built. |
 
-Plus the built-in programs: Paint, Minesweeper, Solitaire, Snake, Notepad, Command Prompt, Wildfire Navigator (the World Wide Web, as it was), Smoke Signals (chat with DialUpDan), MixBurner (the music player) and Display Properties. Tuko the gecko lives on the desktop. There's a locked folder, and he knows the password.
+Plus the built-in programs: Paint, Minesweeper, Solitaire, Snake, Notepad, Command Prompt, Torch (the World Wide Web, as it was), Smoke Signals (chat with DialUpDan), MixBurner (the music player) and Display Properties. Tuko the gecko lives on the desktop. There's a locked folder, and he knows the password.
 
 Everything you make (files, paintings, high scores) is saved in your own browser only.
 
