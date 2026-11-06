@@ -11,6 +11,7 @@ function startBurnware(data) {
   addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { Wall.paint(); for (const w of WM.wins) if (w.onResize) w.onResize(); }, 150); });
   for (const ev of ['pointerdown', 'pointermove', 'keydown', 'wheel']) addEventListener(ev, () => Saver.bump(), { passive: true });
   setInterval(() => Saver.tick(), 1000);
+  addEventListener('pointerdown', () => { const a = document.activeElement; if (a && a.tagName === 'IFRAME') a.blur(); }, true);
   addEventListener('keydown', (e) => { if (e.key === 'Escape' && Start.open) Start.toggle(false); if ((e.key === 'Meta' || (e.ctrlKey && e.key === 'Escape')) && Boot.ready) Start.toggle(); });
   try { window.claude?.hot?.snapshot?.(() => ({ burnware: 1, on: Boot.ready })); } catch (e) { /* no live updates here */ }
   Wall.paint();

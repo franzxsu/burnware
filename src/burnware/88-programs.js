@@ -18,9 +18,9 @@ const Host = {
       else window.open(a.src, '_blank', 'noopener');   // phones that can't do it for a frame get a tab instead
     };
     const bar = h('div.toolbar.appbar',
-      h('button.tool', { text: '↻ Restart', title: 'Start ' + a.title + ' again', on: { click: () => { Sound.click(); veil.hidden = false; frame.src = a.src; } } }),
-      h('button.tool', { text: '⛶ Full screen', on: { click: () => { Sound.click(); full(); } } }),
-      h('a.tool', { text: '↗ New tab', href: a.src, target: '_blank', rel: 'noopener' }),
+      tapBtn('↻ Restart', 'Start ' + a.title + ' again', () => { Sound.click(); veil.hidden = false; frame.src = a.src; }),
+      tapBtn('⛶ Full screen', 'Give it the whole screen', () => { Sound.click(); full(); }),
+      tapBtn('↗ New tab', 'Open it in a new tab', () => { window.open(a.src, '_blank', 'noopener'); }),
       h('span.appblurb', a.blurb));
     win.body.append(bar, h('div.apphost.sunk', frame, veil));
     const bubble = Tuko.el && Tuko.el.querySelector('.bubble'); if (bubble) { bubble.remove(); Tuko.el.classList.remove('talking'); }   // Tuko hushes when a big program opens
@@ -30,7 +30,7 @@ const Host = {
         const cw = frame.contentWindow;
         cw.addEventListener('pointerdown', () => { if (WM.active !== win) WM.focus(win); Saver.bump(); if (Start.open) Start.toggle(false); $$('.ctx').forEach(c => c.remove()); }, true);
         cw.addEventListener('keydown', () => Saver.bump(), true);
-        if (WM.active === win) cw.focus();
+        if (WM.active === win && !isTouch()) cw.focus();   // phones: let the first tap do it
       } catch (e) { /* another origin: the window still works, just without these niceties */ }
     });
     win.focusFrame = () => { try { frame.contentWindow.focus(); } catch (e) { /* ignore */ } };
@@ -38,7 +38,8 @@ const Host = {
   },
 };
 for (const a of HOSTED) APPS[a.id] = { title: a.title, icon: a.icon, w: a.w, h: a.h, minW: 300, minH: 260, center: true, hosted: true, open(win) { Host.mount(win, a); } };
-{   // when a hosted window comes to the front, hand the keyboard to the program inside it
+function tapBtn(text, title, fn) { const b = h('button.tool', { text, title }); onTap(b, fn); return b; }
+if (!isTouch()) {   // with a mouse and keyboard: when a hosted window comes to the front, hand the keyboard to the program inside it
   const focus = WM.focus.bind(WM);
   WM.focus = (win) => { focus(win); if (win && win.focusFrame && !win.min) setTimeout(() => { if (WM.active === win && !document.body.classList.contains('dragging')) win.focusFrame(); }, 0); };
 }

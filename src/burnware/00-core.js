@@ -38,4 +38,18 @@ const Store = {
   load() { try { const s = localStorage.getItem(this.key); if (s) Object.assign(this.data, JSON.parse(s)); } catch (e) { /* storage blocked: defaults */ } },
   save() { try { localStorage.setItem(this.key, JSON.stringify(this.data)); } catch (e) { /* ignore */ } },
 };
+/* Phones: act when the finger lifts, so the first tap always counts (a tap right after
+   using a program in a frame can otherwise get eaten). Mice keep using click. */
+const TapShield = { until: 0 };   // after acting on a finger-up, eat the click that follows so it can't land on whatever opened underneath
+document.addEventListener('click', (e) => { if (Date.now() < TapShield.until) { e.stopPropagation(); e.preventDefault(); } }, true);
+function onTap(el, fn) {
+  let down = null, fired = 0;
+  el.addEventListener('pointerdown', (e) => { down = e.pointerType === 'mouse' ? null : { t: Date.now(), x: e.clientX, y: e.clientY }; });
+  el.addEventListener('pointerup', (e) => {
+    if (!down || e.pointerType === 'mouse') return; const d = down; down = null;
+    if (Date.now() - d.t > 900 || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 12) return;
+    fired = Date.now(); TapShield.until = fired + 450; fn(e);
+  });
+  el.addEventListener('click', (e) => { if (Date.now() - fired < 900) return; fn(e); });
+}
 function fmtClock(d = new Date()) { let h = d.getHours(); const m = String(d.getMinutes()).padStart(2, '0'), ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${m} ${ap}`; }

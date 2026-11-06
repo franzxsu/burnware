@@ -41,9 +41,9 @@ const WM = {
     const win = { id: 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), el, tb, body, titleEl: title, app: o.app, icon: o.icon, title: o.title, onClose: null, onResize: null, min: false, minW: o.minW || 220, minH: o.minH || 140 };
     if (o.resizable !== false) { const g = h('div.grip', { 'aria-hidden': 'true' }); el.append(g); this.resizer(win, g); }
     this.dragger(win);
-    bMin.onclick = (e) => { e.stopPropagation(); Sound.click(); this.minimize(win); };
-    bMax.onclick = (e) => { e.stopPropagation(); Sound.click(); this.toggleMax(win); };
-    bX.onclick = (e) => { e.stopPropagation(); Sound.click(); this.tryClose(win); };
+    onTap(bMin, (e) => { e.stopPropagation(); Sound.click(); this.minimize(win); });
+    onTap(bMax, (e) => { e.stopPropagation(); Sound.click(); this.toggleMax(win); });
+    onTap(bX, (e) => { e.stopPropagation(); Sound.click(); this.tryClose(win); });
     tb.addEventListener('dblclick', (e) => { if (o.resizable !== false && !e.target.closest('button')) this.toggleMax(win); });
     el.addEventListener('pointerdown', () => this.focus(win), true);
     this.desk().append(el); this.wins.push(win);
@@ -154,7 +154,7 @@ const WM = {
     const box = $('#tasks'); if (!box) return;
     box.replaceChildren(...this.wins.map(w => {
       const b = h('button.task' + (w === this.active && !w.min ? '.on' : ''), { role: 'listitem', title: w.title, 'aria-label': w.title }, Icons.img(w.icon || 'app', 16), h('span', w.title));
-      b.onclick = () => { Sound.click(); if (w === this.active && !w.min) this.minimize(w); else this.focus(w); };
+      onTap(b, () => { Sound.click(); if (w === this.active && !w.min) this.minimize(w); else this.focus(w); });
       return b;
     }));
   },
@@ -184,6 +184,8 @@ const Desktop = {
       const launch = () => { const t = Date.now(); if (t - (b._t || 0) < 800) return; b._t = t; Sound.click(); it.open(); };   // one tap or one double-click opens it once
       b.addEventListener('click', () => { $$('.icon.sel').forEach(x => x.classList.remove('sel')); b.classList.add('sel'); if (isTouch()) launch(); });
       b.addEventListener('dblclick', () => { if (!isTouch()) launch(); });
+      b.addEventListener('pointerdown', (e) => { b._p = e.pointerType === 'mouse' ? null : [e.clientX, e.clientY]; });
+      b.addEventListener('pointerup', (e) => { const p = b._p; b._p = null; if (p && Math.hypot(e.clientX - p[0], e.clientY - p[1]) < 12) { TapShield.until = Date.now() + 450; $$('.icon.sel').forEach(x => x.classList.remove('sel')); b.classList.add('sel'); launch(); } });
       b.addEventListener('keydown', (e) => { if (e.key === 'Enter') it.open(); });
       box.append(b);
     });
@@ -249,7 +251,7 @@ const Start = {
   },
   init() {
     $('#startIco').src = Icons.url('flame', 1);
-    $('#start').onclick = (e) => { e.stopPropagation(); Sound.init(); this.toggle(); };
+    onTap($('#start'), (e) => { e.stopPropagation(); Sound.init(); this.toggle(); });
     document.addEventListener('pointerdown', (e) => { if (this.open && !e.target.closest('#startmenu') && !e.target.closest('#start')) this.toggle(false); });
     const vol = $('#vol'), setVol = () => { $('#volIco').src = Icons.url(Store.data.sound ? 'vol' : 'mute', 1); vol.setAttribute('aria-label', Store.data.sound ? 'Sound on' : 'Sound off'); };
     vol.onclick = () => { Store.data.sound = !Store.data.sound; Store.save(); Sound.setOn(Store.data.sound); setVol(); Music.setMuted && Music.setMuted(!Store.data.sound); if (Store.data.sound) Sound.click(); };
