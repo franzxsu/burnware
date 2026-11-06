@@ -297,6 +297,15 @@ hr.groove { border: 0; border-top: 1px solid var(--lo); border-bottom: 1px solid
   .task { flex-basis: 40px; } .task span { display: none; }
   .mc { width: 26px; height: 26px; }
 }
+/* desktop: icons sit wherever you put them */
+#icons { display: block; }
+#icons .icon { position: absolute; touch-action: none; -webkit-touch-callout: none; }
+#wall { touch-action: none; -webkit-touch-callout: none; }
+.icon.drag { opacity: .6; z-index: 3; }
+.icon.drop img { filter: brightness(.65) sepia(1) hue-rotate(170deg) saturate(3); }
+.icon.drop span { background: var(--sel); color: var(--seltxt); text-shadow: none; }
+.marq { position: absolute; z-index: 4; pointer-events: none; border: 1px dotted #fff; mix-blend-mode: difference; }
+.iren { width: 76px; font: 11px/1.2 var(--ui); padding: 1px 2px; border: 1px solid #000; background: #fff; color: #000; text-align: center; user-select: text; -webkit-user-select: text; }
 @media (prefers-reduced-motion: reduce) { .buzz { animation: none; } #splash .bar i { animation-duration: 3s; } }
 /* programs that live in apps/, each in its own frame */
 .appbar { flex-wrap: nowrap; overflow: hidden; }
