@@ -2856,8 +2856,9 @@ APPS.sudoku = {
 /* ============================================================
    Blockfall: falling blocks, the way the shareware disks had it.
    Bevelled squares, an LCD score, speed going up every 10 lines.
-   Arrows move, Up rotates, Space drops, P pauses. Touch buttons
-   show up on phones.
+   Arrows move (hold them, and press other keys at the same time),
+   Up rotates, Space drops, C holds a piece for later, P pauses.
+   Touch buttons show up on phones and take several fingers.
    ============================================================ */
 APPS.blocks = {
   title: 'Blockfall', icon: 'blocks', w: 420, h: 540, minW: 300, minH: 420,
@@ -2872,34 +2873,46 @@ APPS.blocks = {
 .bf-box .lcd { font-size: 24px; line-height: 22px; text-align: right; }
 .bf-next { background: #000; height: 52px; display: grid; place-items: center; box-shadow: inset 1px 1px var(--lo), inset -1px -1px var(--hi); }
 .bf-msg { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: #fff; font: 700 16px/1.5 var(--ui); background: rgba(0,0,0,.55); white-space: pre-line; }
-.bf-touch { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 0 8px 8px; background: var(--face); }
-.bf-touch .btn { min-width: 0; min-height: 44px; font-size: 18px; touch-action: none; }
+.bf-touch { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 0 8px 8px; background: var(--face); }
+.bf-touch .btn { min-width: 0; min-height: 48px; font-size: 18px; touch-action: none; }
+.bf-touch .btn.small { font-size: 11px; }
+.bf-touch .btn.down { box-shadow: inset 1px 1px var(--dk), inset -1px -1px var(--hi), inset 2px 2px var(--lo); }
+.bf-next.used canvas { opacity: .35; }
 `);
     const COLS = 10, ROWS = 20;
     const SHAPES = { I: [[0, 1], [1, 1], [2, 1], [3, 1]], O: [[1, 0], [2, 0], [1, 1], [2, 1]], T: [[1, 0], [0, 1], [1, 1], [2, 1]], S: [[1, 0], [2, 0], [0, 1], [1, 1]], Z: [[0, 0], [1, 0], [1, 1], [2, 1]], J: [[0, 0], [0, 1], [1, 1], [2, 1]], L: [[2, 0], [0, 1], [1, 1], [2, 1]] };
     const COLOR = { I: '#00c0c0', O: '#c0c000', T: '#c000c0', S: '#00c000', Z: '#c00000', J: '#0000c0', L: '#c08000' };   // the 16-colour VGA box
-    const well = h('canvas'), nextC = h('canvas', { width: 80, height: 44 }), msg = h('div.bf-msg');
+    const well = h('canvas'), nextC = h('canvas', { width: 80, height: 44 }), holdC = h('canvas', { width: 80, height: 44 }), holdBox = h('div.bf-next', holdC), msg = h('div.bf-msg');
     const lcd = { score: h('div.lcd', '0'), lines: h('div.lcd', '0'), level: h('div.lcd', '1') };
     const side = h('div.bf-side',
       h('div.bf-box.bev', h('b', 'Next'), h('div.bf-next', nextC)),
+      h('div.bf-box.bev', h('b', isTouch() ? 'Hold' : 'Hold (C)'), holdBox),
       h('div.bf-box.bev', h('b', 'Score'), lcd.score, h('b', 'Lines'), lcd.lines, h('b', 'Level'), lcd.level),
       h('div.bf-box.bev', h('b', { html: 'Hi-score' }), h('div.lcd', { style: { fontSize: '18px' } }, String(Store.data.scores.blocks || 0))));
     const wellBox = h('div.bf-well', well, msg);
     win.body.append(h('div.bf', wellBox, side));
     let touch = null;
     if (isTouch()) {
-      const mk = (t, lbl, fn, rep) => { const b = h('button.btn', { 'aria-label': lbl }, t); let iv = null; b.addEventListener('pointerdown', (e) => { e.preventDefault(); fn(); if (rep) iv = setInterval(fn, 110); }); const stop = () => clearInterval(iv); b.addEventListener('pointerup', stop); b.addEventListener('pointercancel', stop); b.addEventListener('pointerleave', stop); b._tap = true; return b; };
-      touch = h('div.bf-touch', mk('◀', 'Left', () => act('left'), true), mk('⟳', 'Rotate', () => act('rot')), mk('▼', 'Down', () => act('down'), true), mk('⤓', 'Drop', () => act('drop')), mk('▶', 'Right', () => act('right'), true));
+      const btn = (t, a, lbl, cls) => h('button.btn' + (cls || ''), { 'aria-label': lbl, 'data-a': a }, t);
+      touch = h('div.bf-touch', btn('Hold', 'hold', 'Hold piece', '.small'), btn('◀', 'left', 'Left'), btn('▼', 'down', 'Soft drop'), btn('▶', 'right', 'Right'), btn('⟳', 'rot', 'Rotate'), btn('⤓', 'drop', 'Hard drop'));
+      touch._tap = true; [...touch.children].forEach(b => { b._tap = true; });
+      const fingers = new Map();   // pointer id -> action, so every finger is its own button press
+      touch.addEventListener('pointerdown', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; e.preventDefault(); try { touch.setPointerCapture(e.pointerId); } catch (x) {} fingers.set(e.pointerId, b); b.classList.add('down'); press(b.dataset.a); });
+      const up = (e) => { const b = fingers.get(e.pointerId); if (!b) return; fingers.delete(e.pointerId); b.classList.remove('down'); release(b.dataset.a); };
+      touch.addEventListener('pointerup', up); touch.addEventListener('pointercancel', up);
+      touch.addEventListener('contextmenu', (e) => e.preventDefault());
       win.body.append(touch);
     }
-    let grid, cur, next, bag, score, lines, level, state = 'ready', acc = 0, last = 0, raf = 0, sz = 20, flash = null;
-    const ctx = well.getContext('2d'), nctx = nextC.getContext('2d');
+    let grid, cur, next, bag, score, lines, level, state = 'ready', acc = 0, last = 0, raf = 0, sz = 20, flash = null, hold = null, canHold = true;
+    const held = new Map(); let horiz = null;   // keys/buttons being held down, and which way was pressed last
+    const DAS = 150, ARR = 45, SOFT = 40;
+    const ctx = well.getContext('2d'), nctx = nextC.getContext('2d'), hctx = holdC.getContext('2d');
     const fresh = () => { if (!bag || !bag.length) bag = Object.keys(SHAPES).sort(() => Math.random() - 0.5); const k = bag.pop(); return { k, cells: SHAPES[k].map(p => p.slice()), x: 3, y: 0 }; };
     const fits = (cells, x, y) => cells.every(([cx, cy]) => { const X = cx + x, Y = cy + y; return X >= 0 && X < COLS && Y < ROWS && (Y < 0 || !grid[Y][X]); });
     const speed = () => Math.max(60, 800 * Math.pow(0.82, level - 1));
     function start() {
       grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(null)); bag = null; score = 0; lines = 0; level = 1;
-      cur = fresh(); next = fresh(); state = 'play'; acc = 0; msg.hidden = true; hud(); draw();
+      cur = fresh(); next = fresh(); hold = null; canHold = true; state = 'play'; acc = 0; msg.hidden = true; hud(); draw();
     }
     function hud() { lcd.score.textContent = score; lcd.lines.textContent = lines; lcd.level.textContent = level; }
     function rotate(dir) {
@@ -2916,7 +2929,27 @@ APPS.blocks = {
         level = Math.floor(lines / 10) + 1; full.length === 4 ? Sound.tada() : Sound.chord(); hud();
       } else { Sound.click(); spawn(); }
     }
-    function spawn() { cur = next; next = fresh(); if (!fits(cur.cells, cur.x, cur.y)) over(); }
+    function spawn() { cur = next; next = fresh(); canHold = true; if (!fits(cur.cells, cur.x, cur.y)) over(); }
+    /* hold: park this piece for later (once per piece), and bring back the one parked before */
+    function doHold() {
+      if (!canHold) return;
+      const was = hold; hold = cur.k;
+      if (was) cur = { k: was, cells: SHAPES[was].map(p => p.slice()), x: 3, y: 0 }; else spawn();
+      canHold = false; acc = 0; Sound.click();
+      if (state === 'play' && !fits(cur.cells, cur.x, cur.y)) over();
+    }
+    /* press / release: moves happen once now, then the loop repeats them while held */
+    function press(a) {
+      if (a === 'left' || a === 'right' || a === 'down') { act(a); held.set(a, performance.now() + (a === 'down' ? SOFT : DAS)); if (a !== 'down') horiz = a; }
+      else act(a);
+    }
+    function release(a) { held.delete(a); if (horiz === a) horiz = held.has('left') ? 'left' : held.has('right') ? 'right' : null; }
+    function repeat(now) {
+      for (const a of ['left', 'right', 'down']) {
+        if (!held.has(a) || (a !== 'down' && a !== horiz)) continue;
+        if (now >= held.get(a)) { act(a); held.set(a, now + (a === 'down' ? SOFT : ARR)); }
+      }
+    }
     function over() {
       state = 'over'; Sound.crash(); const best = Store.data.scores.blocks || 0;
       if (score > best) { Store.data.scores.blocks = score; Store.save(); side.lastChild.lastChild.textContent = score; }
@@ -2928,7 +2961,7 @@ APPS.blocks = {
       if (state !== 'play') return;
       if (a === 'left' && fits(cur.cells, cur.x - 1, cur.y)) cur.x--;
       else if (a === 'right' && fits(cur.cells, cur.x + 1, cur.y)) cur.x++;
-      else if (a === 'rot') rotate(1); else if (a === 'rotb') rotate(-1);
+      else if (a === 'rot') rotate(1); else if (a === 'rotb') rotate(-1); else if (a === 'hold') doHold();
       else if (a === 'down') { if (fits(cur.cells, cur.x, cur.y + 1)) { cur.y++; score += 1; acc = 0; hud(); } else lock(); }
       else if (a === 'drop') { let d = 0; while (fits(cur.cells, cur.x, cur.y + 1)) { cur.y++; d++; } score += d * 2; hud(); lock(); }
       else if (a === 'pause') { state = 'paused'; msg.textContent = 'PAUSED\n\nPress P to carry on'; msg.hidden = false; }
@@ -2953,6 +2986,8 @@ APPS.blocks = {
         for (const [cx, cy] of cur.cells) if (cy + cur.y >= 0) block(ctx, (cx + cur.x) * s, (cy + cur.y) * s, s, COLOR[cur.k]);
       }
       nctx.fillStyle = '#000'; nctx.fillRect(0, 0, 80, 44);
+      const mini = (g, p, used) => { g.fillStyle = '#000'; g.fillRect(0, 0, 80, 44); if (!p) return; const cells = SHAPES[p], ns = 16, xs = cells.map(c => c[0]), ys = cells.map(c => c[1]), w = (Math.max(...xs) - Math.min(...xs) + 1) * ns, hh = (Math.max(...ys) - Math.min(...ys) + 1) * ns; for (const [cx, cy] of cells) block(g, (80 - w) / 2 + (cx - Math.min(...xs)) * ns, (44 - hh) / 2 + (cy - Math.min(...ys)) * ns, ns, used ? '#606060' : COLOR[p]); };
+      mini(hctx, hold, !canHold); holdBox.classList.toggle('used', !canHold);
       if (next) { const ns = 16, xs = next.cells.map(p => p[0]), ys = next.cells.map(p => p[1]), w = (Math.max(...xs) - Math.min(...xs) + 1) * ns, hh = (Math.max(...ys) - Math.min(...ys) + 1) * ns; for (const [cx, cy] of next.cells) block(nctx, (80 - w) / 2 + (cx - Math.min(...xs)) * ns, (44 - hh) / 2 + (cy - Math.min(...ys)) * ns, ns, COLOR[next.k]); }
     }
     function loop(t) {
@@ -2964,6 +2999,7 @@ APPS.blocks = {
         return draw();
       }
       if (state !== 'play' || win.min) return;
+      repeat(t);
       acc += dt; if (acc >= speed()) { acc = 0; if (fits(cur.cells, cur.x, cur.y + 1)) cur.y++; else lock(); draw(); }
     }
     const fit = () => {
@@ -2972,20 +3008,25 @@ APPS.blocks = {
       sz = Math.max(10, Math.floor(Math.min(availH / ROWS, availW / COLS)));
       well.width = COLS * sz; well.height = ROWS * sz; draw();
     };
+    const KEYS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'down', ArrowUp: 'rot', x: 'rot', X: 'rot', z: 'rotb', Z: 'rotb', ' ': 'drop', p: 'pause', P: 'pause', Escape: 'pause', Enter: 'start', c: 'hold', C: 'hold', Shift: 'hold' };
     win.el.addEventListener('keydown', (e) => {
-      const k = { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'down', ArrowUp: 'rot', x: 'rot', X: 'rot', z: 'rotb', Z: 'rotb', ' ': 'drop', p: 'pause', P: 'pause', Enter: 'start' }[e.key];
       if (e.key === 'F2') { e.preventDefault(); return start(); }
-      if (k) { e.preventDefault(); act(k); }
+      const k = KEYS[e.key]; if (!k) return;
+      e.preventDefault(); if (e.repeat) return;   // our own repeat handles held keys, so two keys at once both keep working
+      press(k);
     });
+    const keyUp = (e) => { const k = KEYS[e.key]; if (k) release(k); };
+    const blur = () => { held.clear(); horiz = null; };
+    addEventListener('keyup', keyUp); addEventListener('blur', blur); win.el.addEventListener('focusout', (e) => { if (!e.relatedTarget || !win.el.contains(e.relatedTarget)) blur(); });
     wellBox.addEventListener('pointerdown', () => { if (state === 'ready' || state === 'over') start(); else if (state === 'paused') act('pause'); });
     WM.menubar(win, [{ label: 'Game', items: () => [
       { label: 'New game', key: 'F2', action: start }, { label: state === 'paused' ? 'Resume' : 'Pause', key: 'P', disabled: state !== 'play' && state !== 'paused', action: () => act('pause') }, '-',
       { label: `Hi-score: ${Store.data.scores.blocks || 0}`, disabled: true }, { label: 'Exit', action: () => WM.close(win) },
-    ] }, { label: 'Help', items: () => [{ label: 'Controls', action: () => WM.alert('Blockfall', 'Left / Right: move\nUp or X: rotate   Z: rotate the other way\nDown: soft drop   Space: hard drop\nP: pause   F2: new game\n\nClear 4 lines at once for the big points.', 'blocks') }] }]);
+    ] }, { label: 'Help', items: () => [{ label: 'Controls', action: () => WM.alert('Blockfall', 'Left / Right: move (hold to slide)\nUp or X: rotate   Z: rotate the other way\nDown: soft drop   Space: hard drop\nC or Shift: hold the piece for later (once per piece)\nP: pause   F2: new game\n\nClear 4 lines at once for the big points.', 'blocks') }] }]);
     gameFocus(win);
     msg.textContent = isTouch() ? 'BLOCKFALL\n\nTap to start' : 'BLOCKFALL\n\nPress Enter to start'; msg.hidden = false;
     const ro = new ResizeObserver(fit); ro.observe(win.body); win.onResize = fit;
-    win.onClose = () => { cancelAnimationFrame(raf); ro.disconnect(); };
+    win.onClose = () => { cancelAnimationFrame(raf); ro.disconnect(); removeEventListener('keyup', keyUp); removeEventListener('blur', blur); };
     requestAnimationFrame(() => { fit(); raf = requestAnimationFrame(loop); });
   },
 };
@@ -3032,6 +3073,9 @@ APPS.words = {
 .wd-kr .btn.big { max-width: 60px; flex: 1.6; font-size: 11px; font-weight: 400; }
 .wd-kr .btn.g2 { background: #008000; color: #fff; } .wd-kr .btn.g1 { background: #ffff00; } .wd-kr .btn.g0 { background: #808080; color: #fff; }
 .wd-msg { min-height: 18px; font-weight: 700; color: #000080; }
+.wd-msg.yes { color: #008000; } .wd-msg.no { color: #c00000; }
+.wd-row.yes .wd-t { box-shadow: inset 0 0 0 2px #008000; color: #008000; }
+.wd-row.no .wd-t { box-shadow: inset 0 0 0 2px #c00000; color: #c00000; }
 .wd-stats { display: flex; flex-direction: column; gap: 3px; min-width: 220px; }
 .wd-bar { display: flex; gap: 4px; align-items: center; } .wd-bar i { display: block; height: 14px; background: #000080; color: #fff; font: 700 10px/14px var(--ui); text-align: right; padding-right: 3px; font-style: normal; min-width: 14px; }
 `);
@@ -3047,8 +3091,17 @@ APPS.words = {
         b.onclick = () => press(ch === '+' ? 'Enter' : ch === '-' ? 'Backspace' : ch); if (ch !== '+' && ch !== '-') keys[ch] = b; r.append(b);
       }
     });
-    const say = (t, ms = 1800) => { msg.textContent = t; clearTimeout(msgT); if (ms) msgT = setTimeout(() => { msg.textContent = ''; }, ms); };
+    const say = (t, ms = 1800) => { delete msg.dataset.v; msg.classList.remove('yes', 'no'); msg.textContent = t; clearTimeout(msgT); if (ms) msgT = setTimeout(() => { msg.textContent = ''; }, ms); };
     const stats = () => Store.data.words || (Store.data.words = { played: 0, won: 0, streak: 0, best: 0, dist: [0, 0, 0, 0, 0, 0], lastDay: -1 });
+    /* as soon as five letters are typed, say whether it's a real word (green) or not (red) before Enter */
+    function validity() {
+      rows.forEach(r => r.classList.remove('yes', 'no')); msg.classList.remove('yes', 'no');
+      if (done || cur.length < 5) { if (msg.dataset.v) { msg.textContent = ''; delete msg.dataset.v; } return; }
+      const r = rows[guesses.length]; msg.dataset.v = '1'; clearTimeout(msgT);
+      if (!Words.valid) { msg.textContent = 'Checking the word list...'; Words.load().then(() => paint()); return; }
+      const ok = Words.valid.has(cur); r.classList.add(ok ? 'yes' : 'no'); msg.classList.add(ok ? 'yes' : 'no');
+      msg.textContent = ok ? '✓ Real word. Press Enter' : '✗ Not in the word list';
+    }
     function paint() {
       rows.forEach((r, i) => {
         const g = guesses[i], word = g || (i === guesses.length ? cur : ''), m = g ? Words.mark(g, answer) : null;
@@ -3058,6 +3111,7 @@ APPS.words = {
       for (const [ch, b] of Object.entries(keys)) b.className = 'btn' + (best[ch] !== undefined ? ' g' + best[ch] : '');
       stL.textContent = mode === 'daily' ? `Daily word #${Words.dayNo() + 1}` : 'Practice';
       const s = stats(); stR.textContent = `Streak ${s.streak}  ·  Won ${s.won}/${s.played}`;
+      validity();
     }
     function save() { if (mode === 'daily') { Store.data.wordsDay = { day: Words.dayNo(), guesses }; Store.save(); } }
     function begin(m) {
@@ -3377,6 +3431,8 @@ const GAME_IDS = ['mines', 'solitaire', 'spider', 'blocks', 'sudoku', 'words', '
   const load = FS.load.bind(FS); FS.load = function () { load(); addGames(); };
   const defaults = FS.defaults.bind(FS); FS.defaults = function () { const r = defaults(); const progs = r.children.find(c => c.name === 'Programs'); if (progs) progs.children.unshift(games()); return r; };
   const at = Desktop.items.findIndex(it => it.label === 'Solitaire');
+  const sol = Desktop.items.findIndex(it => it.label === 'Solitaire');
+  Desktop.items.splice(sol >= 0 ? sol + 1 : Desktop.items.length, 0, ...['spider', 'blocks', 'sudoku', 'words', 'typing'].map(id => ({ label: APPS[id].title, icon: APPS[id].icon, open: () => WM.open(id) })));
   Desktop.items.splice(at >= 0 ? at : Desktop.items.length, 0, { label: 'Games', icon: 'gamesdir', open: () => WM.open('explorer', { path: 'C:\\Programs\\Games' }) });
 })();
 /* ---- 89-desktop.js ---- */

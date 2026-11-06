@@ -40,6 +40,9 @@ APPS.words = {
 .wd-kr .btn.big { max-width: 60px; flex: 1.6; font-size: 11px; font-weight: 400; }
 .wd-kr .btn.g2 { background: #008000; color: #fff; } .wd-kr .btn.g1 { background: #ffff00; } .wd-kr .btn.g0 { background: #808080; color: #fff; }
 .wd-msg { min-height: 18px; font-weight: 700; color: #000080; }
+.wd-msg.yes { color: #008000; } .wd-msg.no { color: #c00000; }
+.wd-row.yes .wd-t { box-shadow: inset 0 0 0 2px #008000; color: #008000; }
+.wd-row.no .wd-t { box-shadow: inset 0 0 0 2px #c00000; color: #c00000; }
 .wd-stats { display: flex; flex-direction: column; gap: 3px; min-width: 220px; }
 .wd-bar { display: flex; gap: 4px; align-items: center; } .wd-bar i { display: block; height: 14px; background: #000080; color: #fff; font: 700 10px/14px var(--ui); text-align: right; padding-right: 3px; font-style: normal; min-width: 14px; }
 `);
@@ -55,8 +58,17 @@ APPS.words = {
         b.onclick = () => press(ch === '+' ? 'Enter' : ch === '-' ? 'Backspace' : ch); if (ch !== '+' && ch !== '-') keys[ch] = b; r.append(b);
       }
     });
-    const say = (t, ms = 1800) => { msg.textContent = t; clearTimeout(msgT); if (ms) msgT = setTimeout(() => { msg.textContent = ''; }, ms); };
+    const say = (t, ms = 1800) => { delete msg.dataset.v; msg.classList.remove('yes', 'no'); msg.textContent = t; clearTimeout(msgT); if (ms) msgT = setTimeout(() => { msg.textContent = ''; }, ms); };
     const stats = () => Store.data.words || (Store.data.words = { played: 0, won: 0, streak: 0, best: 0, dist: [0, 0, 0, 0, 0, 0], lastDay: -1 });
+    /* as soon as five letters are typed, say whether it's a real word (green) or not (red) before Enter */
+    function validity() {
+      rows.forEach(r => r.classList.remove('yes', 'no')); msg.classList.remove('yes', 'no');
+      if (done || cur.length < 5) { if (msg.dataset.v) { msg.textContent = ''; delete msg.dataset.v; } return; }
+      const r = rows[guesses.length]; msg.dataset.v = '1'; clearTimeout(msgT);
+      if (!Words.valid) { msg.textContent = 'Checking the word list...'; Words.load().then(() => paint()); return; }
+      const ok = Words.valid.has(cur); r.classList.add(ok ? 'yes' : 'no'); msg.classList.add(ok ? 'yes' : 'no');
+      msg.textContent = ok ? '✓ Real word. Press Enter' : '✗ Not in the word list';
+    }
     function paint() {
       rows.forEach((r, i) => {
         const g = guesses[i], word = g || (i === guesses.length ? cur : ''), m = g ? Words.mark(g, answer) : null;
@@ -66,6 +78,7 @@ APPS.words = {
       for (const [ch, b] of Object.entries(keys)) b.className = 'btn' + (best[ch] !== undefined ? ' g' + best[ch] : '');
       stL.textContent = mode === 'daily' ? `Daily word #${Words.dayNo() + 1}` : 'Practice';
       const s = stats(); stR.textContent = `Streak ${s.streak}  ·  Won ${s.won}/${s.played}`;
+      validity();
     }
     function save() { if (mode === 'daily') { Store.data.wordsDay = { day: Words.dayNo(), guesses }; Store.save(); } }
     function begin(m) {
