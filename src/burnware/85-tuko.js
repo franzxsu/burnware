@@ -16,6 +16,7 @@ const TUKO_LINES = [
   'WRC 1988 tip: brake before the corner, not in it. I learned this the hard way. I am a gecko.',
   'Sizzle Sand tip: if the oil catches fire, use a lid. Not water. Never water.',
   'Omnigacha keeps asking me to pull. I do not have thumbs.',
+  'I made a song in Burn Studio. It is mostly kick drum. Like my heartbeat when I see a moth.',
   'Click the clock in the corner to time travel. SparkNet News in Torch follows you to that year.',
   'Rain.wav is my favourite. It sounds like the roof of my old house.',
   'Kaiju Rampage tip: knock out the bottom floor and the whole building comes down. I read that somewhere. I am a gecko.',

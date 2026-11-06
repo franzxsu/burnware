@@ -115,6 +115,7 @@ APPS.help = {
       <li><b>WRC 1988:</b> a fan-made rally game, dressed like it's 1988, on loose gravel. Arrow keys or WASD, Space for the handbrake. On a phone, turn it sideways.</li>
       <li><b>Sizzle Sand:</b> a kitchen where every grain is simulated. Cook what the tickets ask for, or just cook. Things will catch fire.</li>
       <li><b>Rain.wav:</b> a lo-fi music video, every pixel and note made in code. It plays in the Media Player.</li>
+      <li><b>Burn Studio:</b> make a song. Tap out drums, draw bass and chords on a grid, drop in loops from the library, play live on the keyboard (A to K on a computer) and record it. Song ☰ exports a WAV.</li>
       <li><b>Kaiju Rampage:</b> you are Tuko, 40 metres tall, in a city made of blocks. WASD to walk, drag to look, Space to stomp, E to spin the tail, R to roar, hold F (or the right mouse button) for the beam. Buildings fall when you knock out a floor. Three minutes; the army will have opinions. Nobody gets hurt: everyone makes it to the subway.</li></ul>
       <p>Each of the big ones runs in its own window. Use <b>Full screen</b> or <b>New tab</b> in its toolbar to give it the whole screen.</p>
       <h3>The time machine</h3>

@@ -89,4 +89,16 @@ JS="10-core.js 15-audio.js 20-world.js 30-voxels.js 32-city.js 34-damage.js 35-f
   printf '</body>\n</html>\n'
 } > apps/kaiju-rampage.html
 
+# ---------- Burn Studio ----------
+D=src/burn-studio
+JS="10-core.js 20-synth.js 30-seq.js 40-ui.js 50-play.js 60-extras.js 99-main.js"
+{
+  open_page "Burn Studio: a music maker. Drums, bass, keys and synths, loops, a piano and WAV export." "$BASE_BW" "../"
+  head_part $D/00-head.html
+  printf '</head>\n<body>\n'
+  cat $D/01-body.html
+  echo '<script>'; for f in $JS; do echo "/* ---- $f ---- */"; cat "$D/$f"; done; echo '</script>'
+  printf '</body>\n</html>\n'
+} > apps/burn-studio.html
+
 wc -c index.html apps/*.html

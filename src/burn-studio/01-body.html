@@ -1,0 +1,24 @@
+<div id="app">
+  <div id="top" class="panel">
+    <button class="btn big play" id="bPlay" aria-label="Play">▶</button>
+    <button class="btn big" id="bStop" aria-label="Stop">■</button>
+    <button class="btn big rec" id="bRec" aria-label="Record" title="Record what you play into the selected track">●</button>
+    <div class="lcd" id="lcd" aria-live="off"><span id="lcdPos">1.1.1</span><span id="lcdBpm">92 BPM</span><span id="lcdKey">A minor</span><small id="lcdScene">SCENE A</small></div>
+    <div class="knob"><span class="lbl">Tempo</span><button class="btn" id="bpmDn" aria-label="Slower">−</button><span id="bpmVal">92</span><button class="btn" id="bpmUp" aria-label="Faster">+</button></div>
+    <button class="btn" id="bMetro" title="Metronome">♩ Click</button>
+    <button class="btn" id="bMenu" aria-haspopup="menu">☰ Song</button>
+  </div>
+  <div id="mid">
+    <div id="scenes" class="panel" role="group" aria-label="Scenes"></div>
+    <div id="tracks" class="panel" role="group" aria-label="Tracks"></div>
+  </div>
+  <div id="edit" class="panel">
+    <div id="edbar"></div>
+    <div id="gridwrap"><div id="grid" role="grid" aria-label="Pattern"></div></div>
+  </div>
+  <div id="play" class="panel">
+    <div id="playbar"></div>
+    <div id="surface"></div>
+  </div>
+</div>
+<div id="toast" role="status"></div>
