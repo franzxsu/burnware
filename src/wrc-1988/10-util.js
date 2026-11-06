@@ -1,5 +1,5 @@
 /* ============================================================
-   PEBBLE DASH — math helpers, noise, splines
+   WRC 1988 (once Pebble Dash) — math helpers, noise, splines
    ============================================================ */
 const TAU = Math.PI * 2;
 const G = 9.81;

@@ -9,7 +9,7 @@ Press the power button, wait for the BIOS and the boot screen, and you're on the
 | Program | What it is |
 | --- | --- |
 | **Omnigacha** | A gacha machine that pulls for everything. Tap it to shake loose tokens, then pull. |
-| **Pebble Dash** | A tiny rally game in 3D: loose gravel, big slides, rivals, ghosts and replays. |
+| **WRC 1988** | A fan-made 3D rally game dressed like a late-80s arcade cabinet: loose gravel, big slides, rivals, ghosts and replays. (It started life as Pebble Dash. Not affiliated with the FIA World Rally Championship.) |
 | **Sizzle Sand** | A kitchen where every grain is simulated. Heat spreads, water boils off, oil catches fire. |
 | **Rain.wav** | A one-minute lo-fi music video. Every pixel and every note was made in code. Plays in the Media Player. |
 | **Kaiju Rampage** | Still being built. |
@@ -29,7 +29,7 @@ media/                  the video, its poster and the MixBurner songs
 favicon.png, apple-touch-icon.png
 src/burnware/           the desktop's parts: one file per program or system piece
 src/omnigacha/          the parts of each big program
-src/pebble-dash/
+src/wrc-1988/
 src/sizzle-sand/
 build.sh                glues the parts in src/ into index.html and apps/
 ```

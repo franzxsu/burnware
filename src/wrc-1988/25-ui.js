@@ -141,7 +141,8 @@ const HUD = {
   init() {
     const pts = []; for (let a = 200; a >= -20; a -= 5) { const r = a * Math.PI / 180; pts.push([84 + 66 * Math.cos(r), 82 - 66 * Math.sin(r)]); }
     const d = 'M' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('L');
-    for (const id of ['#hArcBg', '#hArc', '#hArcRed']) { $(id).setAttribute('d', d); $(id).setAttribute('pathLength', '100'); }
+    for (const id of ['#hArcBg', '#hArc', '#hArcRed', '#hArcTicks']) { $(id).setAttribute('d', d); $(id).setAttribute('pathLength', '100'); }
+    $('#hArcTicks').setAttribute('stroke-dasharray', '1.1 2.2');   // the gaps that turn the arc into LED segments
     $('#hArcRed').setAttribute('stroke-dasharray', '0 86 14 0');
     this.mm = $('#minimap').getContext('2d');
     this.lastNote = null;

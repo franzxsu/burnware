@@ -170,7 +170,7 @@ function buildScenery(W, scene, th) {
     const postM = new THREE.MeshLambertMaterial({ color: 0x2a2f3a });
     for (const sd of [-1, 1]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.45, 6.4, 0.45), postM); p.position.set(sd * gnt.half, 3.2, 0); p.castShadow = true; grp.add(p); }
     let tex = null;
-    if (typeof document !== 'undefined') tex = R.label('PEBBLE DASH', 1024, 128, '#ffd23a', '#16181d', 'bold 64px "Bungee", "Arial Black", sans-serif');
+    if (typeof document !== 'undefined') tex = R.label('WRC 1988', 1024, 128, '#ffd23a', '#0b1530', 'italic 72px "Racing Sans One", "Arial Black", sans-serif');
     const fm = new THREE.MeshLambertMaterial({ color: 0xffffff, map: tex, emissive: th && th.night ? 0x403010 : 0x000000 }), sm = new THREE.MeshLambertMaterial({ color: 0xffd23a });
     const beam = new THREE.Mesh(new THREE.BoxGeometry(gnt.half * 2 + 0.9, 1.5, 0.35), [sm, sm, sm, sm, fm, fm]);
     beam.position.y = 5.7; beam.castShadow = true; grp.add(beam);

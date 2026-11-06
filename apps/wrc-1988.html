@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Pebble Dash: tiny rally cars, loose gravel, big slides.">
+<meta name="description" content="WRC 1988: a fan-made rally game. Flat out on loose gravel.">
 <meta name="theme-color" content="#5c1408">
 <link rel="icon" type="image/png" href="../favicon.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>Pebble Dash</title>
+<title>WRC 1988</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Permanent+Marker&family=Saira+Condensed:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Share+Tech+Mono&family=Saira+Condensed:wght@500;600;700;800&display=swap">
 <style>
 /* Layout: the 3D stage fills a landscape frame (#root). A phone held upright gets the whole frame
    turned 90 degrees, so the game is always played sideways. The HUD sits in the corners like a rally
@@ -259,6 +259,108 @@ html.short .drift { top: calc(var(--gt) + 88px); }
 html.short .msg { top: 44%; }
 html.short .lights { top: 18%; }
 @media (prefers-reduced-motion: reduce) { .note.pop, .msg.in, .drift.pop { animation: none; } }
+
+/* =================== WRC 1988: the retro skin ===================
+   A late-80s rally game look laid over the layout above: square corners, hard black drop shadows,
+   rally yellow and red on near-black, navy/sky/red livery stripes, italic racing type for the big
+   words, amber LCD digits for the clocks, and chunky arcade buttons for thumbs. No pixel fonts. */
+:root {
+  --ink: #050608; --ink2: #0c1220; --ink3: #25314c; --line: #3a4a6e;
+  --chalk: #f4f2ea; --mute: #8f9bb3; --rally: #e4002b; --sun: #ffd400; --mint: #3ce68a; --red: #ff4a3a;
+  --navy: #0b2a6a; --skyb: #3aa0e0; --amber: #ffb000;
+  --display: "Racing Sans One", "Arial Black", Impact, sans-serif;
+  --lcd: "Share Tech Mono", "Courier New", monospace;
+  --hand: var(--display);
+  --bevel: inset 0 0 0 1px rgba(255,255,255,.10), inset 0 2px 0 rgba(255,255,255,.14), inset 0 -2px 0 rgba(0,0,0,.5);
+  --drop: 4px 4px 0 #000;
+}
+/* faint TV lines over the menus and dialogs */
+.screen::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0; background: repeating-linear-gradient(180deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px); }
+.screen > * { position: relative; z-index: 1; }
+#menu { background: linear-gradient(90deg, rgba(5,6,8,.96) 0, rgba(5,6,8,.88) 30%, rgba(5,6,8,.35) 58%, rgba(5,6,8,.55) 100%); }
+.title { font-family: var(--display); font-weight: 400; font-style: italic; line-height: .82; display: flex; align-items: baseline; gap: .18em; letter-spacing: .01em; text-shadow: none; transform: skewX(-6deg); }
+.title .t1 { font-size: 1.5em; background: linear-gradient(180deg, #ffffff 0%, #dfe6f0 40%, #6f7e96 50%, #c9d3e2 58%, #ffffff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(3px 3px 0 #000) drop-shadow(0 0 1px #000); }
+.title .t2 { color: var(--sun); -webkit-text-stroke: 1px #000; filter: drop-shadow(3px 3px 0 var(--rally)) drop-shadow(2px 2px 0 #000); }
+.stripes { display: grid; grid-template-columns: 1fr; gap: 3px; width: 100%; max-width: 300px; transform: skewX(-24deg); margin: 2px 0 2px 6px; }
+.stripes i { display: block; height: 5px; } .stripes i:nth-child(1) { background: var(--navy); } .stripes i:nth-child(2) { background: var(--skyb); } .stripes i:nth-child(3) { background: var(--rally); }
+.tag { text-transform: uppercase; letter-spacing: .16em; font-size: 13px; color: var(--mute); }
+.lbl { color: var(--sun); letter-spacing: .26em; font-size: 12px; }
+.lbl::before { content: "■ "; color: var(--rally); }
+.ev, .card, .opt, .seg, .seg button, .dialog, .dialog .btns button, #replay, #replay button, .pane.right, .board, .hudbtn, .lights, .toast, .chip, .bars i, .swatch, .help kbd { border-radius: 0 !important; }
+.ev { background: var(--ink2); border: 2px solid var(--ink3); box-shadow: var(--bevel); text-transform: uppercase; letter-spacing: .08em; font-size: 15px; position: relative; padding-left: 22px; }
+.ev[aria-pressed="true"] { background: var(--sun); border-color: #000; color: #000; box-shadow: var(--drop); }
+.ev[aria-pressed="true"]::before { content: "▶"; position: absolute; left: 6px; font-size: 11px; top: 50%; transform: translateY(-50%); color: var(--rally); }
+.ev[aria-pressed="true"] small { color: #3a2a00; }
+.pane.right { background: rgba(5,6,8,.84); border: 2px solid var(--line); box-shadow: var(--drop), inset 0 0 0 1px rgba(255,255,255,.05); }
+.card { background: var(--ink2); border: 2px solid var(--ink3); box-shadow: var(--bevel); }
+.card[aria-pressed="true"] { border-color: var(--sun); background: #141d33; box-shadow: var(--drop), 0 0 0 1px var(--sun) inset; }
+.card .nm { text-transform: uppercase; letter-spacing: .05em; }
+.card .rec { font-family: var(--lcd); color: var(--amber); }
+.seg { border: 2px solid var(--line); }
+.seg button { text-transform: uppercase; letter-spacing: .08em; }
+.seg button[aria-pressed="true"] { background: var(--sun); color: #000; }
+.opt { background: var(--ink2); border: 2px solid var(--ink3); box-shadow: var(--bevel); text-transform: uppercase; letter-spacing: .06em; font-size: 13px; }
+.opt b { color: var(--sun); }
+.go { border-radius: 0; background: linear-gradient(180deg, #ff2448 0%, var(--rally) 55%, #a30020 100%); color: var(--sun); font-style: italic; letter-spacing: .06em; box-shadow: var(--drop), inset 0 2px 0 rgba(255,255,255,.3); border: 2px solid #000; text-shadow: 2px 2px 0 #000; }
+.go::before { content: "▶ "; }
+.go:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #000; }
+.help { font-size: 13px; } .help kbd { background: var(--ink3); font-family: var(--lcd); }
+.fanmade { display: inline-block; margin-top: 4px; font-size: 11px; color: #6b7690; letter-spacing: .04em; }
+/* dialogs */
+.dialog { background: rgba(5,6,8,.96); border: 2px solid var(--sun); box-shadow: var(--drop), inset 0 0 0 4px var(--ink), inset 0 0 0 5px var(--ink3); }
+.dialog h2 { font-style: italic; text-transform: uppercase; text-shadow: 3px 3px 0 var(--rally), 4px 4px 0 #000; }
+.dialog .btns button { background: var(--ink2); border: 2px solid var(--line); box-shadow: var(--bevel); text-transform: uppercase; letter-spacing: .06em; }
+.dialog .btns button.pri { background: var(--sun); border-color: #000; color: #000; box-shadow: var(--drop); }
+table.res td { font-variant-numeric: tabular-nums; } table.res td.t { font-family: var(--lcd); color: var(--amber); font-weight: 400; }
+table.res tr.me td { background: rgba(255,212,0,.10); }
+/* the HUD */
+.pos .p { font-style: italic; color: var(--sun); -webkit-text-stroke: 1px #000; text-shadow: 3px 3px 0 #000, 0 0 14px rgba(0,0,0,.5); }
+.pos .p small { color: var(--chalk); }
+.pos .lap { transform: skewX(-18deg); background: linear-gradient(180deg, var(--navy) 0 33%, var(--skyb) 33% 66%, var(--rally) 66%); color: #fff; text-shadow: 1px 1px 0 #000; box-shadow: var(--drop); }
+.pos .lap span { transform: skewX(18deg); }
+.board { background: #0a0700; border: 2px solid #3a2a00; clip-path: none; box-shadow: var(--drop), inset 0 0 18px rgba(255,176,0,.08); }
+.board .k { color: #b07a00; font-family: var(--data); }
+.board .v { font-family: var(--lcd); font-weight: 400; color: var(--amber); text-shadow: 0 0 6px rgba(255,176,0,.55); }
+.board .v.good { color: var(--mint); text-shadow: 0 0 6px rgba(60,230,138,.5); } .board .v.bad { color: var(--red); text-shadow: 0 0 6px rgba(255,74,58,.5); }
+.speedo::before { border-radius: 0; background: rgba(5,6,8,.78); border: 2px solid #3a2a00; box-shadow: var(--drop); top: 6px; bottom: -8px; left: 4px; right: 4px; }
+.speedo .kmh { font-family: var(--lcd); font-weight: 400; color: var(--amber); text-shadow: 0 0 8px rgba(255,176,0,.6); }
+.speedo .unit { color: #b07a00; }
+.speedo .gear { font-family: var(--lcd); background: #000; border: 1px solid #3a2a00; color: var(--sun); padding: 0 5px; top: 30px; right: 6px; font-size: 22px; }
+#minimap { border-radius: 0; background: rgba(5,6,8,.7); outline: 2px solid var(--line); box-shadow: var(--drop); }
+.note { background: #000; color: var(--sun); transform: translateX(-50%); border-radius: 0; border: 2px solid var(--sun); box-shadow: var(--drop); background-image: none; padding: 7px 12px 8px; }
+.note::before { display: none; }
+.note .txt { font-family: var(--display); font-style: italic; text-transform: uppercase; color: var(--sun); letter-spacing: .03em; }
+.note .sub { font-family: var(--lcd); color: #c9b27a; font-size: 14px; }
+.note.sev0 .txt, .note.sev1 .txt { color: #ff5a4a; }
+@keyframes notePop { from { transform: translateX(-50%) translateY(-24px); opacity: 0; } }
+.msg { font-style: italic; color: var(--sun); -webkit-text-stroke: 2px #000; text-shadow: 5px 5px 0 var(--rally), 7px 7px 0 #000; }
+.msg.small { -webkit-text-stroke: 1px #000; text-shadow: 3px 3px 0 #000; color: var(--chalk); }
+.msg.warn { color: var(--red); text-shadow: 4px 4px 0 #000; }
+.lights { background: #111; border: 2px solid #333; box-shadow: var(--drop), var(--bevel); }
+.toast { background: #000; border-left: 0; border: 2px solid var(--sun); box-shadow: var(--drop); text-transform: uppercase; letter-spacing: .06em; font-size: 14px; }
+.drift .dcur { font-style: italic; color: var(--sun); -webkit-text-stroke: 1px #000; }
+.hudbtn { background: var(--ink2); border: 2px solid var(--line); box-shadow: var(--bevel), 3px 3px 0 #000; color: var(--sun); font-family: var(--lcd); }
+#replay { background: #000; border: 2px solid var(--line); box-shadow: var(--drop); }
+#replay .rtag { font-style: italic; }
+#veil { background: var(--ink) repeating-linear-gradient(180deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px); }
+#veil .vt { font-family: var(--display); font-style: italic; font-size: 46px; color: #fff; text-shadow: 4px 4px 0 #000; }
+#veil .vt b { color: var(--sun); font-weight: 400; }
+#veil small { font-family: var(--lcd); color: var(--amber); text-transform: uppercase; }
+#veil small::after { content: "_"; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+/* thumbs: arcade-cabinet buttons */
+#touch .tb { border: 3px solid #000; color: #fff; font-family: var(--display); font-style: italic; text-shadow: 2px 2px 0 rgba(0,0,0,.6); letter-spacing: .04em; box-shadow: 0 6px 0 rgba(0,0,0,.75), inset 0 3px 0 rgba(255,255,255,.35), inset 0 -4px 0 rgba(0,0,0,.35); }
+#touch .tb.on { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.75), inset 0 3px 6px rgba(0,0,0,.5); filter: brightness(1.15); }
+#touch #tGas { border-radius: 50% !important; width: 104px; height: 104px; background: radial-gradient(circle at 40% 32%, #ff6a7e, var(--rally) 45%, #8a0019 100%); font-size: 20px; }
+#touch #tBrk { border-radius: 50% !important; width: 80px; height: 80px; background: radial-gradient(circle at 40% 32%, #fff38a, var(--sun) 45%, #a88600 100%); color: #1a1400; text-shadow: none; font-size: 14px; }
+#touch #tHb { border-radius: 50% !important; width: 66px; height: 66px; bottom: calc(var(--gb) + 92px) !important; background: radial-gradient(circle at 40% 32%, #8fd2ff, var(--skyb) 45%, #0b3a78 100%); font-size: 11px; }
+#touch .tb.steer { border-radius: 6px !important; background: linear-gradient(180deg, #3a4256, #1c2232 60%, #10141f); font-family: var(--lcd); font-style: normal; color: var(--sun); }
+.pad span { font-family: var(--lcd); color: rgba(255,212,0,.5); }
+.pad .base { border-radius: 4px; background: linear-gradient(180deg, #2a3144, #111522); border: 2px solid #000; }
+.pad .knob { border-radius: 50%; background: radial-gradient(circle at 40% 32%, #ff6a7e, var(--rally) 50%, #8a0019); border: 3px solid #000; }
+body.tilt #touch #tBrk { border-radius: 50% !important; }
+html.short .ev { padding-left: 20px; }
+#touch .tb.on { filter: brightness(1.25); }
 </style>
 </head>
 <body>
@@ -281,7 +383,7 @@ html.short .lights { top: 18%; }
   <div class="drift" id="hDrift" hidden><div class="dcur" id="hDCur"></div><div class="dmult" id="hDMult"></div></div>
   <canvas id="minimap" width="300" height="300" aria-hidden="true"></canvas>
   <div class="speedo">
-    <svg viewBox="0 0 168 112" aria-hidden="true"><path id="hArcBg" fill="none" stroke="#2a2e37" stroke-width="10" stroke-linecap="round"/><path id="hArc" fill="none" stroke="#ffd23a" stroke-width="10" stroke-linecap="round"/><path id="hArcRed" fill="none" stroke="#ff4b2b" stroke-width="10" stroke-linecap="butt" opacity=".55"/></svg>
+    <svg viewBox="0 0 168 112" aria-hidden="true"><path id="hArcBg" fill="none" stroke="#1a1408" stroke-width="12" stroke-linecap="butt"/><path id="hArc" fill="none" stroke="#ffd23a" stroke-width="12" stroke-linecap="butt"/><path id="hArcRed" fill="none" stroke="#ff4b2b" stroke-width="12" stroke-linecap="butt" opacity=".5"/><path id="hArcTicks" fill="none" stroke="#050608" stroke-width="14" stroke-linecap="butt"/></svg>
     <div class="gear" id="hGear">1</div><div class="kmh" id="hKmh">0</div><div class="unit">KM/H</div>
   </div>
   <div class="lights" id="hLights" hidden><i></i><i></i><i></i></div>
@@ -302,8 +404,9 @@ html.short .lights { top: 18%; }
 <div class="screen" id="menu" hidden>
   <div class="menu-grid">
     <div class="pane left">
-      <h1 class="title">PEBBLE DASH</h1>
-      <p class="tag">Tiny rally cars. Loose gravel. Big slides.</p>
+      <h1 class="title"><span class="t1">WRC</span><span class="t2">1988</span></h1>
+      <div class="stripes" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="tag">Flat out on loose gravel. Season 1988.</p>
       <div class="lbl">EVENT</div>
       <div class="events" id="mEvents" role="group" aria-label="Event"></div>
       <p class="blurb ev-blurb" id="mEventBlurb"></p>
@@ -329,7 +432,7 @@ html.short .lights { top: 18%; }
         <button class="opt" id="oScreen" hidden>Screen <b>Sideways ↻</b></button>
         <button class="opt" id="oSteer" hidden>Steering <b>Buttons</b></button>
       </div>
-      <p class="help" id="mHelp"><kbd>↑</kbd> gas · <kbd>↓</kbd> brake / reverse · <kbd>←</kbd><kbd>→</kbd> steer · <kbd>Space</kbd> handbrake · <kbd>R</kbd> back on the road · <kbd>C</kbd> camera · <kbd>Esc</kbd> pause. Pace notes: 6 is flat out, 1 is nearly a hairpin.</p>
+      <p class="help" id="mHelp"><kbd>↑</kbd> gas · <kbd>↓</kbd> brake / reverse · <kbd>←</kbd><kbd>→</kbd> steer · <kbd>Space</kbd> handbrake · <kbd>R</kbd> back on the road · <kbd>C</kbd> camera · <kbd>Esc</kbd> pause. Pace notes: 6 is flat out, 1 is nearly a hairpin.<br><span class="fanmade">A fan-made rally game. Not affiliated with the FIA World Rally Championship.</span></p>
     </div>
   </div>
 </div>
@@ -351,12 +454,12 @@ html.short .lights { top: 18%; }
 
 <div id="replay" hidden><span class="rtag">● REPLAY</span><span class="rtime" id="rpTime"></span><button id="rpSpeed">1×</button><button id="rpCam">CAM</button><button id="rpExit">Exit</button></div>
 
-<div id="veil">PEBBLE DASH<small id="veilTxt">building the stage…</small></div>
+<div id="veil"><span class="vt">WRC <b>1988</b></span><small id="veilTxt">building the stage…</small></div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ============================================================
-   PEBBLE DASH — math helpers, noise, splines
+   WRC 1988 (once Pebble Dash) — math helpers, noise, splines
    ============================================================ */
 const TAU = Math.PI * 2;
 const G = 9.81;
@@ -1975,7 +2078,7 @@ function buildScenery(W, scene, th) {
     const postM = new THREE.MeshLambertMaterial({ color: 0x2a2f3a });
     for (const sd of [-1, 1]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.45, 6.4, 0.45), postM); p.position.set(sd * gnt.half, 3.2, 0); p.castShadow = true; grp.add(p); }
     let tex = null;
-    if (typeof document !== 'undefined') tex = R.label('PEBBLE DASH', 1024, 128, '#ffd23a', '#16181d', 'bold 64px "Bungee", "Arial Black", sans-serif');
+    if (typeof document !== 'undefined') tex = R.label('WRC 1988', 1024, 128, '#ffd23a', '#0b1530', 'italic 72px "Racing Sans One", "Arial Black", sans-serif');
     const fm = new THREE.MeshLambertMaterial({ color: 0xffffff, map: tex, emissive: th && th.night ? 0x403010 : 0x000000 }), sm = new THREE.MeshLambertMaterial({ color: 0xffd23a });
     const beam = new THREE.Mesh(new THREE.BoxGeometry(gnt.half * 2 + 0.9, 1.5, 0.35), [sm, sm, sm, sm, fm, fm]);
     beam.position.y = 5.7; beam.castShadow = true; grp.add(beam);
@@ -2860,7 +2963,8 @@ const HUD = {
   init() {
     const pts = []; for (let a = 200; a >= -20; a -= 5) { const r = a * Math.PI / 180; pts.push([84 + 66 * Math.cos(r), 82 - 66 * Math.sin(r)]); }
     const d = 'M' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('L');
-    for (const id of ['#hArcBg', '#hArc', '#hArcRed']) { $(id).setAttribute('d', d); $(id).setAttribute('pathLength', '100'); }
+    for (const id of ['#hArcBg', '#hArc', '#hArcRed', '#hArcTicks']) { $(id).setAttribute('d', d); $(id).setAttribute('pathLength', '100'); }
+    $('#hArcTicks').setAttribute('stroke-dasharray', '1.1 2.2');   // the gaps that turn the arc into LED segments
     $('#hArcRed').setAttribute('stroke-dasharray', '0 86 14 0');
     this.mm = $('#minimap').getContext('2d');
     this.lastNote = null;

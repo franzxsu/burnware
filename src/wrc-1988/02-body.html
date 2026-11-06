@@ -17,7 +17,7 @@
   <div class="drift" id="hDrift" hidden><div class="dcur" id="hDCur"></div><div class="dmult" id="hDMult"></div></div>
   <canvas id="minimap" width="300" height="300" aria-hidden="true"></canvas>
   <div class="speedo">
-    <svg viewBox="0 0 168 112" aria-hidden="true"><path id="hArcBg" fill="none" stroke="#2a2e37" stroke-width="10" stroke-linecap="round"/><path id="hArc" fill="none" stroke="#ffd23a" stroke-width="10" stroke-linecap="round"/><path id="hArcRed" fill="none" stroke="#ff4b2b" stroke-width="10" stroke-linecap="butt" opacity=".55"/></svg>
+    <svg viewBox="0 0 168 112" aria-hidden="true"><path id="hArcBg" fill="none" stroke="#1a1408" stroke-width="12" stroke-linecap="butt"/><path id="hArc" fill="none" stroke="#ffd23a" stroke-width="12" stroke-linecap="butt"/><path id="hArcRed" fill="none" stroke="#ff4b2b" stroke-width="12" stroke-linecap="butt" opacity=".5"/><path id="hArcTicks" fill="none" stroke="#050608" stroke-width="14" stroke-linecap="butt"/></svg>
     <div class="gear" id="hGear">1</div><div class="kmh" id="hKmh">0</div><div class="unit">KM/H</div>
   </div>
   <div class="lights" id="hLights" hidden><i></i><i></i><i></i></div>
@@ -38,8 +38,9 @@
 <div class="screen" id="menu" hidden>
   <div class="menu-grid">
     <div class="pane left">
-      <h1 class="title">PEBBLE DASH</h1>
-      <p class="tag">Tiny rally cars. Loose gravel. Big slides.</p>
+      <h1 class="title"><span class="t1">WRC</span><span class="t2">1988</span></h1>
+      <div class="stripes" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="tag">Flat out on loose gravel. Season 1988.</p>
       <div class="lbl">EVENT</div>
       <div class="events" id="mEvents" role="group" aria-label="Event"></div>
       <p class="blurb ev-blurb" id="mEventBlurb"></p>
@@ -65,7 +66,7 @@
         <button class="opt" id="oScreen" hidden>Screen <b>Sideways ↻</b></button>
         <button class="opt" id="oSteer" hidden>Steering <b>Buttons</b></button>
       </div>
-      <p class="help" id="mHelp"><kbd>↑</kbd> gas · <kbd>↓</kbd> brake / reverse · <kbd>←</kbd><kbd>→</kbd> steer · <kbd>Space</kbd> handbrake · <kbd>R</kbd> back on the road · <kbd>C</kbd> camera · <kbd>Esc</kbd> pause. Pace notes: 6 is flat out, 1 is nearly a hairpin.</p>
+      <p class="help" id="mHelp"><kbd>↑</kbd> gas · <kbd>↓</kbd> brake / reverse · <kbd>←</kbd><kbd>→</kbd> steer · <kbd>Space</kbd> handbrake · <kbd>R</kbd> back on the road · <kbd>C</kbd> camera · <kbd>Esc</kbd> pause. Pace notes: 6 is flat out, 1 is nearly a hairpin.<br><span class="fanmade">A fan-made rally game. Not affiliated with the FIA World Rally Championship.</span></p>
     </div>
   </div>
 </div>
@@ -87,5 +88,5 @@
 
 <div id="replay" hidden><span class="rtag">● REPLAY</span><span class="rtime" id="rpTime"></span><button id="rpSpeed">1×</button><button id="rpCam">CAM</button><button id="rpExit">Exit</button></div>
 
-<div id="veil">PEBBLE DASH<small id="veilTxt">building the stage…</small></div>
+<div id="veil"><span class="vt">WRC <b>1988</b></span><small id="veilTxt">building the stage…</small></div>
 </div>

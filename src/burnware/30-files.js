@@ -112,7 +112,7 @@ APPS.help = {
       <li><b>Right-click the desktop</b> to change the wallpaper or make a new text file.</li></ul>
       <h3>The big ones</h3>
       <ul><li><b>Omnigacha:</b> a gacha machine that pulls for everything. Tap the machine to shake loose tokens, then pull.</li>
-      <li><b>Pebble Dash:</b> tiny rally cars on loose gravel. Arrow keys or WASD, Space for the handbrake. On a phone, turn it sideways.</li>
+      <li><b>WRC 1988:</b> a fan-made rally game, dressed like it's 1988, on loose gravel. Arrow keys or WASD, Space for the handbrake. On a phone, turn it sideways.</li>
       <li><b>Sizzle Sand:</b> a kitchen where every grain is simulated. Cook what the tickets ask for, or just cook. Things will catch fire.</li>
       <li><b>Rain.wav:</b> a lo-fi music video, every pixel and note made in code. It plays in the Media Player.</li>
       <li><b>Kaiju Rampage:</b> still being built.</li></ul>

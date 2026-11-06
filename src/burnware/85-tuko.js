@@ -13,7 +13,7 @@ const TUKO_LINES = [
   'That modem screech is the internet saying hello. Very polite, very loud.',
   'I live in the walls of this computer. It is warm in here. Lamok sometimes.',
   'Command Prompt knows a few tricks. Try typing FORTUNE, or MATRIX.',
-  'Pebble Dash tip: brake before the corner, not in it. I learned this the hard way. I am a gecko.',
+  'WRC 1988 tip: brake before the corner, not in it. I learned this the hard way. I am a gecko.',
   'Sizzle Sand tip: if the oil catches fire, use a lid. Not water. Never water.',
   'Omnigacha keeps asking me to pull. I do not have thumbs.',
   'Click the clock in the corner to time travel. SparkNet News in Torch follows you to that year.',

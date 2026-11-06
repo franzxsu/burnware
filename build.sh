@@ -1,7 +1,7 @@
 #!/bin/sh
 # Rebuilds the site from the parts in src/:
 #   index.html             the Burnware desktop
-#   apps/omnigacha.html    apps/pebble-dash.html    apps/sizzle-sand.html
+#   apps/omnigacha.html    apps/wrc-1988.html    apps/sizzle-sand.html
 # It only glues files together, so there is nothing to install. Run it from anywhere:  sh build.sh
 set -e
 cd "$(dirname "$0")"
@@ -52,18 +52,18 @@ D=src/omnigacha
   printf '</body>\n</html>\n'
 } > apps/omnigacha.html
 
-# ---------- Pebble Dash ----------
-D=src/pebble-dash
+# ---------- WRC 1988 (it started life as Pebble Dash) ----------
+D=src/wrc-1988
 JS="10-util.js 11-tracks.js 12-world.js 13-scenery.js 14-car.js 15-ai.js 20-render-world.js 21-render-scenery.js 22-render-car.js 23-fx.js 24-audio.js 25-ui.js 26-game.js 27-rules.js 28-replay.js 29-boot.js"
 {
-  open_page "Pebble Dash: tiny rally cars, loose gravel, big slides." "$BASE_APP" "../"
+  open_page "WRC 1988: a fan-made rally game. Flat out on loose gravel." "$BASE_APP" "../"
   head_part $D/01-head.html
   printf '</head>\n<body>\n'
   cat $D/02-body.html
   echo '<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>'
   echo '<script>'; for f in $JS; do cat $D/$f; echo; done; echo '</script>'
   printf '</body>\n</html>\n'
-} > apps/pebble-dash.html
+} > apps/wrc-1988.html
 
 # ---------- Sizzle Sand ----------
 D=src/sizzle-sand
