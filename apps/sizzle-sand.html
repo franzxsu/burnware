@@ -1,0 +1,2682 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Sizzle Sand: a kitchen where every grain is simulated.">
+<meta name="theme-color" content="#5c1408">
+<link rel="icon" type="image/png" href="../favicon.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Sizzle Sand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: a landscape frame. Order tickets clip onto a rail across the top, tools hang down the
+   left, the ingredient shelf runs along the bottom, and the kitchen fills the middle at 2:1.
+   Phones held upright get the whole frame turned sideways. One deliberate dark look. */
+:root {
+  --iron: #14171c; --panel: #1c2129; --panel2: #262c36; --line: #343c48;
+  --chalk: #eaeef2; --mute: #8f99a7;
+  --flame: #ff7a30; --flame-ink: #1d0d03;
+  --paper: #f6f1e4; --ink: #26221d; --stamp: #cf3b2e;
+  --good: #4fd08a; --warn: #ffc23a; --bad: #ff6150;
+  --ui: "Pixelify Sans", "Trebuchet MS", system-ui, sans-serif;
+  --dot: "DotGothic16", "Courier New", ui-monospace, monospace;
+  --gl: max(16px, env(safe-area-inset-left, 0px)); --gr: max(16px, env(safe-area-inset-right, 0px));
+  --gt: max(8px, env(safe-area-inset-top, 0px)); --gb: max(8px, env(safe-area-inset-bottom, 0px));
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: var(--iron); color: var(--chalk); font-family: var(--ui); -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--warn); outline-offset: 2px; }
+#root { position: fixed; inset: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; container-type: size; }
+html.rot #root { inset: auto; left: 0; top: 0; transform-origin: 0 0;
+  --gl: max(16px, env(safe-area-inset-top, 0px)); --gr: max(16px, env(safe-area-inset-bottom, 0px)); --gt: max(6px, env(safe-area-inset-right, 0px)); --gb: max(6px, env(safe-area-inset-left, 0px)); }
+html.rot.flip #root { --gl: max(16px, env(safe-area-inset-bottom, 0px)); --gr: max(16px, env(safe-area-inset-top, 0px)); --gt: max(6px, env(safe-area-inset-left, 0px)); --gb: max(6px, env(safe-area-inset-right, 0px)); }
+
+/* ---------- top bar: brand, ticket rail, money ---------- */
+.bar { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: var(--gt) var(--gr) 6px var(--gl); min-width: 0; border-bottom: 1px solid var(--line); background: var(--panel); }
+.brand { font-weight: 700; font-size: 22px; letter-spacing: .02em; line-height: .9; white-space: nowrap; color: var(--warn); text-shadow: 2px 2px 0 #b8401a, 4px 4px 0 #3a1406; flex: none; }
+.brand i { font-style: normal; display: block; color: var(--chalk); text-shadow: 2px 2px 0 #3d4656; font-size: .78em; letter-spacing: .26em; }
+.tickets { display: flex; gap: 8px; flex: 1 1 auto; min-width: 0; overflow-x: auto; padding: 2px 0 4px; scrollbar-width: none; }
+.tickets::-webkit-scrollbar { display: none; }
+.tickets .idle { font-family: var(--dot); font-size: 14px; color: var(--mute); align-self: center; white-space: nowrap; }
+.ticket { position: relative; flex: none; width: 214px; background: var(--paper); color: var(--ink); border-radius: 2px 2px 6px 6px; padding: 6px 8px 7px; display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 1px 7px; align-items: center; box-shadow: 0 3px 0 rgba(0,0,0,.35); font-family: var(--dot); }
+.ticket::before { content: ""; position: absolute; left: 50%; top: -5px; width: 26px; height: 7px; transform: translateX(-50%); background: #9aa3ad; border-radius: 2px; box-shadow: inset 0 -2px 0 #6b737c; }
+.ticket img { grid-row: 1 / 3; width: 26px; height: 26px; image-rendering: pixelated; border-radius: 3px; background: #e8e0cc; }
+.ticket .who { font-size: 12px; color: #6d655a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ticket .dish { font-size: 15px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ticket .ves { grid-row: 1 / 3; grid-column: 3; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; border: 1px solid #b9b0a0; border-radius: 3px; padding: 1px 4px; color: #6d655a; }
+.ticket .pat { grid-column: 1 / -1; height: 5px; background: #e2d9c6; border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.ticket .pat b { display: block; height: 100%; background: var(--good); transition: width .5s linear; }
+.ticket.late .pat b { background: var(--warn); } .ticket.urgent .pat b { background: var(--stamp); }
+.ticket .how { position: absolute; right: 4px; top: -4px; width: 20px; height: 20px; border-radius: 50%; border: 0; background: var(--ink); color: var(--paper); font-size: 12px; line-height: 20px; padding: 0; font-family: var(--ui); }
+.ticket.new { animation: clipOn .45s cubic-bezier(.2,1.5,.4,1); }
+.ticket .spec { font-style: normal; color: #fff; background: var(--stamp); font-family: var(--ui); font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; padding: 0 4px; border-radius: 2px; vertical-align: 1px; }
+.ticket.critic { background: #2b2622; color: #f3ebdc; } .ticket.critic .who { color: #c9b38c; } .ticket.critic .ves { border-color: #6b5c4a; color: #d8c8ae; } .ticket.critic .pat { background: #4a4038; }
+.ticket.critic .spec { background: #d9b14a; color: #2b2622; } .ticket.critic .how { background: #f3ebdc; color: #2b2622; }
+.recipe.special { box-shadow: inset 0 0 0 2px var(--stamp); } .recipe.special small { color: var(--stamp); }
+.toast.tip { border-left-color: var(--good); }
+.stats { display: flex; flex-direction: column; align-items: flex-end; font-family: var(--dot); flex: none; line-height: 1.1; }
+.stats .coins { font-size: 22px; color: var(--warn); }
+.stats .sub { font-size: 12px; color: var(--mute); white-space: nowrap; }
+.topbtns { display: flex; gap: 6px; flex: none; }
+.tbtn { border: 1px solid var(--line); background: var(--panel2); border-radius: 6px; height: 34px; min-width: 34px; padding: 0 9px; font-size: 14px; display: grid; place-items: center; }
+.tbtn[aria-pressed="true"] { background: var(--flame); color: var(--flame-ink); border-color: var(--flame); }
+
+/* ---------- tool rail ---------- */
+.tools { grid-row: 2; display: flex; flex-direction: column; gap: 5px; padding: 6px 6px 6px var(--gl); overflow-y: auto; border-right: 1px solid var(--line); background: var(--panel); scrollbar-width: none; }
+.tool { width: 62px; border: 1px solid var(--line); background: var(--panel2); border-radius: 8px; padding: 5px 2px 4px; display: grid; justify-items: center; gap: 2px; font-size: 12px; line-height: 1; flex: none; }
+.tool svg, .tool img { width: 26px; height: 26px; image-rendering: pixelated; }
+.tool[aria-pressed="true"] { background: var(--flame); border-color: var(--flame); color: var(--flame-ink); }
+.tool .sw { width: 22px; height: 22px; border-radius: 4px; image-rendering: pixelated; }
+.tsep { height: 1px; background: var(--line); margin: 2px 4px; flex: none; }
+
+/* ---------- the kitchen ---------- */
+.stage { grid-row: 2; grid-column: 2; position: relative; display: grid; place-items: center; min-width: 0; min-height: 0; padding: 4px var(--gr) 4px 6px; }
+.scene { position: relative; touch-action: none; border-radius: 4px; overflow: hidden; box-shadow: 0 0 0 1px #000, 0 8px 30px rgba(0,0,0,.45); }
+.scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
+#cGlow { image-rendering: auto; mix-blend-mode: screen; pointer-events: none; }
+#cHaze { image-rendering: auto; pointer-events: none; }
+.hot { position: absolute; inset: 0; pointer-events: none; }
+.hot > * { pointer-events: auto; position: absolute; transform: translate(-50%, -50%); }
+.knob { width: 44px; height: 44px; border: 0; background: transparent; border-radius: 50%; padding: 0; }
+.knob span { position: absolute; left: 50%; top: 100%; transform: translate(-50%, -6px); font-family: var(--dot); font-size: 11px; letter-spacing: .06em; background: rgba(10,12,16,.82); color: var(--mute); padding: 1px 5px; border-radius: 3px; white-space: nowrap; pointer-events: none; }
+.knob.on span { color: var(--flame); }
+.knobpop { display: flex; gap: 3px; background: rgba(12,14,18,.94); border: 1px solid var(--line); border-radius: 8px; padding: 4px; transform: translate(-50%, calc(-100% - 22px)) !important; z-index: 3; }
+.knobpop button { border: 0; background: var(--panel2); border-radius: 5px; padding: 6px 9px; font-family: var(--dot); font-size: 13px; }
+.knobpop button[aria-pressed="true"] { background: var(--flame); color: var(--flame-ink); }
+.chip { border: 1px solid rgba(255,255,255,.18); background: rgba(10,12,16,.72); border-radius: 6px; padding: 3px 8px; font-family: var(--dot); font-size: 12px; white-space: nowrap; color: var(--chalk); }
+.chip[aria-pressed="true"] { border-color: var(--good); color: var(--good); }
+.serve { display: flex; flex-direction: column; align-items: center; gap: 3px; transform: translate(-50%, 0) !important; }
+.serve button { border: 0; border-radius: 6px; padding: 4px 9px; font-size: 13px; font-family: var(--ui); font-weight: 600; background: var(--flame); color: var(--flame-ink); box-shadow: 0 2px 0 #8a3510; min-width: 56px; }
+.serve button.clear { background: transparent; color: #d8c6b4; box-shadow: none; font-weight: 400; font-size: 11px; padding: 1px 6px; min-width: 0; text-decoration: underline; text-underline-offset: 2px; }
+.serve button[disabled] { background: rgba(10,12,16,.6); color: #5b6370; box-shadow: none; }
+.pet { width: 7%; height: 9%; border: 0; background: transparent; padding: 0; cursor: pointer; border-radius: 40%; }
+.pet:focus-visible { outline-offset: 0; }
+.lcd { font-family: var(--dot); font-size: 12px; line-height: 1.25; min-width: 30px; text-align: right; padding: 0 4px; border-radius: 3px; background: #0d0b0a; border: 1px solid #3b3430; color: #ffb760; text-shadow: 0 0 6px rgba(255,150,50,.55); pointer-events: none !important; font-variant-numeric: tabular-nums; }
+.lcd.t-cool { color: #8ec3e6; text-shadow: 0 0 6px rgba(120,190,240,.45); }
+.lcd.t-hot { color: #ff7a3c; text-shadow: 0 0 7px rgba(255,110,40,.7); }
+.lcd.t-smoke { color: #ff4a3a; text-shadow: 0 0 8px rgba(255,60,40,.8); animation: blink .6s steps(2) infinite; }
+html.short .lcd { font-size: 10px; min-width: 24px; padding: 0 3px; }
+.floaty { pointer-events: none !important; font-family: var(--ui); font-weight: 700; font-size: 18px; color: var(--good); text-shadow: 0 2px 0 #0a0c10, 0 0 10px rgba(0,0,0,.6); white-space: nowrap; display: grid; justify-items: center; line-height: 1.1; animation: floatUp 1.7s cubic-bezier(.2,.8,.3,1) forwards; z-index: 3; }
+.floaty b { color: var(--warn); letter-spacing: .08em; font-size: 15px; }
+.floaty.bad { color: var(--bad); }
+@keyframes floatUp { 0% { transform: translate(-50%, -20%) scale(.6); opacity: 0; } 15% { transform: translate(-50%, -60%) scale(1.1); opacity: 1; } 70% { opacity: 1; } 100% { transform: translate(-50%, -260%) scale(1); opacity: 0; } }
+.alarm { font-family: var(--dot); font-size: 13px; color: #fff; background: var(--stamp); padding: 2px 8px; border-radius: 4px; animation: blink .5s steps(2) infinite; }
+
+/* ---------- ingredient shelf ---------- */
+.tray { grid-column: 1 / -1; display: flex; gap: 5px; overflow-x: auto; padding: 6px var(--gr) var(--gb) var(--gl); border-top: 1px solid var(--line); background: var(--panel); scrollbar-width: thin; }
+.ing { flex: none; display: grid; justify-items: center; gap: 3px; width: 60px; border: 1px solid var(--line); background: var(--panel2); border-radius: 8px; padding: 5px 2px 4px; font-size: 12px; line-height: 1.05; text-align: center; }
+.ing img { width: 24px; height: 24px; image-rendering: pixelated; }
+.ing[aria-pressed="true"] { border-color: var(--flame); box-shadow: inset 0 0 0 1px var(--flame); background: #3a2a22; }
+
+/* ---------- toasts and sheets ---------- */
+.toasts { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); display: grid; gap: 6px; justify-items: center; pointer-events: none; z-index: 4; width: min(420px, 92%); }
+.toast { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; align-items: center; background: rgba(14,16,20,.94); border: 1px solid var(--line); border-left: 4px solid var(--good); border-radius: 8px; padding: 7px 12px; box-shadow: 0 6px 20px rgba(0,0,0,.4); animation: toastIn .35s cubic-bezier(.2,1.4,.4,1); width: 100%; box-sizing: border-box; }
+.toast.bad { border-left-color: var(--bad); } .toast.ach { border-left-color: var(--warn); }
+.toast img { grid-row: 1 / 3; width: 32px; height: 32px; image-rendering: pixelated; border-radius: 4px; }
+.toast .badge { grid-row: 1 / 3; width: 32px; height: 32px; border-radius: 6px; background: var(--warn); color: var(--flame-ink); display: grid; place-items: center; font-weight: 700; }
+.toast b { font-weight: 600; font-size: 15px; } .toast span { font-family: var(--dot); font-size: 13px; color: var(--mute); }
+.toast .stars { color: var(--warn); letter-spacing: .1em; }
+.sheet { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(8,10,13,.72); z-index: 6; padding: var(--gt) var(--gr) var(--gb) var(--gl); box-sizing: border-box; }
+.card { width: min(560px, 100%); max-height: 100%; overflow-y: auto; box-sizing: border-box; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: grid; gap: 12px; }
+.card h2 { margin: 0; font-size: 30px; font-weight: 700; color: var(--warn); text-shadow: 2px 2px 0 #b8401a; line-height: 1; }
+.card h3 { margin: 4px 0 0; font-size: 15px; letter-spacing: .14em; color: var(--mute); font-weight: 600; text-transform: uppercase; }
+.card p { margin: 0; font-family: var(--dot); font-size: 15px; line-height: 1.45; color: #c9d0d8; max-width: 62ch; }
+.card .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--panel2); border-radius: 8px; padding: 10px 16px; font-size: 17px; font-weight: 600; }
+.btn.pri { background: var(--flame); border-color: var(--flame); color: var(--flame-ink); box-shadow: 0 3px 0 #8a3510; }
+.steps { margin: 0; padding-left: 20px; font-family: var(--dot); font-size: 14px; line-height: 1.5; color: #c9d0d8; display: grid; gap: 4px; }
+.recipes { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.recipe { background: var(--paper); color: var(--ink); border-radius: 4px; padding: 10px 12px; display: grid; gap: 4px; align-content: start; }
+.recipe b { font-size: 16px; } .recipe small { font-family: var(--dot); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8a8173; }
+.recipe p { font-size: 13px; color: var(--ink); line-height: 1.4; }
+.recipe .best { color: #b8860b; font-family: var(--dot); font-size: 13px; }
+.achs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.achs div { border: 1px dashed var(--line); border-radius: 6px; padding: 6px 8px; font-size: 13px; color: var(--mute); }
+.achs div.got { border-style: solid; border-color: var(--warn); color: var(--chalk); }
+.achs small { display: block; font-family: var(--dot); font-size: 11px; color: var(--mute); }
+table.res { width: 100%; border-collapse: collapse; font-family: var(--dot); font-size: 14px; }
+table.res td { padding: 5px 4px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+table.res img { width: 20px; height: 20px; image-rendering: pixelated; vertical-align: middle; border-radius: 3px; }
+table.res .st { color: var(--warn); white-space: nowrap; } table.res .pay { text-align: right; color: var(--good); white-space: nowrap; }
+.quote { font-family: var(--dot); font-size: 17px; color: var(--chalk); border-left: 3px solid var(--warn); padding-left: 10px; }
+.quote small { display: block; color: var(--mute); font-size: 12px; margin-top: 2px; }
+#veil { position: absolute; inset: 0; display: grid; place-items: center; background: var(--iron); z-index: 9; font-size: 26px; color: var(--warn); font-weight: 700; }
+@keyframes clipOn { from { transform: translateY(-30px) rotate(-6deg); opacity: 0; } }
+@keyframes toastIn { from { transform: translateY(-14px); opacity: 0; } }
+@keyframes blink { 50% { opacity: .35; } }
+/* short frames (phones on their side): the shelf moves to a column on the right and the chrome
+   shrinks, so the kitchen gets the height */
+html.short #root { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr); }
+html.short .tray { grid-column: 3; grid-row: 2; display: grid; grid-template-columns: repeat(2, 50px); grid-auto-rows: min-content; align-content: start; gap: 4px; overflow-x: hidden; overflow-y: auto; padding: 6px var(--gr) var(--gb) 6px; border-top: 0; border-left: 1px solid var(--line); }
+html.short .stage { padding: 4px 4px var(--gb) 4px; }
+html.short .tools { padding-bottom: var(--gb); }
+html.short .serve button { min-width: 0; padding: 3px 7px; font-size: 12px; }
+html.short .card { padding: 12px 14px; gap: 8px; }
+html.short .card h2 { font-size: 24px; } html.short .card p, html.short .steps { font-size: 13px; }
+html.short .btn { padding: 8px 12px; font-size: 15px; }
+html.short .toasts { width: min(340px, 86%); top: 6px; gap: 4px; }
+html.short .toast { padding: 4px 9px; } html.short .toast img, html.short .toast .badge { width: 24px; height: 24px; }
+html.short .toast b { font-size: 13px; } html.short .toast span { font-size: 11px; }
+html.short .toast:nth-child(n+3) { display: none; }
+html.short .bar { gap: 8px; padding-bottom: 4px; }
+html.short .brand { font-size: 16px; }
+html.short .ticket { width: 168px; padding: 4px 6px 5px; grid-template-columns: 20px minmax(0, 1fr) auto; }
+html.short .ticket img { width: 20px; height: 20px; }
+html.short .ticket .dish { font-size: 13px; } html.short .ticket .who { font-size: 11px; }
+html.short .stats .coins { font-size: 18px; } html.short .stats .sub { display: none; }
+html.short .tbtn { height: 30px; min-width: 30px; padding: 0 7px; font-size: 13px; }
+html.short .tool { width: 52px; font-size: 11px; padding: 3px 1px; } html.short .tool svg, html.short .tool img { width: 20px; height: 20px; }
+html.short .ing { width: 50px; font-size: 10px; padding: 3px 1px 2px; } html.short .ing img { width: 20px; height: 20px; }
+html.short .knob span { font-size: 10px; }
+@media (prefers-reduced-motion: reduce) { .ticket.new, .toast, .alarm, .lcd.t-smoke { animation: none; } .floaty { animation-duration: .01s; } }
+</style>
+</head>
+<body>
+
+<div id="root">
+  <header class="bar">
+    <div class="brand" aria-label="Sizzle Sand">SIZZLE<i>SAND</i></div>
+    <div class="tickets" id="tickets" aria-live="polite"><span class="idle">Free cooking. Make a mess.</span></div>
+    <div class="stats"><span class="coins" id="coins">$0</span><span class="sub" id="shiftInfo">free cook</span></div>
+    <div class="topbtns">
+      <button class="tbtn" id="bBook" aria-label="Recipe book">Recipes</button>
+      <button class="tbtn" id="bSpeed" aria-label="Cooking speed">1×</button>
+      <button class="tbtn" id="bPause" aria-label="Pause" aria-pressed="false">II</button>
+      <button class="tbtn" id="bMenu" aria-label="Menu">Menu</button>
+    </div>
+  </header>
+
+  <aside class="tools" id="tools" aria-label="Tools"></aside>
+
+  <main class="stage" id="stage">
+    <div class="scene" id="scene">
+      <canvas id="cBg" aria-hidden="true"></canvas>
+      <canvas id="cFx" aria-label="The kitchen"></canvas>
+      <canvas id="cHaze" aria-hidden="true"></canvas>
+      <canvas id="cGlow" aria-hidden="true"></canvas>
+      <div class="hot" id="hot"></div>
+    </div>
+    <div class="toasts" id="toasts"></div>
+  </main>
+
+  <footer class="tray" id="tray" aria-label="Ingredients"></footer>
+
+  <section class="sheet" id="menu" hidden>
+    <div class="card">
+      <h2>SIZZLE SAND</h2>
+      <p>A kitchen where every grain is simulated. Heat moves through the pan, water boils off, oil smokes and then catches, rice soaks up water and sugar turns to caramel. Cook what the tickets ask for, or just cook.</p>
+      <ol class="steps">
+        <li>Pick an ingredient on the shelf, then press and drag in the kitchen to pour it.</li>
+        <li>Tap a burner knob on the stove to set the heat. Tap the tap and the hood to turn them on.</li>
+        <li>Use the scoop to move food onto the plate, bowl or mug, then press Serve.</li>
+        <li>Things will catch fire. A lid or the foam puts it out. Water makes it much worse.</li>
+      </ol>
+      <div class="row"><button class="btn pri" id="mShift">Start a shift</button><button class="btn" id="mFree">Free cooking</button><button class="btn" id="mClean">Clean the kitchen</button><button class="btn" id="mSound">Sound: on</button><button class="btn" id="mScreen" hidden>Screen: sideways</button></div>
+      <h3>Achievements</h3>
+      <div class="achs" id="achs"></div>
+    </div>
+  </section>
+
+  <section class="sheet" id="book" hidden>
+    <div class="card" style="width:min(820px,100%)">
+      <h2>Recipe book</h2>
+      <p>Everything here is physics, so these are ways that work rather than the only way. Stars show your best so far.</p>
+      <div class="recipes" id="recipes"></div>
+      <div class="row"><button class="btn pri" id="bookClose">Back to the kitchen</button></div>
+    </div>
+  </section>
+
+  <section class="sheet" id="summary" hidden>
+    <div class="card">
+      <h2 id="sumTitle">Shift over</h2>
+      <div class="quote" id="sumQuote"></div>
+      <table class="res"><tbody id="sumRows"></tbody></table>
+      <p id="sumChaos"></p>
+      <div class="row"><button class="btn pri" id="sumNext">Next shift</button><button class="btn" id="sumFree">Free cooking</button></div>
+    </div>
+  </section>
+
+  <div id="veil">SIZZLE SAND</div>
+</div>
+<script>
+/* ============================================================
+   Sizzle Sand: a falling-sand kitchen.
+   Core: grid size, random numbers, the element registry and the
+   per-cell arrays every other part of the game reads and writes.
+   ============================================================ */
+const GW = 288, GH = 144, GN = GW * GH;   // the kitchen is 288 x 144 cells
+const AMB = 22;                            // room temperature, degrees C
+const STEPS_PER_SEC = 60;
+const CAT = { STATIC: 0, POWDER: 1, SOLID: 2, LIQUID: 3, GAS: 4 };
+
+/* xorshift32: fast and good enough for sand */
+let _seed = 0x2545f491;
+function rnd() { _seed ^= _seed << 13; _seed ^= _seed >>> 17; _seed ^= _seed << 5; return (_seed >>> 0) / 4294967296; }
+function rndi(n) { return (rnd() * n) | 0; }
+function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+/* ---------- element registry ----------
+   Each element: name, cat, dens (sorting in liquids/gases), col [r,g,b] or ramp,
+   vary (speckle), cond/cap (heat), loss (to room air), flow/visc (liquids),
+   slide (powders), alpha (see-through), glow (emissive), food, flammable... */
+const E = [];      // definitions by id
+const EL = {};     // id by key
+function def(key, o) {
+  const d = Object.assign({ name: key, cat: CAT.POWDER, dens: 1, col: [255, 0, 255], vary: 8, cond: 0.08, cap: 2, loss: 0.002, flow: 0, visc: 0, slide: 0.8, alpha: 255, glow: 0, life: 0, food: false }, o);
+  d.key = key; d.id = E.length; E.push(d); EL[key] = d.id;
+  return d.id;
+}
+
+/* ---------- per-cell state ---------- */
+const type = new Uint8Array(GN);    // element id, 0 = air
+const temp = new Float32Array(GN);  // degrees C
+const cook = new Float32Array(GN);  // cooking progress, boiling energy, or gas life
+const aux = new Uint8Array(GN);     // small extra state (moisture, burning flag, pop delay...)
+const shade = new Uint8Array(GN);   // per-grain colour variation
+const vel = new Int8Array(GN);      // falling speed (cells per step, grows while falling)
+const stamp = new Uint8Array(GN);   // last tick this cell moved, so nothing moves twice
+const SC = new Uint32Array(GN);     // pre-shaded colours of static cells (pots, counter...)
+
+function setCell(i, id, T) {
+  type[i] = id; temp[i] = T === undefined ? AMB : T; cook[i] = 0; aux[i] = 0; shade[i] = (rnd() * 256) | 0; vel[i] = 0;
+}
+function clearCell(i) { type[i] = 0; temp[i] = AMB; cook[i] = 0; aux[i] = 0; vel[i] = 0; }
+/* turn a cell into another element in place, keeping its heat */
+function morph(i, id) { type[i] = id; cook[i] = 0; aux[i] = 0; }
+
+/* ============================================================
+   Elements. Numbers that matter: dens decides what floats on
+   what; cond/cap decide how fast heat moves; ramp colours show
+   cooking (cook progress runs 0..rampMax along the ramp).
+   ============================================================ */
+const { STATIC, POWDER, SOLID, LIQUID, GAS } = CAT;
+const AIR = def('air', { cat: GAS, dens: 0, cond: 0, cap: 1 });
+
+/* fixtures (never move) */
+const WALL = def('wall', { cat: STATIC, cond: 0, cap: 1e6, loss: 0, col: [0, 0, 0] });
+const CEIL = def('ceil', { name: 'Ceiling', cat: STATIC, cond: 0.01, cap: 6, loss: 0.02, col: [48, 44, 52] });
+const COUNTER = def('counter', { name: 'Counter', cat: STATIC, cond: 0.01, cap: 4, loss: 0.002, col: [92, 98, 104], vary: 26 });
+const STEEL = def('steel', { name: 'Steel', cat: STATIC, cond: 0.25, cap: 1, loss: 0.0016, col: [158, 168, 178], vary: 6 });
+const CERAMIC = def('ceramic', { name: 'Ceramic', cat: STATIC, cond: 0.05, cap: 2, loss: 0.001, col: [242, 240, 232], vary: 4 });
+const WOOD = def('wood', { name: 'Wood', cat: STATIC, cond: 0.02, cap: 2, loss: 0.001, col: [150, 100, 62], vary: 18, ignite: 300 });
+const BURNER = def('burner', { name: 'Burner', cat: STATIC, cond: 0.25, cap: 1e6, loss: 0, col: [52, 52, 58] });
+const DRAIN = def('drain', { name: 'Drain', cat: STATIC, cond: 0, cap: 1e6, loss: 0, col: [26, 26, 30] });
+const BRICK = def('brick', { name: 'Brick', cat: STATIC, cond: 0.03, cap: 3, loss: 0.001, col: [168, 76, 56], vary: 22 });
+
+/* powders: pile up, slide down slopes */
+const RICE = def('rice', { name: 'Rice', dens: 1.5, col: [236, 232, 216], vary: 30, slide: 0.9, food: true });
+const RICE_C = def('rice_c', { name: 'Cooked rice', dens: 1.1, col: [252, 252, 247], vary: 22, slide: 0.22, food: true,
+  ramp: [[252, 252, 247], [246, 236, 206], [222, 182, 112], [176, 120, 60]], rampMax: 300 });
+const RICE_F = def('rice_f', { name: 'Fried rice', dens: 1.1, col: [240, 204, 122], vary: 22, slide: 0.45, food: true,
+  ramp: [[246, 222, 150], [236, 192, 104], [200, 140, 64], [140, 88, 40]], rampMax: 420 });
+const SUGAR = def('sugar', { name: 'Sugar', dens: 1.6, col: [252, 252, 255], vary: 14, slide: 0.95, food: true });
+const SALT = def('salt', { name: 'Salt', dens: 2.1, col: [236, 242, 250], vary: 16, slide: 0.95, food: true });
+const FLOUR = def('flour', { name: 'Flour', dens: 1.35, col: [246, 242, 230], vary: 6, slide: 0.55, food: true, ignite: 420 });
+const KERNEL = def('kernel', { name: 'Popcorn kernels', dens: 1.3, col: [242, 186, 52], vary: 24, slide: 0.9, food: true });
+const POPCORN = def('popcorn', { name: 'Popcorn', dens: 0.35, col: [255, 249, 226], vary: 22, slide: 0.65, food: true,
+  ramp: [[255, 249, 226], [246, 226, 170], [196, 150, 90], [110, 74, 44]], rampMax: 360, ignite: 420 });
+const GARLIC = def('garlic', { name: 'Garlic', dens: 1.1, col: [244, 238, 216], vary: 12, slide: 0.5, food: true });
+const GARLIC_F = def('garlic_f', { name: 'Fried garlic', dens: 1.1, col: [232, 190, 108], vary: 16, slide: 0.5, food: true,
+  ramp: [[244, 226, 170], [232, 186, 96], [196, 128, 50], [120, 70, 30]], rampMax: 300 });
+const SEASON = def('season', { name: 'Ramen seasoning', dens: 1.3, col: [232, 116, 40], vary: 22, slide: 0.8, food: true });
+const NOODLE = def('noodle', { name: 'Cooked noodles', dens: 1.0, col: [248, 226, 132], vary: 18, slide: 0.35, food: true });
+const BURNT = def('burnt', { name: 'Burnt bits', dens: 1.2, col: [44, 32, 26], vary: 16, slide: 0.6, ignite: 460 });
+const FOAM = def('foam', { name: 'Extinguisher foam', dens: 0.2, col: [244, 250, 255], vary: 6, slide: 0.35, cond: 0.12, cap: 3 });
+const MENTOS = def('mentos', { name: 'Mints', dens: 1.5, col: [250, 250, 250], vary: 4, slide: 0.8 });
+const EGG_SCR = def('egg_scr', { name: 'Scrambled egg', dens: 1.0, col: [252, 222, 112], vary: 18, slide: 0.3, food: true,
+  ramp: [[252, 226, 120], [246, 206, 96], [214, 156, 64], [150, 96, 40]], rampMax: 420 });
+const POPCORN_K = def('popcorn_k', { name: 'Caramel corn', dens: 0.4, col: [226, 160, 66], vary: 26, slide: 0.4, food: true, ignite: 420,
+  ramp: [[232, 172, 80], [212, 140, 52], [160, 92, 34], [96, 54, 24]], rampMax: 360 });
+
+/* solids: fall straight down and hold their shape */
+const ICE = def('ice', { name: 'Ice', cat: SOLID, dens: 0.92, col: [196, 232, 250], vary: 12, alpha: 225, cond: 0.15, cap: 2 });
+const BUTTER = def('butter', { name: 'Butter', cat: SOLID, dens: 0.91, col: [252, 230, 136], vary: 6, food: true });
+const CHOC = def('choc', { name: 'Chocolate', cat: SOLID, dens: 1.3, col: [112, 62, 36], vary: 10, food: true });
+const NOODLE_D = def('noodle_d', { name: 'Noodle block', cat: SOLID, dens: 0.9, col: [232, 204, 136], vary: 22, food: true });
+const MEAT = def('meat', { name: 'Raw chicken', cat: SOLID, dens: 1.08, col: [238, 156, 144], vary: 16, food: true, cap: 3 });
+const MEAT_C = def('meat_c', { name: 'Cooked chicken', cat: SOLID, dens: 1.05, col: [230, 204, 172], vary: 14, food: true, cap: 3,
+  ramp: [[232, 208, 176], [214, 170, 120], [170, 110, 60], [110, 66, 34]], rampMax: 500 });
+const MEAT_A = def('meat_a', { name: 'Adobo chicken', cat: SOLID, dens: 1.05, col: [112, 62, 32], vary: 16, food: true, cap: 3 });
+const EGG_C = def('egg_c', { name: 'Cooked egg white', cat: SOLID, dens: 0.99, col: [253, 253, 248], vary: 4, food: true,
+  ramp: [[253, 253, 248], [250, 240, 214], [226, 180, 110], [170, 112, 56]], rampMax: 520 });
+const YOLK_C = def('yolk_c', { name: 'Set yolk', cat: SOLID, dens: 0.99, col: [250, 210, 100], vary: 8, food: true });
+const PANCAKE = def('pancake', { name: 'Pancake', cat: SOLID, dens: 1.0, col: [236, 196, 120], vary: 10, food: true,
+  ramp: [[246, 224, 160], [236, 190, 106], [204, 140, 64], [140, 84, 36]], rampMax: 600 });
+const CANDY = def('candy', { name: 'Hard caramel', cat: SOLID, dens: 1.4, col: [214, 140, 40], vary: 8, food: true });
+const EGG_OM = def('egg_om', { name: 'Omelette', cat: SOLID, dens: 0.99, col: [250, 214, 96], vary: 6, food: true,
+  ramp: [[252, 220, 108], [244, 198, 86], [214, 150, 60], [150, 96, 40]], rampMax: 520 });
+
+/* liquids: flow, layer by density */
+const WATER = def('water', { name: 'Water', cat: LIQUID, dens: 1.0, col: [70, 158, 232], vary: 10, alpha: 205, flow: 7, cond: 0.15, cap: 4, loss: 0.0008 });
+const OIL = def('oil', { name: 'Oil', cat: LIQUID, dens: 0.92, col: [236, 198, 70], vary: 8, alpha: 215, flow: 5, cond: 0.12, cap: 2, loss: 0.0015, ignite: 300, fat: true });
+const MILK = def('milk', { name: 'Milk', cat: LIQUID, dens: 1.03, col: [248, 246, 238], vary: 5, flow: 5, cond: 0.15, cap: 4, loss: 0.0015, food: true });
+const BATTER = def('batter', { name: 'Batter', cat: LIQUID, dens: 1.1, col: [240, 222, 168], vary: 8, flow: 2, visc: 0.55, cond: 0.12, cap: 3, food: true });
+const EGG_W = def('egg_w', { name: 'Raw egg white', cat: LIQUID, dens: 1.0, col: [236, 236, 222], vary: 6, alpha: 200, flow: 1, visc: 0.97, cond: 0.12, cap: 3, food: true });
+const EGG_MIX = def('egg_mix', { name: 'Beaten egg', cat: LIQUID, dens: 1.0, col: [252, 200, 74], vary: 8, alpha: 235, flow: 2, visc: 0.85, cond: 0.12, cap: 3, food: true });
+const YOLK = def('yolk', { name: 'Runny yolk', cat: LIQUID, dens: 0.995, col: [255, 176, 28], vary: 10, flow: 1, visc: 0.995, cond: 0.1, cap: 3, food: true });
+const CARAMEL = def('caramel', { name: 'Caramel', cat: LIQUID, dens: 1.4, col: [250, 214, 140], vary: 6, flow: 1, visc: 0.7, cond: 0.1, cap: 2, food: true,
+  ramp: [[252, 232, 170], [240, 186, 84], [212, 132, 36], [150, 74, 20], [90, 42, 16]], rampMax: 900 });
+const BUTTER_M = def('butter_m', { name: 'Melted butter', cat: LIQUID, dens: 0.92, col: [250, 214, 92], vary: 6, alpha: 225, flow: 4, cond: 0.12, cap: 2, food: true, ignite: 330, fat: true,
+  ramp: [[250, 214, 92], [226, 170, 70], [170, 110, 44]], rampMax: 400 });
+const CHOC_M = def('choc_m', { name: 'Melted chocolate', cat: LIQUID, dens: 1.25, col: [94, 52, 30], vary: 6, flow: 2, visc: 0.6, cond: 0.1, cap: 2, food: true });
+const COCOA = def('cocoa', { name: 'Hot chocolate', cat: LIQUID, dens: 1.04, col: [152, 100, 70], vary: 6, flow: 5, cond: 0.15, cap: 4, loss: 0.0015, food: true });
+const SOY = def('soy', { name: 'Soy sauce', cat: LIQUID, dens: 1.15, col: [62, 32, 16], vary: 6, alpha: 235, flow: 5, cond: 0.15, cap: 4, food: true });
+const VINEGAR = def('vinegar', { name: 'Vinegar', cat: LIQUID, dens: 1.01, col: [240, 236, 210], vary: 6, alpha: 170, flow: 6, cond: 0.15, cap: 4, food: true });
+const ADOBO = def('adobo', { name: 'Adobo sauce', cat: LIQUID, dens: 1.1, col: [92, 50, 24], vary: 8, alpha: 235, flow: 4, cond: 0.15, cap: 4, food: true });
+const BROTH = def('broth', { name: 'Ramen broth', cat: LIQUID, dens: 1.01, col: [232, 168, 84], vary: 8, alpha: 220, flow: 6, cond: 0.15, cap: 4, loss: 0.0015, food: true });
+const COLA = def('cola', { name: 'Cola', cat: LIQUID, dens: 1.04, col: [72, 32, 16], vary: 6, alpha: 236, flow: 6, cond: 0.15, cap: 4 });
+
+/* gases: rise, spread, fade */
+const STEAM = def('steam', { name: 'Steam', cat: GAS, dens: 0.002, col: [226, 234, 240], vary: 14, alpha: 120, cond: 0.06, cap: 1, loss: 0.012, visc: 0.45, life: 240 });
+const SMOKE = def('smoke', { name: 'Smoke', cat: GAS, dens: 0.004, col: [112, 110, 116], vary: 16, alpha: 170, cond: 0.03, cap: 1, loss: 0.004, visc: 0.45, life: 1100 });
+const FIRE = def('fire', { name: 'Fire', cat: GAS, dens: 0.001, col: [255, 160, 40], vary: 30, glow: 1, cond: 0.2, cap: 1, loss: 0, visc: 0.3, life: 34,
+  ramp: [[190, 36, 18], [255, 100, 22], [255, 170, 50], [255, 236, 150]], rampMax: 34 });
+const MILKFOAM = def('milkfoam', { name: 'Milk foam', cat: GAS, dens: 0.02, col: [255, 251, 236], vary: 26, alpha: 236, cond: 0.12, cap: 3, loss: 0.003, visc: 0.7, life: 240 });
+const COLAFOAM = def('colafoam', { name: 'Cola foam', cat: GAS, dens: 0.015, col: [226, 196, 156], vary: 14, alpha: 230, cond: 0.1, cap: 2, visc: 0.1, life: 140 });
+
+/* fast lookup tables for the inner loops */
+const NE = E.length;
+const CATA = new Uint8Array(NE), DENS = new Float32Array(NE), COND = new Float32Array(NE), ICAP = new Float32Array(NE), LOSS = new Float32Array(NE);
+const FLOW = new Uint8Array(NE), VISC = new Float32Array(NE), SLIDE = new Float32Array(NE), IGNITE = new Float32Array(NE), FOOD = new Uint8Array(NE), FAT = new Uint8Array(NE);
+for (const d of E) {
+  CATA[d.id] = d.cat; DENS[d.id] = d.dens; COND[d.id] = d.cond; ICAP[d.id] = 1 / d.cap; LOSS[d.id] = d.loss;
+  FLOW[d.id] = d.flow; VISC[d.id] = d.visc; SLIDE[d.id] = d.cat === SOLID ? 0 : d.slide; IGNITE[d.id] = d.ignite || 0;
+  FOOD[d.id] = d.food ? 1 : 0; FAT[d.id] = d.fat ? 1 : 0;
+}
+const isFluidish = (t) => CATA[t] === LIQUID || CATA[t] === GAS;
+
+/* ============================================================
+   Simulation: one step = fixtures, then every cell reacts and
+   moves (bottom row first), then heat spreads between touching
+   cells. Reactions are small functions keyed by element.
+   ============================================================ */
+const N8 = new Int32Array([-GW - 1, -GW, -GW + 1, -1, 1, GW - 1, GW, GW + 1]);
+const UPS = new Int32Array([-GW, -GW - 1, -GW + 1, -1, 1]);
+const BURNING = 0x80;
+const CAPA = new Float32Array(NE); for (const d of E) CAPA[d.id] = d.cap;
+let tick = 1;
+
+const Sim = {
+  ev: { sizzle: 0, bubble: 0, pop: 0, fire: 0, flare: 0, dust: 0, boilover: 0, geyser: 0, tutong: 0, grease: 0, rattle: 0, lidpop: 0, smother: 0, spit: 0, colaTop: GH },
+  resetEv() { const e = this.ev; for (const k in e) e[k] = 0; e.colaTop = GH; },
+  speed: 1,
+};
+
+function nb(i) { return i + N8[(rnd() * 8) | 0]; }
+function gasLife(id) { const L = E[id].life; return L * (0.6 + rnd() * 0.8); }
+function setGas(i, id, T, life) { setCell(i, id, T); cook[i] = life || gasLife(id); }
+/* put a new cell in the first free spot above/beside i */
+function spawnUp(i, id, T, life) {
+  for (let k = 0; k < 5; k++) {
+    const j = i + UPS[k < 1 ? 0 : (k + (rnd() < 0.5 ? 0 : 1)) % 5];
+    if (type[j] === AIR) { if (CATA[id] === GAS) setGas(j, id, T, life); else setCell(j, id, T); return j; }
+  }
+  return -1;
+}
+function burnTo(i) { const T = temp[i]; if (Sim.burnLog) Sim.burnLog[type[i]] = (Sim.burnLog[type[i]] || 0) + 1; morph(i, BURNT); temp[i] = T; if (rnd() < 0.6) spawnUp(i, SMOKE, T); }
+
+/* ---------- movement ---------- */
+function moveTo(i, j) {
+  let t = type[j]; type[j] = type[i]; type[i] = t;
+  let f = temp[j]; temp[j] = temp[i]; temp[i] = f;
+  f = cook[j]; cook[j] = cook[i]; cook[i] = f;
+  t = aux[j]; aux[j] = aux[i]; aux[i] = t;
+  t = shade[j]; shade[j] = shade[i]; shade[i] = t;
+  t = vel[j]; vel[j] = vel[i]; vel[i] = t;
+  stamp[j] = tick; stamp[i] = tick;
+}
+/* can a mover of type a take the place of whatever is in b (falling or flowing)? */
+function canSink(a, b) {
+  if (b === AIR) return true;
+  const cb = CATA[b];
+  if (cb === GAS) return CATA[a] !== GAS || DENS[a] > DENS[b];
+  if (cb === LIQUID) return CATA[a] !== GAS && DENS[a] > DENS[b] + 0.004;
+  return false;
+}
+/* can a gas rise into b? (through liquids as bubbles, seeping through loose powders) */
+function canRise(a, b) {
+  if (b === AIR) return true;
+  const cb = CATA[b];
+  if (cb === GAS) return DENS[b] > DENS[a];
+  if (cb === LIQUID) return true;
+  if (cb === POWDER) return rnd() < 0.25;
+  return false;
+}
+function fall(i, t) {
+  let cur = i, n = 1 + (vel[i] >> 1);
+  while (n-- > 0) { const j = cur + GW; if (!canSink(t, type[j])) break; moveTo(cur, j); cur = j; }
+  if (cur !== i && vel[cur] < 10) vel[cur]++;
+  return cur !== i;
+}
+function floatUp(i, t) {   // lighter grains/chunks bob up through a denser liquid
+  const up = i - GW, b = type[up];
+  if (CATA[b] === LIQUID && DENS[b] > DENS[t] + 0.02 && rnd() < 0.5) { moveTo(i, up); return true; }
+  return false;
+}
+function powderStep(i, t) {
+  if (fall(i, t)) return;
+  vel[i] = 0;
+  if (floatUp(i, t)) return;
+  if (rnd() < SLIDE[t]) {
+    const d = rnd() < 0.5 ? -1 : 1, b = i + GW;
+    if (canSink(t, type[b + d]) && canSink(t, type[i + d])) { moveTo(i, b + d); return; }
+    if (canSink(t, type[b - d]) && canSink(t, type[i - d])) { moveTo(i, b - d); }
+  }
+}
+function solidStep(i, t) {
+  if (fall(i, t)) return;
+  vel[i] = 0;
+  floatUp(i, t);
+}
+function liquidStep(i, t) {
+  if (fall(i, t)) return;
+  vel[i] = 0;
+  if (VISC[t] > 0 && rnd() < VISC[t]) return;   // thick liquids fall like anything else but spread slowly
+  const d = rnd() < 0.5 ? -1 : 1, b = i + GW;
+  if (canSink(t, type[b + d])) { moveTo(i, b + d); return; }
+  if (canSink(t, type[b - d])) { moveTo(i, b - d); return; }
+  // spread sideways, preferring a spot that can drop
+  const f = FLOW[t];
+  for (let pass = 0; pass < 2; pass++) {
+    const dir = pass ? -d : d; let best = -1;
+    for (let k = 1; k <= f; k++) {
+      const j = i + dir * k; if (!canSink(t, type[j])) break;
+      best = j; if (canSink(t, type[j + GW])) break;
+    }
+    if (best >= 0) { moveTo(i, best); return; }
+  }
+}
+function gasStep(i, t) {
+  if (vel[i] < 0) {   // launched upward (cola geysers)
+    let cur = i, n = -vel[i];
+    while (n-- > 0) { const j = cur - GW + (rnd() < 0.25 ? (rnd() < 0.5 ? -1 : 1) : 0); if (!canRise(t, type[j])) break; moveTo(cur, j); cur = j; }
+    if (rnd() < 0.12) vel[cur]++;
+    return;
+  }
+  if (VISC[t] > 0 && rnd() < VISC[t]) return;
+  const d = rnd() < 0.5 ? -1 : 1, up = i - GW;
+  if (rnd() < 0.7) { if (canRise(t, type[up])) { moveTo(i, up); return; } }
+  if (canRise(t, type[up + d])) { moveTo(i, up + d); return; }
+  if (canRise(t, type[up - d])) { moveTo(i, up - d); return; }
+  if (type[i + d] === AIR && rnd() < 0.6) moveTo(i, i + d);
+  else if (CATA[type[i + d]] === GAS && DENS[type[i + d]] !== DENS[t] && rnd() < 0.3) moveTo(i, i + d);
+}
+
+/* ---------- shared reaction helpers ---------- */
+/* boiling with latent heat: heat above the boiling point is stored until the cell turns to gas */
+function boilTo(i, Tb, latent, gas) {
+  const t = type[i];
+  cook[i] += (temp[i] - Tb) * CAPA[t]; temp[i] = Tb;
+  if (cook[i] >= latent) {
+    const hot = staticHot(i);
+    setGas(i, gas, Tb + 3);
+    if (hot) Sim.ev.sizzle++; else Sim.ev.bubble++;
+  }
+}
+function staticHot(i) { const j = i + GW; return CATA[type[j]] === STATIC && temp[j] > 140; }
+/* burning: flammable cells that pass their ignition point make fire until they are used up */
+function flame(i, t) {
+  if (aux[i] & BURNING) {
+    const ig = IGNITE[t];
+    // no air, no fire: smothered under foam (or a lid) it goes out
+    if (type[i - GW] !== AIR && type[i - GW] !== FIRE && type[i - 1] !== AIR && type[i + 1] !== AIR && rnd() < 0.04) { aux[i] &= ~BURNING; temp[i] = ig - 60; return false; }
+    if (temp[i] < ig + 100) temp[i] = ig + 100;
+    if (rnd() < 0.55) spawnUp(i, FIRE, 760);
+    Sim.ev.fire++;
+    if ((cook[i] += 1) > (t === WOOD ? 900 : t === OIL || t === BUTTER_M ? 500 : 160)) {
+      if (t === WOOD) { morph(i, BURNT); type[i] = BURNT; }   // a charred hole; the board falls apart
+      else if (t === OIL || t === BUTTER_M) setGas(i, SMOKE, 300);
+      else burnTo(i);
+    }
+    return true;
+  }
+  if (FAT[t]) {   // fat has to sit past its smoke point for a while before it catches
+    if (temp[i] >= IGNITE[t] - 40) { cook[i] += (temp[i] - IGNITE[t] + 40) / 40; if (cook[i] > 700) { aux[i] |= BURNING; cook[i] = 0; Sim.ev.grease++; } }
+    else if (cook[i] > 0) cook[i] = Math.max(0, cook[i] - 0.5);
+  } else if (temp[i] >= IGNITE[t]) aux[i] |= BURNING;
+  return false;
+}
+function extinguishAt(j) {
+  const b = type[j];
+  if (b === FIRE) { setGas(j, rnd() < 0.5 ? STEAM : SMOKE, 120); return true; }
+  if (aux[j] & BURNING && IGNITE[b]) { aux[j] &= ~BURNING; temp[j] = Math.min(temp[j], IGNITE[b] - 120); return true; }
+  return false;
+}
+/* water landing on burning fat: a steam blast throws burning droplets around */
+function flare(i) {
+  setGas(i, STEAM, 300, 60);
+  for (let k = 0; k < 9; k++) {
+    const n = i + N8[rndi(8)] - GW * (1 + rndi(4)) + (rndi(7) - 3);
+    if (n > GW && n < GN - GW && type[n] === AIR) setGas(n, FIRE, 820, 25 + rnd() * 35);
+  }
+  Sim.ev.flare++;
+}
+function spit(i) {
+  setGas(i, STEAM, 110, 50 + rnd() * 40);
+  for (let k = 0; k < 4; k++) {
+    const n = i + (rndi(5) - 2) + GW * (rndi(5) - 2);
+    if (n <= GW || n >= GN - GW || !FAT[type[n]] || (aux[n] & BURNING)) continue;
+    const to = n - GW * (3 + rndi(9)) + rndi(9) - 4;
+    if (to > GW * 3 && type[to] === AIR) { moveTo(n, to); vel[to] = 0; }
+  }
+  Sim.ev.spit++;
+}
+const wetFood = (b) => b === BATTER || b === EGG_W || b === YOLK || b === MEAT || b === RICE_C || b === NOODLE || b === WATER || b === MILK;
+
+/* ---------- reactions ---------- */
+const RX = new Array(NE).fill(null);
+/* convection: warmer liquid rises through cooler liquid of the same kind, so a pot heats through */
+function convect(i) {
+  const up = i - GW;
+  if (type[up] === type[i] && temp[i] > temp[up] + 1.5 && rnd() < 0.3) { moveTo(i, up); return true; }
+  return false;
+}
+/* hot surfaces give off wisps of vapour. These are for show: they cost no liquid and never condense (aux 3) */
+function wisp(i, T) {
+  if (T > 72 && type[i - GW] === AIR && rnd() < (T - 72) * 0.0016) { const j = i - GW; setGas(j, STEAM, T, 70 + rnd() * 110); aux[j] = 3; }
+}
+function waterish(i, latent) {   // shared by water-based liquids
+  const j = nb(i), b = type[j], d = i + GW;
+  // never add water to burning fat: it flashes to steam under the oil and throws it everywhere
+  if ((FAT[b] && aux[j] & BURNING) || (FAT[type[d]] && aux[d] & BURNING)) { flare(i); return true; }
+  // water in very hot fat flashes to steam and spits droplets of fat out of the pan
+  if (FAT[b] && temp[j] >= 160) { spit(i); return true; }
+  const T = temp[i];
+  if (T >= 100) { boilTo(i, 100, latent, STEAM); return true; }
+  wisp(i, T);
+  if (b === FIRE) { setGas(j, STEAM, 110); temp[i] += 6; return true; }
+  if (vel[i] === 0 && convect(i)) return true;
+  return false;
+}
+RX[WATER] = (i) => {
+  if (waterish(i, 2400)) return;
+  const T = temp[i];
+  if (T < 0) { cook[i] += -T * 4; temp[i] = 0; if (cook[i] > 700) { morph(i, ICE); temp[i] = -1; } return; }
+  const j = nb(i), b = type[j];
+  if (b === SEASON) { morph(i, BROTH); if (rnd() < 0.28) clearCell(j); }
+  else if ((b === ADOBO || b === COCOA || b === BROTH) && rnd() < 0.04) { const T2 = temp[i]; morph(i, b); temp[i] = T2; }   // drips mix into the sauce
+  else if (b === SALT) { if (rnd() < 0.05) clearCell(j); }
+  else if (b === FLOUR) { morph(i, BATTER); morph(j, BATTER); }
+  else if (b === COLA && rnd() < 0.01) morph(i, COLA);
+};
+RX[BROTH] = (i) => {   // seasoning dissolves through the whole pot
+  if (waterish(i, 2400)) return;
+  const j = nb(i); if (type[j] === WATER && rnd() < 0.08) { const T = temp[j]; morph(j, BROTH); temp[j] = T; }
+  else if (type[j] === SEASON && rnd() < 0.05) clearCell(j);
+};
+RX[VINEGAR] = (i) => {
+  if (waterish(i, 2400)) return;
+  const j = nb(i);
+  if (type[j] === SOY && rnd() < (temp[i] > 60 ? 0.06 : 0.006)) { morph(i, ADOBO); morph(j, ADOBO); }
+};
+RX[SOY] = (i) => { waterish(i, 6000); };
+RX[ADOBO] = (i) => {
+  if (waterish(i, 7000)) return;   // a thick sauce reduces slowly
+  const j = nb(i), b = type[j]; if ((b === SOY || b === VINEGAR) && rnd() < 0.03) morph(j, ADOBO);
+};
+RX[COLA] = (i) => {
+  if (waterish(i, 2400)) return;
+  if (aux[i] === 1) {   // nucleated by mints: froth, and pass it on
+    if (rnd() < 0.45) {
+      for (let k = 0; k < 2; k++) { const j = nb(i); if (type[j] === COLA) aux[j] = 1; }
+      setGas(i, COLAFOAM, temp[i]); vel[i] = -(3 + rndi(5)); Sim.ev.geyser++;
+    }
+    return;
+  }
+  if (rnd() < 0.0015 && type[i - GW] === AIR) spawnUp(i, COLAFOAM, temp[i], 12);
+};
+RX[MILK] = (i) => {
+  const T = temp[i];
+  wisp(i, T);
+  if (convect(i)) return;
+  if (T >= 99) {   // milk froths up instead of quietly boiling
+    cook[i] += (T - 99) * 4; temp[i] = 99;
+    if (cook[i] > 900) { setGas(i, MILKFOAM, 99); Sim.ev.boilover++; return; }
+  }
+  const j = nb(i), b = type[j];
+  if (b === FIRE) { setGas(j, STEAM, 110); return; }
+  if (b === FLOUR) { morph(i, BATTER); morph(j, BATTER); return; }
+  if (b === CHOC_M) { morph(i, COCOA); if (++aux[j] >= 3) morph(j, COCOA); return; }
+  if (CATA[b] === STATIC && temp[j] > 170 && rnd() < 0.004) burnTo(i);   // scorched on the stove
+};
+RX[COCOA] = (i) => {
+  const T = temp[i];
+  wisp(i, T);
+  if (convect(i)) return;
+  if (T >= 100) { if (rnd() < 0.03) { setGas(i, MILKFOAM, T); Sim.ev.boilover++; return; } temp[i] = 100; }
+  const j = nb(i), b = type[j];
+  if (b === CHOC_M && rnd() < 0.5) { if (++aux[j] >= 3) morph(j, COCOA); }
+  else if (b === MILK && rnd() < 0.08) morph(j, COCOA);   // stirring spreads the chocolate
+  if (CATA[b] === STATIC && temp[j] > 170 && rnd() < 0.004) burnTo(i);
+};
+/* frying: wet food in hot fat throws off little bubbles (aux bits 0-3, for show) that drift up through the fat */
+const sizzles = (b) => wetFood(b) || b === MEAT_C || b === EGG_C || b === EGG_OM || b === EGG_SCR || b === PANCAKE || b === GARLIC || b === GARLIC_F || b === NOODLE || b === POPCORN || b === KERNEL;
+function fryBubbles(i, T) {
+  if (T >= 140) { const b = type[nb(i)]; if (sizzles(b) && rnd() < 0.3) { Sim.ev.sizzle++; aux[i] = (aux[i] & BURNING) | 9; } }
+  const bb = aux[i] & 15;
+  if (bb) {
+    const up = i - GW;
+    if (type[up] === type[i] && !(aux[up] & 15) && rnd() < 0.55) { aux[up] |= bb - 1; aux[i] &= BURNING; }
+    else aux[i] = (aux[i] & BURNING) | (bb - 1);
+  }
+}
+RX[OIL] = (i) => {
+  if (flame(i, OIL)) return;
+  const T = temp[i];
+  if (T > 235 && rnd() < (T - 235) / 9000) spawnUp(i, SMOKE, T);
+  fryBubbles(i, T);
+};
+RX[BUTTER_M] = (i) => {
+  if (flame(i, BUTTER_M)) return;
+  const T = temp[i];
+  if (T >= 150 && T < 250) { cook[i] += (T - 150) * 0.004; if (cook[i] >= 400) { burnTo(i); return; } }
+  if (T > 200 && rnd() < (T - 200) / 3000) spawnUp(i, SMOKE, T);
+  fryBubbles(i, T);
+};
+RX[BUTTER] = (i) => { const T = temp[i]; if (T > 32) { cook[i] += (T - 32) * 2; temp[i] = Math.min(T, 40); if (cook[i] > 220) morph(i, BUTTER_M); } };
+RX[CHOC] = (i) => { const T = temp[i]; if (T > 33) { cook[i] += (T - 33) * 2; temp[i] = Math.min(T, 40); if (cook[i] > 260) morph(i, CHOC_M); } };
+RX[CHOC_M] = (i) => {
+  const T = temp[i];
+  if (T >= 130) { cook[i] += (T - 130) * 0.01; if (cook[i] > 260) burnTo(i); }
+  else if (T < 24 && rnd() < 0.002) morph(i, CHOC);
+};
+RX[ICE] = (i) => {
+  const T = temp[i];
+  if (T > 0) { cook[i] += T * 2; temp[i] = 0; if (cook[i] > 600) { morph(i, WATER); temp[i] = 1; return; } }
+  const j = nb(i); if (type[j] === SALT) cook[i] += 30;
+};
+RX[BATTER] = (i) => {
+  const T = temp[i];
+  if (T >= 105) { cook[i] += (T - 105) * 0.006; if (cook[i] >= 1.2) { morph(i, PANCAKE); if (rnd() < 0.2) Sim.ev.sizzle++; } }
+};
+RX[PANCAKE] = (i) => { const T = temp[i]; if (T >= 110) { cook[i] += (T - 110) * 0.0045; if (cook[i] >= 600) burnTo(i); } };
+RX[EGG_W] = (i) => {
+  const T = temp[i];
+  if (T >= 62) { cook[i] += (T - 62) * 0.006; if (cook[i] >= 25) { morph(i, EGG_C); if (rnd() < 0.3) Sim.ev.sizzle++; } }
+};
+const isWet = (b) => b === WATER || b === BROTH || b === MILK || b === ADOBO || b === SOY || b === VINEGAR || b === COCOA;
+/* food touching water-based liquid can't get much past boiling */
+function wetClamp(i) {
+  if (temp[i] <= 102) return false;
+  for (let k = 0; k < 8; k++) if (isWet(type[i + N8[k]])) { temp[i] = 102; return true; }
+  return false;
+}
+/* beaten egg sets into one soft sheet; stirring breaks a setting sheet into curds (see Tools.stir) */
+RX[EGG_MIX] = (i) => {
+  const T = temp[i];
+  if (T >= 64) { cook[i] += (T - 64) * 0.006; if (cook[i] >= 18) { morph(i, EGG_OM); if (rnd() < 0.3) Sim.ev.sizzle++; } }
+};
+RX[EGG_OM] = (i) => { if (wetClamp(i)) return; const T = temp[i]; if (T >= 140 && CATA[type[i + GW]] === STATIC) { cook[i] += (T - 140) * 0.006; if (cook[i] >= 520) burnTo(i); } };
+RX[EGG_SCR] = (i) => { if (wetClamp(i)) return; const T = temp[i]; if (T >= 140 && CATA[type[i + GW]] === STATIC) { cook[i] += (T - 140) * 0.006; if (cook[i] >= 420) burnTo(i); } };
+RX[EGG_C] = (i) => { if (wetClamp(i)) return; const T = temp[i]; if (T >= 140 && CATA[type[i + GW]] === STATIC) { cook[i] += (T - 140) * 0.006; if (cook[i] >= 520) burnTo(i); } };
+RX[YOLK] = (i) => { const T = temp[i]; if (T >= 70) { cook[i] += (T - 70) * 0.0015; if (cook[i] >= 40) morph(i, YOLK_C); } };
+RX[YOLK_C] = (i) => { if (wetClamp(i)) return; const T = temp[i]; if (T >= 170 && !isWet(type[nb(i)])) { cook[i] += (T - 170) * 0.006; if (cook[i] >= 400) burnTo(i); } };
+/* rice keeps water inside the grain (aux bits 0-1 = moisture 0..3). A moist grain cannot get
+   hotter than boiling: extra heat steams its water off. Moisture wicks to drier grains, so a
+   pile soaks from the top down. Cooking needs a moist grain held near boiling for a while. */
+const M3 = 3;
+function riceWater(i, b, j, m, drink) {
+  if (m < 3) {
+    // water anywhere just above soaks down into the pile (it would fill the gaps between grains)
+    const k = 1 + rndi(8), w = i - GW * k + rndi(3) - 1, bw = type[w];
+    if ((bw === WATER || bw === BROTH) && rnd() < drink) {
+      if (type[i] === RICE && rnd() < 0.5) { setCell(w, RICE_C, temp[w]); aux[w] = 1; } else clearCell(w);
+      aux[i] += 1; return m + 1;
+    }
+  }
+  if ((b === RICE || b === RICE_C) && m >= 2 && (aux[j] & M3) < m - 1) { aux[i] -= 1; aux[j] += 1; return m - 1; }
+  return m;
+}
+function steamOff(i, m) {   // same latent heat as boiling water, so a pot of rice takes as long as a pot of water
+  if (m > 0 && temp[i] > 100) {
+    if (rnd() < (temp[i] - 100) / 1600) { aux[i] -= 1; m--; if (rnd() < 0.35) spawnUp(i, STEAM, 101); }
+    temp[i] = 100;
+  }
+  return m;
+}
+RX[RICE] = (i) => {
+  const j = nb(i), b = type[j];
+  let m = riceWater(i, b, j, aux[i] & M3, temp[i] > 70 ? 0.016 : 0.003);
+  m = steamOff(i, m);
+  const T = temp[i];
+  if (m > 0 && T >= 88) { if ((cook[i] += 1) >= 420) { const mm = aux[i] & M3; morph(i, RICE_C); aux[i] = mm; } return; }
+  if (m === 0 && T >= 190) { cook[i] += (T - 190) * 0.02; if (cook[i] > 600) burnTo(i); }
+};
+RX[RICE_C] = (i) => {
+  const j = nb(i), b = type[j];
+  let m = riceWater(i, b, j, aux[i] & M3, 0.01);
+  m = steamOff(i, m);
+  if (m > 0) return;
+  const T = temp[i];
+  if (T < 130) return;
+  // frying: hot fat coats the grain (bit 2) and gets soaked up; a coated grain fries on its own (bits 3-7 count up)
+  if (!(aux[i] & 4)) {   // hot fat touching or lying just above the grain soaks in
+    const w = (FAT[b] && temp[j] >= 100) ? j : i - GW * (1 + rndi(6)) + rndi(3) - 1;
+    if (FAT[type[w]] && temp[w] >= 100) { aux[i] |= 4; if (rnd() < 0.1) clearCell(w); return; }
+  }
+  if (aux[i] & 4) {
+    if (b === RICE_C && !(aux[j] & 7) && rnd() < 0.08) aux[j] |= 4;   // grains rubbing together share the oil
+    if (rnd() < 0.09) { const f = (aux[i] >> 3) + 1; if (f >= 31) { const c = cook[i]; morph(i, RICE_F); cook[i] = c * 0.5; } else aux[i] = (f << 3) | 4; }
+    if (rnd() < 0.05) Sim.ev.sizzle++;
+    return;
+  }
+  // only grains lying on a dry, hot surface toast (the crust at the bottom of the pot)
+  if (T >= 160 && CATA[type[i + GW]] === STATIC) { cook[i] += (T - 160) * 0.006; if (cook[i] >= 300) { burnTo(i); Sim.ev.tutong++; } }
+};
+RX[RICE_F] = (i) => { const T = temp[i]; if (T >= 170) { cook[i] += (T - 170) * 0.006; if (cook[i] >= 420) burnTo(i); } };
+RX[SUGAR] = (i) => { const T = temp[i]; if (T >= 160) { cook[i] += (T - 160) * 1.5; temp[i] = 160; if (cook[i] > 120) morph(i, CARAMEL); } };
+RX[CARAMEL] = (i) => {
+  const T = temp[i];
+  if (T >= 70) {   // popcorn rolled through runny caramel picks up a glossy coat
+    const j = nb(i);
+    if (type[j] === POPCORN) { const Tj = temp[j]; morph(j, POPCORN_K); temp[j] = Math.max(Tj, T - 20); if (rnd() < 0.3) { clearCell(i); return; } }
+  }
+  if (T >= 160) { cook[i] += (T - 160) * 0.009; if (cook[i] >= 900) { burnTo(i); return; } if (cook[i] > 600 && rnd() < 0.004) spawnUp(i, SMOKE, T); }
+  else if (T < 60 && rnd() < 0.02) { const c = cook[i]; morph(i, CANDY); cook[i] = c; }
+};
+RX[CANDY] = (i) => { if (temp[i] >= 110 && rnd() < 0.05) { const c = cook[i]; morph(i, CARAMEL); cook[i] = c; } };
+RX[KERNEL] = (i) => {
+  const T = temp[i];
+  if (T >= 175) {
+    if (!aux[i]) aux[i] = 30 + rndi(170);
+    if ((cook[i] += 1 + (T - 175) * 0.01) >= aux[i]) pop(i);
+  }
+};
+function pop(i) {
+  const T = temp[i];
+  morph(i, POPCORN); temp[i] = T;
+  let made = 0;   // the kernel puffs to three times its size: the extra fluff goes in the first gaps above it
+  for (let k = 1; k < 24 && made < 2; k++) { const j = i - GW * k + rndi(3) - 1; if (type[j] === AIR) { setCell(j, POPCORN, T); made++; } else if (CATA[type[j]] === STATIC) break; }
+  let h = 4 + rndi(14), cur = i;   // the puff jumps
+  while (h-- > 0) { const up = cur - GW + (rnd() < 0.35 ? (rnd() < 0.5 ? -1 : 1) : 0); if (type[up] !== AIR) break; moveTo(cur, up); cur = up; }
+  Sim.ev.pop++;
+}
+RX[POPCORN] = (i) => {
+  if (flame(i, POPCORN)) return;
+  const T = temp[i]; if (T >= 220) { cook[i] += (T - 220) * 0.004; if (cook[i] >= 360) burnTo(i); }
+};
+RX[POPCORN_K] = (i) => {
+  if (flame(i, POPCORN_K)) return;
+  const T = temp[i]; if (T >= 190) { cook[i] += (T - 190) * 0.004; if (cook[i] >= 360) burnTo(i); }
+};
+RX[GARLIC] = (i) => { const T = temp[i]; if (T >= 120) { cook[i] += (T - 120) * 0.008; if (cook[i] >= 30) morph(i, GARLIC_F); } };
+RX[GARLIC_F] = (i) => { const T = temp[i]; if (T >= 120) { cook[i] += (T - 120) * 0.0032; if (cook[i] >= 300) burnTo(i); } };
+RX[NOODLE_D] = (i) => {
+  wetClamp(i);
+  const T = temp[i], b = type[nb(i)];
+  if (T >= 85 && (b === WATER || b === BROTH)) { cook[i] += (T - 85) * 0.02; if (cook[i] >= 3) morph(i, NOODLE); }
+  else if (T >= 75) {   // hot broth wicks up into a floating block, and wet strands soften their neighbours
+    const w = type[i + GW * (1 + rndi(5))];
+    if (b === NOODLE || w === WATER || w === BROTH || w === NOODLE) { cook[i] += 0.05; if (cook[i] >= 3) morph(i, NOODLE); }
+  }
+  else if (T >= 235) { cook[i] += 0.5; if (cook[i] > 200) burnTo(i); }   // only a dry pot scorches noodles
+};
+RX[NOODLE] = (i) => { if (wetClamp(i)) return; const T = temp[i]; if (T >= 225) { cook[i] += (T - 225) * 0.01; if (cook[i] > 150) burnTo(i); } };
+RX[MEAT] = (i) => { wetClamp(i); const T = temp[i]; if (T >= 70) { cook[i] += (T - 70) * 0.0014; if (cook[i] >= 20) morph(i, MEAT_C); } };
+RX[MEAT_C] = (i) => {
+  wetClamp(i);
+  const T = temp[i], j = nb(i), b = type[j];
+  // braising: the sauce works its way in from the outside of each piece
+  if ((b === ADOBO || b === SOY || b === MEAT_A) && T >= 85) { if ((aux[i] += b === MEAT_A ? 2 : 3) >= 120) morph(i, MEAT_A); return; }
+  if (T >= 160 && !isWet(b)) { cook[i] += (T - 160) * 0.008; if (cook[i] >= 500) burnTo(i); }
+};
+RX[MEAT_A] = (i) => { if (wetClamp(i)) return; const T = temp[i]; if (T >= 180 && !isWet(type[nb(i)])) { cook[i] += (T - 180) * 0.008; if (cook[i] >= 400) burnTo(i); } };
+RX[FLOUR] = (i) => {
+  const j = nb(i), b = type[j];
+  if (b === FIRE || temp[i] >= 420) {   // airborne flour goes up in a flash
+    if (type[i + GW] === AIR || b === FIRE) { setGas(i, FIRE, 900, 20 + rnd() * 20); Sim.ev.dust++; for (let k = 0; k < 3; k++) { const n = nb(i); if (type[n] === FLOUR) temp[n] = 500; } return; }
+  }
+  if (b === MILK) { morph(i, BATTER); morph(j, BATTER); }
+};
+RX[MENTOS] = (i) => {
+  const j = nb(i);
+  if (type[j] === COLA) { aux[j] = 1; for (let k = 0; k < 3; k++) { const n = nb(i); if (type[n] === COLA) aux[n] = 1; } if (rnd() < 0.02) clearCell(i); }
+};
+RX[FOAM] = (i) => {
+  if ((cook[i] += 1) > 900) { clearCell(i); return; }
+  const j = nb(i);
+  if (extinguishAt(j)) return;
+  if (temp[j] > AMB + 5 && CATA[type[j]] !== STATIC) temp[j] -= 6;
+};
+RX[BURNT] = (i) => {
+  if (flame(i, BURNT)) return;
+  const T = temp[i]; if (T > 220 && rnd() < 0.006) spawnUp(i, SMOKE, T);
+};
+RX[WOOD] = (i) => { flame(i, WOOD); };
+RX[DRAIN] = (i) => { const j = nb(i); if (CATA[type[j]] !== STATIC && type[j] !== AIR) clearCell(j); };
+RX[STEAM] = (i) => {
+  if ((cook[i] -= 1) <= 0) { clearCell(i); return; }
+  // breaking the surface, a bubble puffs out into a little cloud (only for show: short-lived)
+  if (!(aux[i] & 1) && type[i - GW] === AIR && CATA[type[i + GW]] === LIQUID) {
+    aux[i] |= 1;
+    for (let k = 0; k < 4; k++) { const j = i - GW * (1 + rndi(3)) + rndi(7) - 3; if (type[j] === AIR) { setGas(j, STEAM, temp[i], 60 + rnd() * 100); aux[j] = 3; } }
+  }
+  const j = nb(i), b = type[j];
+  // a bubble rising through water that is not yet boiling collapses and warms it instead
+  if (aux[i] !== 3 && (b === WATER || b === BROTH) && temp[j] < 85) { temp[j] += 8; morph(i, b); temp[i] = 99; return; }
+  if (aux[i] !== 3 && temp[i] < 55 && rnd() < 0.03 && CATA[b] === STATIC && temp[j] < 60) morph(i, WATER);
+};
+RX[SMOKE] = (i) => { if ((cook[i] -= 1) <= 0) clearCell(i); };
+RX[FIRE] = (i) => {
+  temp[i] = 650 + rnd() * 200;
+  Sim.ev.fire++;
+  const j = nb(i), b = type[j];
+  if (IGNITE[b]) temp[j] += 30;
+  else if (wetFood(b) || b === WATER) { clearCell(i); return; }
+  if ((cook[i] -= 1) <= 0) { if (rnd() < 0.3) setGas(i, SMOKE, 200); else clearCell(i); }
+};
+RX[MILKFOAM] = (i) => {
+  if ((cook[i] -= 1) <= 0) { if (rnd() < 0.55) { const T = temp[i]; setCell(i, MILK, T); } else clearCell(i); return; }
+  const j = nb(i), b = type[j];
+  if ((b === MILK || b === COCOA) && temp[j] < 92) { temp[j] += 3; morph(i, b); temp[i] = 98; return; }   // collapses in milk that isn't boiling yet
+  if (CATA[b] === STATIC && temp[j] > 170 && rnd() < 0.01) burnTo(i);
+};
+RX[COLAFOAM] = (i) => {
+  const y = (i / GW) | 0; if (y < Sim.ev.colaTop) Sim.ev.colaTop = y;
+  if ((cook[i] -= 1) <= 0) { if (rnd() < 0.5) { const T = temp[i]; setCell(i, COLA, T); } else clearCell(i); }
+};
+
+/* ---------- one step ---------- */
+function cellStep(i) {
+  let t = type[i];
+  if (t === AIR || stamp[i] === tick) return;
+  const R = RX[t];
+  if (R !== null) { R(i); t = type[i]; if (t === AIR || stamp[i] === tick) return; }
+  switch (CATA[t]) {
+    case POWDER: powderStep(i, t); break;
+    case LIQUID: liquidStep(i, t); break;
+    case SOLID: solidStep(i, t); break;
+    case GAS: gasStep(i, t); break;
+    default: break;
+  }
+}
+function heatPass() {
+  for (let y = 1; y < GH - 1; y++) {
+    let i = y * GW + 1;
+    for (let x = 1; x < GW - 1; x++, i++) {
+      const a = type[i];
+      if (a === AIR) continue;
+      const ca = COND[a];
+      if (ca === 0) continue;
+      const la = LOSS[a];
+      let j = i + 1, b = type[j];
+      if (b !== AIR) { const g = ca < COND[b] ? ca : COND[b]; if (g > 0) { const q = (temp[j] - temp[i]) * g; temp[i] += q * ICAP[a]; temp[j] -= q * ICAP[b]; } }
+      else temp[i] += (AMB - temp[i]) * la;
+      j = i + GW; b = type[j];
+      if (b !== AIR) { const g = ca < COND[b] ? ca : COND[b]; if (g > 0) { const q = (temp[j] - temp[i]) * g; temp[i] += q * ICAP[a]; temp[j] -= q * ICAP[b]; } }
+      else temp[i] += (AMB - temp[i]) * la;
+      if (type[i - 1] === AIR) temp[i] += (AMB - temp[i]) * la;
+      if (type[i - GW] === AIR) temp[i] += (AMB - temp[i]) * la;
+    }
+  }
+}
+Sim.step = function () {
+  tick = (tick % 255) + 1;
+  Kitchen.preStep();
+  const ltr = tick & 1;
+  for (let y = GH - 2; y >= 1; y--) {
+    const row = y * GW;
+    if (ltr) for (let x = 1; x < GW - 1; x++) cellStep(row + x);
+    else for (let x = GW - 2; x >= 1; x--) cellStep(row + x);
+  }
+  heatPass();
+  Kitchen.postStep();
+};
+
+/* ============================================================
+   The kitchen: fixtures built out of static cells, and the
+   things that act on the grid every step (burners, tap, range
+   hood, smoke alarm, sprinklers). Coordinates are cells.
+   ============================================================ */
+const idx = (x, y) => y * GW + x;
+function rgba32(r, g, b, a) { return (((a & 255) << 24) | ((b & 255) << 16) | ((g & 255) << 8) | (r & 255)) >>> 0; }
+
+const Kitchen = {
+  LEVELS: ['OFF', 'LOW', 'MED', 'HIGH'],
+  LEVEL_T: [AMB, 150, 230, 330],
+  burners: [
+    { id: 'pot', label: 'Pot', x0: 26, x1: 64, y: 111, level: 0, knobX: 45, knobY: 126 },
+    { id: 'pan', label: 'Pan', x0: 88, x1: 128, y: 111, level: 0, knobX: 108, knobY: 126 },
+  ],
+  pot: { x0: 24, x1: 66, y0: 74, y1: 108 },
+  pan: { x0: 84, x1: 132, y0: 102, y1: 108 },
+  tap: { on: false, x: 270, y: 91, knobX: 285, knobY: 84 },
+  hood: { on: false, x0: 46, x1: 114, y0: 18, y1: 30, btnX: 80, btnY: 24 },
+  alarm: { smoke: 0, beeping: false, hot: 0, sprinkler: 0, trips: 0 },
+  vessels: [
+    { id: 'plate', name: 'Plate', x0: 161, x1: 195, y0: 92, y1: 113 },
+    { id: 'bowl', name: 'Bowl', x0: 203, x1: 229, y0: 86, y1: 113 },
+    { id: 'mug', name: 'Mug', x0: 238, x1: 248, y0: 86, y1: 113 },
+  ],
+  sprinklerX: [40, 110, 180, 250],
+  steps: 0,
+  /* lids: a domed steel cover over the pot or pan. Under a lid there is no air for a fire, and steam has
+     nowhere to go: it builds up until the lid rattles, and then blows off */
+  lids: [
+    { id: 'pot', x0: 21, x1: 69, top: 72, dome: 2, limit: 150, on: false, cells: [], pressure: 0, rattle: 0 },
+    { id: 'pan', x0: 81, x1: 135, top: 101, dome: 6, limit: 70, on: false, cells: [], pressure: 0, rattle: 0 },
+  ],
+
+  build() {
+    type.fill(AIR); temp.fill(AMB); cook.fill(0); aux.fill(0); vel.fill(0); stamp.fill(0);
+    for (let i = 0; i < GN; i++) shade[i] = (rnd() * 256) | 0;
+    const put = (x, y, id) => { if (x > 0 && x < GW - 1 && y > 0 && y < GH - 1) { const i = idx(x, y); type[i] = id; temp[i] = AMB; } };
+    const rect = (x0, y0, x1, y1, id) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) put(x, y, id); };
+    // frame + ceiling + everything below the worktop
+    for (let x = 0; x < GW; x++) { type[x] = WALL; type[idx(x, GH - 1)] = WALL; }
+    for (let y = 0; y < GH; y++) { type[idx(0, y)] = WALL; type[idx(GW - 1, y)] = WALL; }
+    rect(1, 1, GW - 2, 2, CEIL);
+    rect(1, 120, GW - 2, GH - 2, WALL);
+    rect(1, 116, GW - 2, 119, COUNTER);
+    // sink: a steel basin cut into the counter, drain in the middle
+    rect(258, 116, 284, 134, STEEL); rect(260, 116, 282, 132, AIR); rect(269, 133, 273, 133, DRAIN);
+    // tap: pipe up from the counter, across, spout down over the basin
+    rect(283, 86, 284, 115, STEEL); rect(268, 86, 284, 87, STEEL); rect(268, 88, 271, 89, STEEL); rect(282, 82, 286, 84, STEEL);
+    // stove top and burners
+    rect(10, 112, 150, 115, STEEL);
+    for (const b of this.burners) rect(b.x0, b.y, b.x1, b.y, BURNER);
+    // pot on the left burner
+    rect(22, 109, 68, 110, STEEL); rect(22, 74, 23, 110, STEEL); rect(67, 74, 68, 110, STEEL);
+    rect(17, 78, 21, 79, STEEL); rect(17, 80, 18, 82, STEEL); rect(69, 78, 73, 79, STEEL); rect(72, 80, 73, 82, STEEL);
+    // frying pan on the right burner, long handle
+    rect(82, 109, 134, 110, STEEL); rect(82, 103, 83, 110, STEEL); rect(133, 103, 134, 110, STEEL);
+    rect(135, 104, 150, 105, STEEL); rect(151, 103, 162, 104, STEEL);
+    // range hood: slanted steel shell, open at the bottom
+    for (let y = 16; y <= 40; y++) {
+      const t = (y - 16) / 24, xl = Math.round(lerp(44, 14, t)), xr = Math.round(lerp(116, 146, t));
+      put(xl, y, STEEL); put(xl + 1, y, STEEL); put(xr, y, STEEL); put(xr - 1, y, STEEL);
+    }
+    rect(44, 16, 116, 17, STEEL); rect(72, 3, 88, 17, STEEL); rect(74, 3, 86, 17, AIR);   // duct up to the ceiling
+    rect(12, 40, 16, 41, STEEL); rect(144, 40, 148, 41, STEEL);
+    // plate
+    rect(162, 114, 194, 115, CERAMIC); rect(160, 112, 161, 114, CERAMIC); rect(195, 112, 196, 114, CERAMIC);
+    // bowl: rounded, on a foot
+    for (let y = 98; y <= 113; y++) {
+      const t = (y - 98) / 15, hw = Math.round(14 - 6 * t * t);
+      put(216 - hw, y, CERAMIC); put(216 - hw + 1, y, CERAMIC); put(216 + hw, y, CERAMIC); put(216 + hw - 1, y, CERAMIC);
+    }
+    rect(208, 112, 224, 113, CERAMIC); rect(210, 114, 222, 115, CERAMIC);
+    // mug with a handle
+    rect(236, 94, 237, 115, CERAMIC); rect(249, 94, 250, 115, CERAMIC); rect(236, 114, 250, 115, CERAMIC);
+    rect(251, 98, 254, 99, CERAMIC); rect(251, 107, 254, 108, CERAMIC); rect(253, 100, 254, 106, CERAMIC);
+    // smoke detector on the ceiling
+    rect(186, 3, 194, 4, CERAMIC);
+    this.shadeStatics();
+    for (const b of this.burners) { b.level = 0; b.cur = AMB; }
+    for (const L of this.lids) { L.on = false; L.cells = []; L.rattle = 0; L.pressure = 0; }
+    this.tap.on = false; this.hood.on = false;
+    Object.assign(this.alarm, { smoke: 0, beeping: false, hot: 0, sprinkler: 0 });
+  },
+  /* bevelled colours for the fixtures: light top-left edges, darker bottom-right */
+  shadeStatics() {
+    for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
+      const i = idx(x, y), t = type[i];
+      if (CATA[t] !== STATIC || t === WALL) { SC[i] = 0; continue; }
+      const c = E[t].col, v = ((shade[i] / 255) - 0.5) * E[t].vary;
+      let k = 1;
+      const openUp = y > 0 && CATA[type[i - GW]] !== STATIC, openL = x > 0 && CATA[type[i - 1]] !== STATIC;
+      const openDn = y < GH - 1 && CATA[type[i + GW]] !== STATIC, openR = x < GW - 1 && CATA[type[i + 1]] !== STATIC;
+      if (openUp) k += 0.22; if (openL) k += 0.1; if (openDn) k -= 0.18; if (openR) k -= 0.1;
+      let r = c[0] * k + v, g = c[1] * k + v, b = c[2] * k + v;
+      if (t === CERAMIC && (y === 113 || y === 99 || (x >= 236 && x <= 250 && y === 104))) { r *= 0.62; g *= 0.78; b *= 1.02; }   // blue band on the crockery
+      if (t === COUNTER && y === 116) { r += 26; g += 26; b += 26; }
+      SC[i] = rgba32(clamp(r, 0, 255), clamp(g, 0, 255), clamp(b, 0, 255), 255);
+    }
+  },
+  /* wipe all food and mess, keep the fixtures */
+  clearMess() {
+    for (let k = 0; k < this.lids.length; k++) this.setLid(k, false);
+    for (let i = 0; i < GN; i++) if (type[i] !== AIR && CATA[type[i]] !== STATIC) clearCell(i);
+    for (let i = 0; i < GN; i++) if (CATA[type[i]] === STATIC) { temp[i] = AMB; aux[i] = 0; cook[i] = 0; }
+    Object.assign(this.alarm, { smoke: 0, beeping: false, hot: 0, sprinkler: 0 });
+  },
+  preStep() {
+    this.steps++;
+    for (const b of this.burners) {   // a burner takes a few seconds to come up to heat (or cool down)
+      b.cur = (b.cur === undefined ? AMB : b.cur) + (this.LEVEL_T[b.level] - (b.cur === undefined ? AMB : b.cur)) * 0.006;
+      const T = b.cur, row = b.y * GW;
+      for (let x = b.x0; x <= b.x1; x++) if (type[row + x] === BURNER) temp[row + x] = T;
+    }
+    if (this.tap.on) for (let x = this.tap.x; x <= this.tap.x + 1; x++) {
+      const i = idx(x, this.tap.y); if (type[i] === AIR && rnd() < 0.85) { setCell(i, WATER, 16); vel[i] = 4; }
+    }
+    if (this.alarm.sprinkler > 0) {
+      this.alarm.sprinkler--;
+      for (const sx of this.sprinklerX) for (let k = 0; k < 2; k++) {
+        const i = idx(sx + rndi(9) - 4, 3); if (type[i] === AIR && rnd() < 0.5) { setCell(i, WATER, 14); vel[i] = 2; }
+      }
+    }
+    if (this.hood.on) {   // the fan pulls steam and smoke out through the duct
+      const h = this.hood;
+      for (let y = 3; y <= 40; y++) {
+        const t = clamp((y - 16) / 24, 0, 1), xl = y < 16 ? 74 : Math.round(lerp(46, 16, t)), xr = y < 16 ? 86 : Math.round(lerp(114, 144, t));
+        for (let x = xl; x <= xr; x++) {
+          const i = idx(x, y), c = type[i];
+          if (CATA[c] !== GAS || c === FIRE) continue;
+          if (y < 16 && rnd() < 0.5) clearCell(i);
+          else if (stamp[i] !== tick && rnd() < 0.5) { const up = i - GW; if (type[up] === AIR) moveTo(i, up); }
+        }
+      }
+    }
+  },
+  postStep() {
+    if (this.steps % 6) return;
+    for (const L of this.lids) if (L.on) this.lidStep(L);
+    let smoke = 0;
+    for (let y = 3; y <= 18; y++) for (let x = 1; x < GW - 1; x++) if (type[idx(x, y)] === SMOKE) smoke++;
+    const a = this.alarm; a.smoke = smoke;
+    if (smoke > 45) { a.beeping = true; a.hot += 6; } else if (smoke < 12) { a.beeping = false; a.hot = Math.max(0, a.hot - 12); }
+    if (a.beeping && a.hot > 720 && a.sprinkler <= 0) { a.sprinkler = 480; a.hot = 0; a.trips++; }   // about 12 s of alarm, then the sprinklers
+  },
+  lidCells(L) {
+    const out = new Set(), w = L.x1 - L.x0; let prev = null;
+    for (let x = L.x0; x <= L.x1; x++) {
+      const y = L.top - Math.round(L.dome * Math.sin(Math.PI * (x - L.x0) / w));
+      const a = prev === null ? y : Math.min(y, prev), b = prev === null ? y : Math.max(y, prev);
+      for (let yy = a; yy <= b + 1; yy++) out.add(idx(x, yy));
+      prev = y;
+    }
+    const cx = (L.x0 + L.x1) >> 1, ky = L.top - L.dome - 2;   // a knob to lift it by
+    for (let dx = -1; dx <= 1; dx++) { out.add(idx(cx + dx, ky)); out.add(idx(cx + dx, ky + 1)); }
+    return [...out];
+  },
+  /* put a lid on (false if food is piled up in the way) or take it off */
+  setLid(k, on) {
+    const L = this.lids[k];
+    if (!!on === L.on) return true;
+    if (on) {
+      const cells = this.lidCells(L);
+      for (const i of cells) { const t = type[i]; if (t !== AIR && CATA[t] !== GAS) return false; }
+      for (const i of cells) { type[i] = STEEL; temp[i] = AMB; cook[i] = 0; aux[i] = 0; vel[i] = 0; }
+      L.cells = cells; L.on = true; L.pressure = 0; L.rattle = 0;
+      this.paintLid(L);
+    } else {
+      for (const i of L.cells) if (type[i] === STEEL) { clearCell(i); SC[i] = 0; }
+      L.cells = []; L.on = false; L.rattle = 0;
+    }
+    return true;
+  },
+  paintLid(L) {
+    const set = new Set(L.cells), c = E[STEEL].col, ky = L.top - L.dome - 1;
+    for (const i of L.cells) {
+      const knob = ((i / GW) | 0) <= ky, f = knob ? 0.42 : !set.has(i - GW) ? 1.28 : !set.has(i + GW) ? 0.78 : 1;
+      SC[i] = rgba32(clamp(c[0] * f, 0, 255), clamp(c[1] * f, 0, 255), clamp(c[2] * f + 8, 0, 255), 255);
+    }
+  },
+  underLid(x, y) { for (const L of this.lids) if (L.on && x >= L.x0 && x <= L.x1 && y > L.top - L.dome - 3 && y <= 110) return true; return false; },
+  lidStep(L) {
+    let steam = 0;
+    for (let y = L.top - L.dome; y <= 108; y++) for (let x = L.x0 + 1; x <= L.x1 - 1; x++) {
+      const i = idx(x, y), t = type[i];
+      if (t === FIRE) setGas(i, SMOKE, 200);   // no air under the lid
+      else if ((aux[i] & BURNING) && IGNITE[t] && CATA[t] !== STATIC) { if (rnd() < 0.15) { aux[i] &= ~BURNING; temp[i] = Math.min(temp[i], IGNITE[t] - 60); cook[i] = 0; if (FAT[t]) Sim.ev.smother++; } }
+      else if (t === STEAM && aux[i] !== 3) {   // trapped steam stays hot and does not drift away; a little condenses and drips back
+        if (rnd() < 0.002) { morph(i, WATER); temp[i] = 99; continue; }
+        steam++; if (cook[i] < 90) cook[i] = 90; if (temp[i] < 100) temp[i] = 100;
+      }
+    }
+    L.pressure = steam;
+    if (steam > L.limit) {
+      L.rattle++; Sim.ev.rattle++;
+      for (const x of [L.x0 - 1, L.x1 + 1]) { const i = idx(x, L.top); if (type[i] === AIR && rnd() < 0.7) { setGas(i, STEAM, 100, 30 + rnd() * 40); aux[i] = 3; } }   // steam squeezes out at the rim
+      if (L.rattle > 30) {   // about three seconds of rattling, then it goes
+        this.setLid(this.lids.indexOf(L), false);
+        for (let y = L.top - L.dome - 20; y <= 108; y++) for (let x = L.x0; x <= L.x1; x++) { const i = idx(x, y); if (type[i] === STEAM) vel[i] = -(3 + rndi(7)); }
+        Sim.ev.lidpop++;
+      }
+    } else if (L.rattle > 0) L.rattle--;
+  },
+  setBurner(k, level) { this.burners[k].level = clamp(level, 0, 3); },
+  /* what is sitting in a vessel right now */
+  contents(v) {
+    const counts = {}, cookSum = {}; let n = 0, heat = 0;
+    for (let y = v.y0; y <= v.y1; y++) for (let x = v.x0; x <= v.x1; x++) {
+      const i = idx(x, y), t = type[i];
+      if (t === AIR || CATA[t] === STATIC || CATA[t] === GAS) continue;
+      counts[t] = (counts[t] || 0) + 1; cookSum[t] = (cookSum[t] || 0) + cook[i]; n++; heat += temp[i];
+    }
+    const cookAvg = {}; for (const t in counts) cookAvg[t] = cookSum[t] / counts[t];
+    return { counts, cookAvg, n, avgT: n ? heat / n : AMB };
+  },
+  /* the stove's little display: how hot the food in the pot or pan is (or the bare metal, if it is empty) */
+  reading(k) {
+    const r = k === 0 ? this.pot : this.pan, top = k === 0 ? r.y0 : r.y0 - 10;
+    let s = 0, n = 0;
+    for (let y = top; y <= r.y1; y++) for (let x = r.x0; x <= r.x1; x++) { const t = type[idx(x, y)]; if (t !== AIR && CATA[t] !== STATIC && CATA[t] !== GAS) { s += temp[idx(x, y)]; n++; } }
+    return n >= 6 ? s / n : temp[idx((r.x0 + r.x1) >> 1, r.y1 + 1)];
+  },
+  emptyVessel(v) {
+    for (let y = v.y0; y <= v.y1; y++) for (let x = v.x0; x <= v.x1; x++) { const i = idx(x, y); if (CATA[type[i]] !== STATIC) clearCell(i); }
+  },
+};
+
+/* ============================================================
+   Tools that act on the grid (no DOM here, so headless tests can
+   cook with exactly what the player uses): pour, stamps, scoop,
+   stir, wipe, blowtorch, extinguisher, build.
+   ============================================================ */
+const MOVABLE = (t) => t !== AIR && CATA[t] !== STATIC;
+const Tools = {
+  /* the ingredient tray, in shelf order */
+  INGREDIENTS: [
+    { key: 'water', label: 'Water', el: WATER, mode: 'pour' },
+    { key: 'oil', label: 'Oil', el: OIL, mode: 'pour' },
+    { key: 'rice', label: 'Rice', el: RICE, mode: 'pour' },
+    { key: 'leftover', label: 'Day-old rice', el: RICE_C, mode: 'pour' },
+    { key: 'egg', label: 'Egg', mode: 'stamp' },
+    { key: 'kernel', label: 'Kernels', el: KERNEL, mode: 'pour' },
+    { key: 'sugar', label: 'Sugar', el: SUGAR, mode: 'pour' },
+    { key: 'flour', label: 'Flour', el: FLOUR, mode: 'pour' },
+    { key: 'milk', label: 'Milk', el: MILK, mode: 'pour' },
+    { key: 'butter', label: 'Butter', mode: 'stamp' },
+    { key: 'choc', label: 'Chocolate', mode: 'stamp' },
+    { key: 'garlic', label: 'Garlic', mode: 'stamp' },
+    { key: 'chicken', label: 'Chicken', mode: 'stamp' },
+    { key: 'soy', label: 'Soy sauce', el: SOY, mode: 'pour' },
+    { key: 'vinegar', label: 'Vinegar', el: VINEGAR, mode: 'pour' },
+    { key: 'noodles', label: 'Noodles', mode: 'stamp' },
+    { key: 'season', label: 'Seasoning', el: SEASON, mode: 'pour' },
+    { key: 'salt', label: 'Salt', el: SALT, mode: 'pour' },
+    { key: 'ice', label: 'Ice', mode: 'stamp' },
+    { key: 'cola', label: 'Cola', el: COLA, mode: 'pour' },
+    { key: 'mints', label: 'Mints', mode: 'stamp' },
+  ],
+  inside(x, y) { return x > 0 && x < GW - 1 && y > 2 && y < GH - 1; },
+  /* sprinkle n cells into free spots near (x, y); liquids come out as a narrow stream */
+  pour(x, y, el, n) {
+    const liquid = CATA[el] === LIQUID, r = liquid ? 1 : 2; let made = 0;
+    for (let k = 0; k < n * 4 && made < n; k++) {
+      const px = Math.round(x + (rnd() * 2 - 1) * r), py = Math.round(y + (rnd() * 2 - 1) * r);
+      if (!this.inside(px, py) || Kitchen.underLid(px, py)) continue;
+      const i = idx(px, py);
+      if (type[i] !== AIR) continue;
+      setCell(i, el, el === WATER ? 18 : AMB); vel[i] = 2;
+      if (el === RICE_C) aux[i] = 0;   // day-old rice is dry: it fries instead of steaming
+      made++;
+    }
+    return made;
+  },
+  fillShape(cx, cy, el, test) {   // put el into every free cell where test(dx, dy) is true
+    let n = 0;
+    for (let dy = -8; dy <= 8; dy++) for (let dx = -10; dx <= 10; dx++) {
+      if (!test(dx, dy)) continue;
+      const x = cx + dx, y = cy + dy; if (!this.inside(x, y)) continue;
+      const i = idx(x, y); if (type[i] === AIR) { setCell(i, el, el === ICE ? -6 : el === BUTTER || el === MEAT ? 6 : AMB); n++; }
+    }
+    return n;
+  },
+  stamp(kind, x, y) {
+    const disk = (r) => (dx, dy) => dx * dx + dy * dy <= r * r + r * 0.6;
+    switch (kind) {
+      case 'egg': { const n = this.fillShape(x, y, YOLK, disk(2.1)); return n + this.fillShape(x, y, EGG_W, (dx, dy) => disk(5.2)(dx, dy * 1.4)); }
+      case 'butter': return this.fillShape(x, y, BUTTER, (dx, dy) => dx >= -3 && dx <= 3 && dy >= -1 && dy <= 1);
+      case 'choc': return this.fillShape(x, y, CHOC, (dx, dy) => dx >= -3 && dx <= 2 && dy >= -2 && dy <= 1);
+      case 'ice': return this.fillShape(x, y, ICE, (dx, dy) => dx >= -2 && dx <= 2 && dy >= -2 && dy <= 2);
+      case 'noodles': return this.fillShape(x, y, NOODLE_D, (dx, dy) => dx >= -6 && dx <= 6 && dy >= -3 && dy <= 2 && (dx + dy * 3 + 99) % 4 !== 0);
+      case 'chicken': return this.fillShape(x, y, MEAT, (dx, dy) => (dx * dx) / 12 + (dy * dy) / 6 <= 1.05 + Math.sin(dx * 1.7 + dy) * 0.15);
+      case 'mints': return this.fillShape(x, y, MENTOS, (dx, dy) => dx >= 0 && dx <= 1 && dy >= 0 && dy <= 1);
+      case 'garlic': {
+        let n = 0;
+        for (let k = 0; k < 7; k++) { const gx = x + rndi(11) - 5, gy = y + rndi(5) - 2; n += this.fillShape(gx, gy, GARLIC, (dx, dy) => dy === 0 && (dx === 0 || dx === 1)); }
+        return n;
+      }
+      default: return 0;
+    }
+  },
+  /* scoop: lift a blob of food out of the grid, carry it, set it down somewhere else.
+     The scoop is slotted: when it comes up with food in it, frying oil drains back out. */
+  lift(cells, cx, cy) {
+    let food = 0;
+    for (const i of cells) { const t = type[i]; if (FOOD[t] && !FAT[t]) food++; }
+    const drain = food >= Math.max(6, cells.length * 0.08), held = [];
+    for (const i of cells) {
+      const t = type[i]; if (drain && t === OIL) continue;
+      held.push({ dx: (i % GW) - cx, dy: ((i / GW) | 0) - cy, t, T: temp[i], c: cook[i], a: aux[i], s: shade[i] });
+      clearCell(i);
+    }
+    return held;
+  },
+  pick(x, y, r) {
+    const cells = [];
+    for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+      if (dx * dx + dy * dy > r * r + r) continue;
+      const px = x + dx, py = y + dy; if (!this.inside(px, py) || Kitchen.underLid(px, py)) continue;
+      const i = idx(px, py), t = type[i];
+      if (MOVABLE(t) && CATA[t] !== GAS) cells.push(i);
+    }
+    return this.lift(cells, x, y);
+  },
+  pickRect(x0, y0, x1, y1) {
+    const cells = [];
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const i = idx(x, y), t = type[i]; if (MOVABLE(t) && CATA[t] !== GAS) cells.push(i); }
+    return this.lift(cells, (x0 + x1) >> 1, (y0 + y1) >> 1);
+  },
+  /* set a held blob down; over a vessel, squeeze it to fit inside the rim (fitW cells wide) */
+  drop(x, y, held, fitW) {
+    let placed = 0, minX = 0, maxX = 0;
+    for (const h of held) { if (h.dx < minX) minX = h.dx; if (h.dx > maxX) maxX = h.dx; }
+    const span = maxX - minX + 1, k = fitW && span > fitW ? (fitW - 1) / (span - 1) : 1;
+    held.sort((a, b) => b.dy - a.dy);
+    for (const h of held) {
+      let px = x + Math.round((h.dx - (minX + maxX) / 2) * k), py = y + h.dy;
+      px = clamp(px, 1, GW - 2);
+      for (let k = 0; k < 30; k++, py--) {
+        if (!this.inside(px, py)) break;
+        const i = idx(px, py);
+        if (type[i] === AIR || CATA[type[i]] === GAS) {
+          type[i] = h.t; temp[i] = h.T; cook[i] = h.c; aux[i] = h.a; shade[i] = h.s; vel[i] = 0; placed++; break;
+        }
+      }
+    }
+    return placed;
+  },
+  stir(x, y, r, n) {
+    for (let k = 0; k < n; k++) {
+      const a = idx(clamp(x + rndi(2 * r + 1) - r, 1, GW - 2), clamp(y + rndi(2 * r + 1) - r, 3, GH - 2));
+      const b = a + N8[rndi(8)] * (1 + rndi(2));
+      if (b < 0 || b >= GN) continue;
+      const ta = type[a], tb = type[b];
+      // beating: yolk and white stirred together turn into one beaten egg
+      if ((ta === YOLK || ta === EGG_W || ta === EGG_MIX) && (tb === YOLK || tb === EGG_W || tb === EGG_MIX) && ta !== tb) { this.beat(a); this.beat(b); continue; }
+      // a sheet of egg that is still setting breaks up into curds
+      if (ta === EGG_OM && rnd() < 0.35) { const c = cook[a], T = temp[a]; morph(a, EGG_SCR); cook[a] = c; temp[a] = T; }
+      if (MOVABLE(ta) && MOVABLE(tb) && CATA[ta] !== GAS && CATA[tb] !== GAS) moveTo(a, b);
+    }
+  },
+  beat(i) { if (type[i] !== EGG_MIX) { const T = temp[i], c = type[i] === EGG_W ? cook[i] * 0.7 : 0; morph(i, EGG_MIX); temp[i] = T; cook[i] = c; } },
+  wipe(x, y, r) {
+    let n = 0;
+    for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+      if (dx * dx + dy * dy > r * r + r) continue;
+      const px = x + dx, py = y + dy; if (!this.inside(px, py)) continue;
+      const i = idx(px, py), t = type[i];
+      if (MOVABLE(t) || t === BRICK) { clearCell(i); n++; }
+    }
+    return n;
+  },
+  torch(x, y) {
+    for (let k = 0; k < 6; k++) {
+      const px = x + rndi(5) - 2, py = y + rndi(5) - 2; if (!this.inside(px, py)) continue;
+      const i = idx(px, py);
+      if (type[i] === AIR) setGas(i, FIRE, 800, 10 + rnd() * 14);
+      else if (CATA[type[i]] !== STATIC) temp[i] += 25;
+    }
+  },
+  spray(x, y) {
+    for (let k = 0; k < 16; k++) {
+      const px = x + rndi(11) - 5, py = y + rndi(9) - 4; if (!this.inside(px, py)) continue;
+      const i = idx(px, py);
+      if (type[i] === AIR) setCell(i, FOAM, 8);
+      else extinguishAt(i);
+    }
+  },
+  build(x, y, r) {
+    for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+      const px = x + dx, py = y + dy; if (!this.inside(px, py) || py > 115) continue;
+      const i = idx(px, py);
+      if (type[i] === AIR || CATA[type[i]] === GAS) { setCell(i, BRICK); const c = E[BRICK].col, v = (shade[i] / 255 - 0.5) * 26, mortar = (py % 3 === 0) || ((px + (((py / 3) | 0) % 2) * 3) % 6 === 0); SC[i] = rgba32(clamp(c[0] + v - (mortar ? 40 : 0), 0, 255), clamp(c[1] + v - (mortar ? 10 : 0), 0, 255), clamp(c[2] + v, 0, 255), 255); }
+    }
+  },
+};
+
+/* ============================================================
+   Recipes and how a plate gets judged. Each judge looks at what
+   is physically in the vessel: counts of each element, how far
+   along they cooked, and how hot the food still is.
+   ============================================================ */
+const RECIPES = [
+  { id: 'rice', name: 'Steamed rice', vessel: 'bowl', price: 4,
+    how: 'Rice in the pot with about twice as much water. Medium heat. When the water has gone, turn it off and scoop the rice into the bowl.' },
+  { id: 'egg', name: 'Sunny-side egg', vessel: 'plate', price: 5,
+    how: 'A splash of oil in the pan on medium. Crack an egg in. Lift it onto the plate once the white is set but the yolk is still bright orange.' },
+  { id: 'popcorn', name: 'Popcorn', vessel: 'bowl', price: 4,
+    how: 'A little oil and a pile of kernels in the pot, high heat. When the popping slows, scoop it out before it scorches.' },
+  { id: 'caramel', name: 'Caramel', vessel: 'plate', price: 6,
+    how: 'Sugar in the dry pan on medium. It melts, then turns golden, then amber. Get it onto the plate at amber. Dark brown is bitter.' },
+  { id: 'pancake', name: 'Pancakes', vessel: 'plate', price: 7,
+    how: 'Flour and milk (or water), stirred into batter. Butter the pan on medium, pour the batter, wait for golden, then plate it.' },
+  { id: 'sinangag', name: 'Garlic fried rice', vessel: 'plate', price: 8,
+    how: 'Oil in the pan on medium. Fry garlic until golden, add day-old rice and stir until the grains turn gold too.' },
+  { id: 'cocoa', name: 'Hot chocolate', vessel: 'mug', price: 6,
+    how: 'Milk in the pot on low with a piece of chocolate. Stir as it melts. Pour into the mug while it is hot. Watch it does not boil over.' },
+  { id: 'ramen', name: 'Instant ramen', vessel: 'bowl', price: 7,
+    how: 'Boil water in the pot, drop in a noodle block and some seasoning. When the noodles soften, move noodles and broth to the bowl. An egg earns a tip.' },
+  { id: 'adobo', name: 'Chicken adobo', vessel: 'bowl', price: 10,
+    how: 'Chicken, soy sauce, vinegar and garlic in the pot. Simmer on medium until the chicken turns dark and glossy, then bowl it with the sauce.' },
+  { id: 'scrambled', name: 'Scrambled eggs', vessel: 'plate', price: 6,
+    how: 'Butter in the pan on low or medium. Crack in two or three eggs and stir them until yolk and white are one colour, then keep stirring while they set into soft curds.' },
+  { id: 'omelette', name: 'Omelette', vessel: 'plate', price: 7,
+    how: 'Crack two or three eggs into the cold pan and stir until they are one colour. Then butter or oil, medium heat, and leave it alone. Lift it out once the top has set.' },
+  { id: 'kettle', name: 'Caramel corn', vessel: 'bowl', price: 9,
+    how: 'Pop some corn in the pot. Melt sugar into caramel in the pan. Scoop the hot caramel over the popcorn, put the pot on low and stir to coat, then bowl it before it scorches.' },
+  { id: 'cola', name: 'Iced cola', vessel: 'mug', price: 3,
+    how: 'Pour cola into the mug and drop in some ice. Whatever you do, keep the mints away from it.' },
+  { id: 'silog', name: 'Silog plate', vessel: 'plate', price: 14,
+    how: 'Garlic fried rice with a sunny-side egg on top. Fry the rice and plate it, then fry an egg in the same pan and lay it over the rice.' },
+  { id: 'fried', name: 'Fried chicken', vessel: 'plate', price: 9,
+    how: 'A deep layer of oil in the pan on medium. Fry chicken pieces until golden brown outside and cooked through. Lift them out from the top so the oil stays behind.' },
+];
+const RECIPE_BY_ID = Object.fromEntries(RECIPES.map(r => [r.id, r]));
+/* one dish a day is the special: it pays half as much again (the day is the viewer's own) */
+function specialId(d = new Date()) { const n = d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate(); return RECIPES[(n * 7 + 3) % RECIPES.length].id; }
+
+/* judge(recipe id, contents) -> { stars 0-3, notes [], bonus } */
+function judge(id, c) {
+  const n = (el) => c.counts[el] || 0, ck = (el) => c.cookAvg[el] || 0;
+  const notes = [], good = []; let stars = 3, bonus = 0;
+  const fault = (msg) => { stars--; notes.push(msg); };
+  const none = (msg) => ({ stars: 0, notes: [msg], good: [], bonus: 0 });
+  const burnt = n(BURNT), cold = c.avgT < 45;
+  if (burnt > 25 && burnt > c.n * 0.45) return none('This is charcoal.');
+  switch (id) {
+    case 'rice': {
+      const main = n(RICE_C);
+      if (main < 60) return none(n(RICE) > 20 ? 'This rice is raw.' : main ? 'That is a spoonful, not a bowl.' : 'There is no rice in this bowl.');
+      if (n(RICE) > main * 0.1) fault('Crunchy. Some grains are still raw.');
+      if (burnt > main * 0.06) fault('Tastes of smoke. The bottom burned.');
+      if (n(WATER) > main * 0.15) fault('Soupy. Cook the water off first.');
+      if (ck(RICE_C) > 120) fault('Dry and toasty, close to scorched.');
+      if (cold) fault('It has gone cold.');
+      if (stars === 3) good.push('Fluffy, every grain separate.');
+      break;
+    }
+    case 'egg': {
+      const white = n(EGG_C), raw = n(EGG_W), yolk = n(YOLK), set = n(YOLK_C);
+      if (white + raw + yolk + set < 15) return none('Where is the egg?');
+      if (white < 12) return none('That is raw egg on a plate.');
+      if (yolk < 4 && set > 0) fault('The yolk is hard. Sunny side means runny.');
+      else if (yolk + set < 4) fault('The yolk went missing.');
+      if (raw > white * 0.15) fault('The white is still slimy.');
+      if (burnt > 6) fault('Burnt edges.');
+      else if (ck(EGG_C) > 300) fault('A bit too crispy underneath.');
+      if (cold) fault('Cold egg.');
+      if (stars === 3) good.push('Set white, glowing yolk. Perfect.');
+      break;
+    }
+    case 'popcorn': {
+      const main = n(POPCORN);
+      if (main < 80) return none(n(KERNEL) > 20 ? 'These are kernels. They need to pop first.' : 'That is barely a handful.');
+      if (n(KERNEL) > main * 0.1) fault('Watch your teeth: lots of unpopped kernels.');
+      if (burnt > main * 0.06 || ck(POPCORN) > 200) fault('Scorched.');
+      if (n(OIL) > main * 0.2) fault('Swimming in oil.');
+      if (stars === 3) good.push('Light, crisp, not a burnt one in sight.');
+      break;
+    }
+    case 'caramel': {
+      const main = n(CARAMEL) + n(CANDY), level = main ? (ck(CARAMEL) * n(CARAMEL) + ck(CANDY) * n(CANDY)) / main : 0;
+      if (main < 40) return none(n(SUGAR) > 20 ? 'This is just sugar.' : 'There is hardly any caramel.');
+      if (level < 230) fault('Pale. Cook it on to amber.');
+      else if (level > 700) fault('Bitter. That is nearly burnt.');
+      if (n(SUGAR) > main * 0.1) fault('Still grainy with raw sugar.');
+      if (burnt > main * 0.05) fault('Black flecks of burnt sugar.');
+      if (stars === 3) good.push('Deep amber and glossy.');
+      break;
+    }
+    case 'pancake': {
+      const main = n(PANCAKE), level = ck(PANCAKE);
+      if (main < 50) return none(n(BATTER) > 20 ? 'This is batter, not pancakes.' : 'There is hardly any pancake here.');
+      if (n(BATTER) > main * 0.08) fault('Raw in the middle.');
+      if (n(FLOUR) > main * 0.1) fault('Lumps of dry flour. Stir the batter.');
+      if (level < 110) fault('Pale. A bit longer on the heat.');
+      else if (level > 470) fault('Very dark on the bottom.');
+      if (burnt > main * 0.05) fault('Burnt patches.');
+      if (n(BUTTER_M) + n(BUTTER) + n(CARAMEL) > 4) { bonus += 2; good.push('Butter on top. Lovely.'); }
+      if (stars === 3) good.push('Golden all over.');
+      break;
+    }
+    case 'sinangag': {
+      const main = n(RICE_F);
+      if (main < 60) return none(n(RICE_C) > 40 ? 'That is plain rice. Fry it.' : 'Where is the rice?');
+      if (n(GARLIC_F) < 4) fault(n(GARLIC) > 3 ? 'Raw garlic. Fry it golden first.' : 'Garlic rice without garlic?');
+      else if (ck(GARLIC_F) > 230) fault('The garlic went bitter.');
+      if (n(RICE_C) > main * 0.3) fault('Half of it is not fried.');
+      if (burnt > main * 0.06) fault('Burnt bits in there.');
+      if (stars === 3) good.push('Golden, garlicky, just like home.');
+      break;
+    }
+    case 'cocoa': {
+      const main = n(COCOA);
+      if (main < 40) return none(n(MILK) > 30 ? 'This is warm milk.' : 'There is almost nothing in the mug.');
+      if (n(MILK) > main * 0.3) fault('Weak. It needs more chocolate.');
+      if (n(CHOC) + n(CHOC_M) > 8) fault('Lumps of chocolate at the bottom.');
+      if (c.avgT < 50) fault('Lukewarm.');
+      if (burnt > 3) fault('Scorched milk taste.');
+      if (stars === 3) good.push('Rich, hot and smooth.');
+      break;
+    }
+    case 'ramen': {
+      const nood = n(NOODLE), broth = n(BROTH);
+      if (nood < 30) return none(n(NOODLE_D) > 20 ? 'The noodles are still a hard block.' : 'Ramen needs noodles.');
+      if (broth < 40) fault(n(WATER) > 30 ? 'Noodles in plain water. Add the seasoning.' : 'Where is the soup?');
+      if (n(NOODLE_D) > 5) fault('Crunchy bits of noodle.');
+      if (c.avgT < 55) fault('Cold ramen.');
+      if (burnt > 4) fault('Burnt bits.');
+      if (n(EGG_C) + n(YOLK_C) + n(YOLK) > 8) { bonus += 3; good.push('An egg! You get me.'); }
+      if (stars === 3) good.push('Slurp-worthy.');
+      break;
+    }
+    case 'adobo': {
+      const meat = n(MEAT_A), sauce = n(ADOBO);
+      if (meat < 20) return none(n(MEAT) > 10 ? 'This chicken is RAW.' : n(MEAT_C) > 10 ? 'That is boiled chicken, not adobo.' : 'Adobo with no chicken?');
+      if (n(MEAT) > 2) fault('Pink in the middle!');
+      if (sauce < 15) fault('Dry. Where is the sauce?');
+      if (n(MEAT_C) > meat * 0.3) fault('Some pieces never met the sauce.');
+      if (burnt > meat * 0.1) fault('Burnt on the bottom.');
+      if (n(GARLIC_F) + n(GARLIC) > 3) { bonus += 2; good.push('Plenty of garlic.'); }
+      if (stars === 3) good.push('Tangy, salty, tender. Lola approves.');
+      break;
+    }
+    case 'scrambled': case 'omelette': {
+      const curds = n(EGG_SCR), sheet = n(EGG_OM), raw = n(EGG_MIX) + n(EGG_W) + n(YOLK), fried = n(EGG_C) + n(YOLK_C);
+      const omelette = id === 'omelette', main = omelette ? sheet : curds, other = omelette ? curds : sheet;
+      if (curds + sheet < 20) return none(raw > 15 ? 'That is raw egg on a plate.' : fried > 15 ? 'That is a fried egg.' : 'Where are the eggs?');
+      if (other > main) { stars = 1; notes.push(omelette ? 'These are scrambled eggs. Leave an omelette alone while it sets.' : 'This is an omelette. Keep stirring while the eggs set.'); }
+      else if (other > main * (omelette ? 0.3 : 0.4)) fault(omelette ? 'It broke up into pieces.' : 'Big rubbery sheets. Stir more.');
+      if (fried > (curds + sheet) * 0.3) fault('Fried egg bits. Beat the eggs before they set.');
+      if (raw > (curds + sheet) * 0.12) fault(omelette ? 'Runny on top.' : 'Wet and runny.');
+      if (burnt > 6 || ck(omelette ? EGG_OM : EGG_SCR) > (omelette ? 300 : 230)) fault(omelette ? 'Brown and leathery underneath.' : 'Browned. Scrambled eggs should stay soft.');
+      if (cold) fault('Cold eggs.');
+      if (!omelette && n(BUTTER_M) + n(BUTTER) > 3) { bonus += 1; good.push('Buttery.'); }
+      if (stars === 3) good.push(omelette ? 'Soft, golden and all in one piece.' : 'Soft, creamy curds. Perfect.');
+      break;
+    }
+    case 'kettle': {
+      const main = n(POPCORN_K), plain = n(POPCORN), puddle = n(CARAMEL) + n(CANDY);
+      if (main < 50) return none(plain > 40 ? 'Plain popcorn. Where is the caramel?' : puddle > 30 ? 'This is a puddle of caramel.' : 'Hardly any caramel corn here.');
+      if (plain > main * 0.35) fault('Patchy. Lots of it has no caramel.');
+      if (puddle > main * 0.6) fault('More caramel than corn.');
+      if (n(KERNEL) > 10) fault('Unpopped kernels in there.');
+      if (burnt > main * 0.06 || ck(POPCORN_K) > 220) fault('Scorched.');
+      if (stars === 3) good.push('Crunchy, glossy, gone in a minute.');
+      break;
+    }
+    case 'cola': {
+      const main = n(COLA), ice = n(ICE), fizz = n(COLAFOAM) + n(MENTOS);
+      if (main < 30) return none(fizz > 10 ? 'All foam, no cola.' : 'There is barely any cola.');
+      if (ice < 4 && c.avgT > 12) fault('Warm. It needs ice.');
+      if (n(WATER) > main * 0.4) fault('Watered down.');
+      if (fizz > 6) fault('Foaming everywhere.');
+      if (stars === 3) good.push('Ice cold. Ahh.');
+      break;
+    }
+    case 'silog': {
+      const rice = n(RICE_F), white = n(EGG_C), yolk = n(YOLK), set = n(YOLK_C);
+      if (rice < 50 && white < 12) return none('Where is the silog?');
+      if (rice < 50) return none(n(RICE_C) > 40 ? 'Plain rice. Silog needs garlic fried rice.' : 'An egg with no rice.');
+      if (white < 12) return none(n(EGG_W) > 12 ? 'The egg is raw.' : 'Silog without the egg?');
+      if (n(GARLIC_F) < 4) fault('Garlic rice without garlic?');
+      if (yolk < 4 && set > 0) fault('Hard yolk. It should run into the rice.');
+      else if (yolk + set < 4) fault('The yolk went missing.');
+      if (n(EGG_W) > white * 0.15) fault('Slimy egg white.');
+      if (n(RICE_C) > rice * 0.3) fault('Half the rice is not fried.');
+      if (burnt > (rice + white) * 0.06) fault('Burnt bits.');
+      if (cold) fault('It has gone cold.');
+      if (stars === 3) good.push('Sinangag and itlog. Breakfast of champions.');
+      break;
+    }
+    case 'fried': {
+      const meat = n(MEAT_C), raw = n(MEAT), level = ck(MEAT_C);
+      if (meat < 20) return none(raw > 10 ? 'This chicken is RAW.' : n(MEAT_A) > 10 ? 'That is adobo.' : 'Fried chicken with no chicken?');
+      if (raw > 2) fault('Pink in the middle!');
+      if (n(MEAT_A) > meat * 0.3) fault('Why is it in soy sauce?');
+      if (level < 110) fault('Pale and soggy. Fry it longer.');
+      else if (level > 380) fault('Dark and dry. Overdone.');
+      if (burnt > meat * 0.1) fault('Burnt bits.');
+      if (n(OIL) > meat * 0.8) fault('Swimming in oil.');
+      if (cold) fault('Cold fried chicken.');
+      if (stars === 3) good.push('Golden, crunchy, juicy.');
+      break;
+    }
+  }
+  // anything else that should not be there
+  const odd = [POPCORN, COLA, COLAFOAM, FOAM, MENTOS, SALT].filter(el => !((id === 'popcorn' || id === 'kettle') && el === POPCORN) && !(id === 'cola' && (el === COLA || el === COLAFOAM || el === MENTOS))).reduce((s, el) => s + n(el), 0);
+  if (odd > c.n * 0.12 && odd > 6) fault('Something in here does not belong.');
+  return { stars: Math.max(0, stars), notes, good, bonus };
+}
+
+/* ============================================================
+   Rendering. Three stacked canvases, all 288 x 144 (or half) and
+   scaled up with crisp pixels: a painted backdrop, the live cells,
+   and a blurred glow layer for flames and lit burners.
+   ============================================================ */
+const Render = {
+  init(bg, fx, glow, haze) {
+    this.bg = bg; this.fx = fx; this.glow = glow;
+    for (const c of [bg, fx]) { c.width = GW; c.height = GH; }
+    glow.width = GW >> 1; glow.height = GH >> 1;
+    this.fctx = fx.getContext('2d'); this.gctx = glow.getContext('2d');
+    // haze: steam and smoke drawn again at half size and blurred, so they read as clouds rather than dots
+    if (haze) {
+      haze.width = GW >> 1; haze.height = GH >> 1; this.hctx = haze.getContext('2d');
+      this.himg = this.hctx.createImageData(GW >> 1, GH >> 1); this.hpx = new Uint32Array(this.himg.data.buffer);
+    }
+    this.hacc = new Float32Array((GW >> 1) * (GH >> 1) * 4);
+    this.img = this.fctx.createImageData(GW, GH); this.px = new Uint32Array(this.img.data.buffer);
+    this.gimg = this.gctx.createImageData(GW >> 1, GH >> 1); this.gpx = new Uint32Array(this.gimg.data.buffer);
+    this.gacc = new Float32Array((GW >> 1) * (GH >> 1) * 3);
+    // element colour tables
+    this.base = new Float32Array(NE * 3); this.alpha = new Uint8Array(NE); this.vary = new Float32Array(NE);
+    this.ramp = []; this.rampMax = new Float32Array(NE);
+    for (const d of E) {
+      this.base[d.id * 3] = d.col[0]; this.base[d.id * 3 + 1] = d.col[1]; this.base[d.id * 3 + 2] = d.col[2];
+      this.alpha[d.id] = d.alpha; this.vary[d.id] = d.vary;
+      this.ramp[d.id] = d.ramp ? d.ramp.flat() : null; this.rampMax[d.id] = d.rampMax || 1;
+    }
+    this.paintBackground();
+  },
+  /* ---------- the backdrop: a late-night kitchen ---------- */
+  paintBackground() {
+    const ctx = this.bg.getContext('2d'), im = ctx.createImageData(GW, GH), p = new Uint32Array(im.data.buffer);
+    const R = mulberry(7);
+    const put = (x, y, r, g, b) => { if (x >= 0 && x < GW && y >= 0 && y < GH) p[y * GW + x] = rgba32(clamp(r, 0, 255), clamp(g, 0, 255), clamp(b, 0, 255), 255); };
+    const box = (x0, y0, x1, y1, c) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) put(x, y, c[0], c[1], c[2]); };
+    // wall tiles in a running bond, lit warm from the lamp over the sink
+    for (let y = 0; y < 120; y++) for (let x = 0; x < GW; x++) {
+      const row = Math.floor(y / 5), off = (row % 2) * 4, tx = Math.floor((x + off) / 9);
+      const grout = y % 5 === 4 || (x + off) % 9 === 8;
+      const tv = ((tx * 7 + row * 13) % 5) * 2 - 4;
+      const lx = x - 254, ly = y - 30, light = Math.max(0, 1 - Math.sqrt(lx * lx * 0.6 + ly * ly) / 120) * 34;
+      const glossy = !grout && (x + off) % 9 === 0 ? 8 : 0;
+      if (grout) put(x, y, 24 + light * 0.4, 30 + light * 0.3, 42);
+      else put(x, y, 40 + tv + light + glossy, 52 + tv + light * 0.75 + glossy, 72 + tv + light * 0.3 + glossy);
+    }
+    // inside the range hood: darker, with the duct
+    for (let y = 3; y <= 41; y++) {
+      const t = clamp((y - 16) / 24, 0, 1), xl = y < 16 ? 74 : Math.round(lerp(46, 16, t)), xr = y < 16 ? 86 : Math.round(lerp(114, 144, t));
+      for (let x = xl; x <= xr; x++) put(x, y, 22, 25, 32);
+    }
+    for (let y = 4; y <= 14; y += 3) box(75, y, 85, y, [34, 38, 46]);
+    // window: the sky follows the viewer's own clock (night, dawn, day, dusk) over a city skyline
+    const wx0 = 166, wx1 = 244, wy0 = 18, wy1 = 60, P = SKY[this.period = skyPeriod()];
+    for (let y = wy0; y <= wy1; y++) for (let x = wx0; x <= wx1; x++) {
+      const t = (y - wy0) / (wy1 - wy0), u = t * t;
+      put(x, y, lerp(P.top[0], P.low[0], u), lerp(P.top[1], P.low[1], u), lerp(P.top[2], P.low[2], t));
+    }
+    for (let k = 0; k < P.stars; k++) put(wx0 + 2 + Math.floor(R() * 76), wy0 + 2 + Math.floor(R() * 22), 200, 210, 240);
+    const [ox, oy, orad] = P.orb;
+    for (let dy = -orad - 2; dy <= orad + 2; dy++) for (let dx = -orad - 2; dx <= orad + 2; dx++) {
+      const d = dx * dx + dy * dy;
+      if (d <= orad * orad + 1) put(ox + dx, oy + dy, P.orbCol[0] - (P.moon && dx > 2 ? 30 : 0), P.orbCol[1] - (P.moon && dx > 2 ? 30 : 0), P.orbCol[2]);
+      else if (P.halo && d <= (orad + 2) * (orad + 2)) { const c = p[idx(ox + dx, oy + dy)]; put(ox + dx, oy + dy, lerp(c & 255, P.orbCol[0], 0.3), lerp((c >> 8) & 255, P.orbCol[1], 0.3), lerp((c >> 16) & 255, P.orbCol[2], 0.3)); }
+    }
+    for (const [cx, cy, cw] of P.clouds) for (let dx = 0; dx < cw; dx++) { const h = Math.round(Math.sin(dx / (cw - 1) * Math.PI) * 2.4); for (let dy = -h; dy <= 0; dy++) put(cx + dx, cy + dy, 244, 246, 250); }
+    let bx = wx0;
+    while (bx < wx1) {
+      const w = 6 + Math.floor(R() * 9), h = 8 + Math.floor(R() * 18), top = wy1 - h;
+      for (let y = top; y <= wy1; y++) for (let x = bx; x < Math.min(bx + w, wx1 + 1); x++) {
+        const win = (x - bx) % 3 === 1 && (y - top) % 3 === 1, lit = win && R() < P.lit;
+        if (lit) put(x, y, 255, 206, 104); else if (win && P.glass) put(x, y, P.glass[0], P.glass[1], P.glass[2]); else put(x, y, P.city[0], P.city[1], P.city[2]);
+      }
+      bx += w + (R() < 0.3 ? 1 : 0);
+    }
+    const frame = [128, 88, 56];
+    box(wx0 - 3, wy0 - 3, wx1 + 3, wy0 - 1, frame); box(wx0 - 3, wy1 + 1, wx1 + 3, wy1 + 4, frame);
+    box(wx0 - 3, wy0, wx0 - 1, wy1, frame); box(wx1 + 1, wy0, wx1 + 3, wy1, frame);
+    box(205, wy0, 206, wy1, frame); box(wx0, 39, wx1, 40, frame);
+    box(wx0 - 3, wy0 - 3, wx1 + 3, wy0 - 3, [168, 120, 80]);
+    // a shelf of jars under the window
+    box(164, 70, 248, 71, [118, 80, 50]); box(164, 72, 248, 72, [70, 46, 30]);
+    const jars = [[168, [236, 232, 216]], [178, [242, 186, 52]], [188, [252, 252, 255]], [198, [246, 242, 230]], [208, [232, 116, 40]], [218, [62, 32, 16]], [228, [112, 62, 36]], [238, [236, 198, 70]]];
+    for (const [x, c] of jars) {
+      box(x, 61, x + 6, 69, [70, 92, 104]);
+      box(x + 1, 64, x + 5, 69, c);
+      box(x + 1, 62, x + 5, 63, [150, 180, 196]);
+      box(x, 59, x + 6, 60, [172, 60, 48]);
+      put(x + 1, 62, 220, 236, 244);
+    }
+    // wall clock, utensil rail with a ladle and spatula, a fire extinguisher by the stove
+    for (let dy = -6; dy <= 6; dy++) for (let dx = -6; dx <= 6; dx++) { const d = dx * dx + dy * dy; if (d <= 40) put(156 + dx, 28 + dy, d > 30 ? 60 : 236, d > 30 ? 52 : 232, d > 30 ? 48 : 220); }
+    for (const [dx, dy] of [[0, -5], [5, 0], [0, 5], [-5, 0]]) put(156 + dx, 28 + dy, 150, 140, 130);   // the hands are drawn live, from the real time
+    box(2, 46, 12, 46, [150, 158, 168]);
+    box(4, 47, 4, 60, [160, 168, 178]); box(2, 61, 6, 64, [160, 168, 178]); box(3, 61, 5, 63, [120, 128, 138]);
+    box(9, 47, 9, 58, [120, 80, 50]); box(7, 59, 11, 65, [60, 60, 66]);
+    box(3, 88, 8, 106, [196, 40, 36]); box(3, 88, 3, 106, [226, 70, 60]); box(4, 84, 7, 87, [40, 40, 44]); box(8, 84, 10, 85, [40, 40, 44]); box(4, 94, 7, 98, [240, 236, 220]);
+    // pendant lamp over the sink
+    box(254, 3, 254, 18, [30, 30, 34]);
+    for (let y = 19; y <= 24; y++) { const hw = 2 + (y - 19); box(254 - hw, y, 254 + hw, y, [44, 88, 70]); }
+    box(250, 25, 258, 25, [255, 236, 170]);
+    // sprinkler heads in the ceiling
+    for (const sx of Kitchen.sprinklerX) { box(sx - 1, 3, sx + 1, 3, [150, 150, 156]); put(sx, 4, 200, 60, 50); }
+    // under the worktop: cabinets, the stove front with the oven door, the sink cupboard
+    for (let y = 120; y < GH; y++) for (let x = 0; x < GW; x++) {
+      let c;
+      if (x >= 10 && x <= 150) {
+        c = [126, 134, 144];
+        if (y >= 129 && y <= 140 && x >= 24 && x <= 136) c = (x - y * 0.6) % 26 < 3 ? [62, 66, 74] : [24, 26, 32];
+        if (y === 128 && x >= 24 && x <= 136) c = [176, 184, 194];
+        if (y === 121) c = [92, 98, 108];
+      } else {
+        const door = x < 10 ? 0 : Math.floor((x - 151) / 34), dx = x < 10 ? x : (x - 151) % 34;
+        c = [112, 74, 48];
+        if (dx === 0 || dx === 33 || y === 121 || y === GH - 2) c = [72, 46, 30];
+        else if ((dx === 3 || dx === 30) && y > 124 && y < GH - 4) c = [96, 62, 40];
+        if (x >= 10 && dx >= 15 && dx <= 18 && y >= 124 && y <= 125) c = [200, 200, 206];
+        if (door < 0) c = [112, 74, 48];
+      }
+      put(x, y, c[0], c[1], c[2]);
+    }
+    for (let y = 116; y <= 132; y++) for (let x = 260; x <= 282; x++) put(x, y, 58, 64, 72);
+    ctx.putImageData(im, 0, 0);
+  },
+  /* ---------- live cells, every frame ---------- */
+  frame(t, ov) {
+    const px = this.px, base = this.base, A = this.alpha, V = this.vary, ga = this.gacc, hz = this.hacc, counts = this.counts || (this.counts = new Uint32Array(NE));
+    ga.fill(0); hz.fill(0); counts.fill(0);
+    const GW2 = GW >> 1;
+    const glowAdd = (i, r, g, b) => { const x = (i % GW) >> 1, y = ((i / GW) | 0) >> 1, k = (y * GW2 + x) * 3; ga[k] += r; ga[k + 1] += g; ga[k + 2] += b; };
+    const hazeAdd = (i, r, g, b, a) => { const x = (i % GW) >> 1, y = ((i / GW) | 0) >> 1, k = (y * GW2 + x) * 4; hz[k] += r * a; hz[k + 1] += g * a; hz[k + 2] += b * a; hz[k + 3] += a; };
+    for (let i = 0; i < GN; i++) {
+      const ty = type[i];
+      if (ty === AIR) { px[i] = 0; continue; }
+      counts[ty]++;
+      const cat = CATA[ty];
+      if (cat === STATIC) {
+        if (ty === BURNER) {
+          const T = temp[i], k = clamp((T - 40) / 300, 0, 1);
+          if (k <= 0) { px[i] = rgba32(46, 46, 52, 255); continue; }
+          const fl = 0.75 + 0.25 * Math.sin(t * 23 + i * 1.7);
+          px[i] = rgba32(lerp(46, 90, k) * fl, lerp(46, 150, k) * fl, lerp(52, 255, k) * fl, 255);
+          glowAdd(i, 20 * k, 50 * k, 140 * k);
+        } else if (ty === STEEL && temp[i] > 230) {
+          const k = clamp((temp[i] - 230) / 200, 0, 1), c = SC[i];
+          px[i] = rgba32(lerp(c & 255, 255, k * 0.55), lerp((c >> 8) & 255, 90, k * 0.5), lerp((c >> 16) & 255, 60, k * 0.5), 255);
+          if (k > 0.4) glowAdd(i, 30 * k, 6 * k, 0);
+        } else px[i] = SC[i];
+        continue;
+      }
+      let r, g, b;
+      const rp = this.ramp[ty];
+      if (rp !== null) {
+        const n = rp.length / 3 - 1, f = clamp(cook[i] / this.rampMax[ty], 0, 1) * n, k = f | 0, u = f - k, k1 = k < n ? k + 1 : k;
+        r = rp[k * 3] + (rp[k1 * 3] - rp[k * 3]) * u; g = rp[k * 3 + 1] + (rp[k1 * 3 + 1] - rp[k * 3 + 1]) * u; b = rp[k * 3 + 2] + (rp[k1 * 3 + 2] - rp[k * 3 + 2]) * u;
+      } else { r = base[ty * 3]; g = base[ty * 3 + 1]; b = base[ty * 3 + 2]; }
+      const v = (shade[i] / 255 - 0.5) * V[ty];
+      r += v; g += v; b += v;
+      let a = A[ty];
+      if (cat === GAS) {
+        const life = cook[i];
+        if (ty === FIRE) { glowAdd(i, 255, 120, 30); a = 255; }
+        else if (life < 60) a = a * life / 60;
+        if ((ty === STEAM || ty === SMOKE) && this.hpx) { hazeAdd(i, r, g, b, a); a *= 0.6; }
+      } else if (cat === LIQUID && type[i - GW] === AIR) { r += 22; g += 22; b += 22; }   // a bright line along the surface
+      if (FAT[ty] && (aux[i] & 15)) { r += 48; g += 46; b += 34; a = 255; }   // frying bubbles
+      if (aux[i] & BURNING && IGNITE[ty]) { r = lerp(r, 255, 0.55); g = lerp(g, 130, 0.55); b *= 0.4; glowAdd(i, 180, 70, 10); }
+      if (ty === RICE_C && (aux[i] & 3)) { r -= 6; g -= 4; }   // moist grains look a touch glossier
+      px[i] = rgba32(r < 0 ? 0 : r > 255 ? 255 : r, g < 0 ? 0 : g > 255 ? 255 : g, b < 0 ? 0 : b > 255 ? 255 : b, a);
+    }
+    this.fixtures(t);
+    if (ov) this.overlay(ov);
+    this.fctx.putImageData(this.img, 0, 0);
+    // glow: average each 2x2 block, soften, soft-clip. Softening here (not with a CSS filter) keeps the
+    // compositor's work small on phones
+    soften(ga, GW >> 1, GH >> 1, 3, 2);
+    const gp = this.gpx;
+    for (let k = 0, n = gp.length; k < n; k++) {
+      const r = ga[k * 3] * 0.25, g = ga[k * 3 + 1] * 0.25, b = ga[k * 3 + 2] * 0.25;
+      gp[k] = (r + g + b) < 1 ? 0 : rgba32(255 * (1 - Math.exp(-r / 85)), 255 * (1 - Math.exp(-g / 85)), 255 * (1 - Math.exp(-b / 85)), 255);
+    }
+    this.gctx.putImageData(this.gimg, 0, 0);
+    if (this.hpx) {
+      soften(hz, GW >> 1, GH >> 1, 4, 1);
+      const hp = this.hpx;
+      for (let k = 0, n = hp.length; k < n; k++) {
+        const s = hz[k * 4 + 3];
+        hp[k] = s < 6 ? 0 : rgba32(hz[k * 4] / s, hz[k * 4 + 1] / s, hz[k * 4 + 2] / s, 235 * (1 - Math.exp(-s / 220)));
+      }
+      this.hctx.putImageData(this.himg, 0, 0);
+    }
+  },
+  dot(x, y, r, g, b, a = 255) { if (x >= 0 && x < GW && y >= 0 && y < GH) this.px[y * GW + x] = rgba32(r, g, b, a); },
+  /* knobs, the alarm light, the hood fan: little moving parts */
+  fixtures(t) {
+    for (const bnr of Kitchen.burners) {
+      const cx = bnr.knobX, cy = 124, ang = -Math.PI / 2 + bnr.level * (Math.PI * 0.5);
+      for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const d = dx * dx + dy * dy; if (d <= 10) this.dot(cx + dx, cy + dy, d > 6 ? 40 : 30, d > 6 ? 42 : 32, d > 6 ? 48 : 36); }
+      for (let k = 1; k <= 2; k++) this.dot(Math.round(cx + Math.cos(ang) * k), Math.round(cy + Math.sin(ang) * k), 240, 240, 236);
+      const on = bnr.level > 0;
+      this.dot(cx + 5, cy - 2, on ? 255 : 70, on ? 120 : 70, on ? 40 : 76);
+    }
+    const al = Kitchen.alarm, blink = al.beeping && (t * 4) % 1 < 0.5;
+    this.dot(190, 5, blink ? 255 : 40, blink ? 40 : 160, blink ? 40 : 70);
+    if (blink) for (const [dx, dy] of [[-1, 0], [1, 0], [0, 1]]) this.dot(190 + dx, 5 + dy, 255, 90, 80);
+    // hood fan blades in the duct
+    const fan = Kitchen.hood.on ? t * 14 : 0.4;
+    for (let k = 0; k < 3; k++) for (let r = 1; r <= 3; r++) {
+      const a = fan + k * (Math.PI * 2 / 3);
+      this.dot(Math.round(80 + Math.cos(a) * r), Math.round(9 + Math.sin(a) * r * 0.6), 120, 128, 140);
+    }
+    this.dot(80, 9, 170, 176, 186);
+    // the wall clock tells the real time
+    const now = new Date(), mins = now.getMinutes() + now.getSeconds() / 60, hrs = (now.getHours() % 12) + mins / 60;
+    const hand = (frac, len, c) => { const a = frac * Math.PI * 2 - Math.PI / 2; for (let k = 1; k <= len; k++) this.dot(Math.round(156 + Math.cos(a) * k), Math.round(28 + Math.sin(a) * k), c, c, c + 4); };
+    hand(mins / 60, 4, 40); hand(hrs / 12, 3, 22); this.dot(156, 28, 22, 22, 26);
+    this.dot(129, 38, Kitchen.hood.on ? 90 : 40, Kitchen.hood.on ? 230 : 70, Kitchen.hood.on ? 120 : 60);
+    // a rattling lid hops up and down
+    for (const L of Kitchen.lids) if (L.on && L.rattle > 0 && ((t * 24) | 0) % 2) {
+      for (const i of L.cells) this.px[i] = 0;
+      for (const i of L.cells) this.px[i - GW] = SC[i];
+    }
+    if (typeof Cat !== 'undefined') Cat.draw(this, t);
+    // tap handle: red tick when running
+    this.dot(284, 81, Kitchen.tap.on ? 70 : 220, Kitchen.tap.on ? 140 : 70, Kitchen.tap.on ? 255 : 60);
+  },
+  /* the scoop's load riding under the finger, and the brush outline */
+  overlay(ov) {
+    if (ov.held && ov.held.length) {
+      for (const h of ov.held) {
+        const x = ov.x + h.dx, y = ov.y + h.dy - 3;
+        if (x < 1 || x >= GW - 1 || y < 1 || y >= GH - 1) continue;
+        const c = E[h.t].ramp ? E[h.t].ramp[Math.min(E[h.t].ramp.length - 1, Math.floor(clamp(h.c / (E[h.t].rampMax || 1), 0, 0.999) * E[h.t].ramp.length))] : E[h.t].col;
+        const v = (h.s / 255 - 0.5) * E[h.t].vary;
+        this.dot(x, y, clamp(c[0] + v, 0, 255), clamp(c[1] + v, 0, 255), clamp(c[2] + v, 0, 255), 255);
+      }
+    }
+    if (ov.ring) {
+      const { x, y, r } = ov.ring, n = Math.max(12, r * 7);
+      for (let k = 0; k < n; k++) {
+        if (k % 2) continue;
+        const a = k / n * Math.PI * 2, px = Math.round(x + Math.cos(a) * r), py = Math.round(y + Math.sin(a) * r);
+        if (px > 0 && px < GW - 1 && py > 0 && py < GH - 1 && type[py * GW + px] === AIR) this.dot(px, py, 255, 255, 255, 150);
+      }
+    }
+  },
+};
+/* a small separable [1 2 1] blur, in place, over a w x h grid of ch-channel float pixels */
+const _soft = { tmp: null };
+function soften(a, w, h, ch, passes) {
+  if (!_soft.tmp || _soft.tmp.length !== a.length) _soft.tmp = new Float32Array(a.length);
+  const t = _soft.tmp, row = w * ch;
+  for (let p = 0; p < passes; p++) {
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) for (let c = 0; c < ch; c++) {   // across
+      const k = y * row + x * ch + c, l = x > 0 ? k - ch : k, r = x < w - 1 ? k + ch : k;
+      t[k] = (a[l] + 2 * a[k] + a[r]) * 0.25;
+    }
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) for (let c = 0; c < ch; c++) {   // down
+      const k = y * row + x * ch + c, u = y > 0 ? k - row : k, d = y < h - 1 ? k + row : k;
+      a[k] = (t[u] + 2 * t[k] + t[d]) * 0.25;
+    }
+  }
+}
+/* the window's sky by time of day */
+function skyPeriod(d = new Date()) { const h = d.getHours() + d.getMinutes() / 60; return h < 5.5 || h >= 20.5 ? 'night' : h < 7.5 ? 'dawn' : h < 17.5 ? 'day' : 'dusk'; }
+const SKY = {
+  night: { top: [14, 18, 46], low: [58, 42, 92], stars: 40, orb: [226, 27, 5], orbCol: [250, 238, 196], moon: true, clouds: [], city: [18, 20, 36], lit: 0.45 },
+  dawn: { top: [64, 84, 150], low: [246, 172, 140], stars: 8, orb: [184, 54, 6], orbCol: [255, 214, 150], halo: true, clouds: [[200, 30, 14], [222, 24, 10]], city: [44, 38, 64], lit: 0.14 },
+  day: { top: [96, 160, 232], low: [196, 224, 246], stars: 0, orb: [228, 28, 5], orbCol: [255, 246, 196], halo: true, clouds: [[172, 30, 16], [196, 24, 12], [214, 36, 18]], city: [86, 98, 124], glass: [150, 186, 214], lit: 0 },
+  dusk: { top: [44, 42, 104], low: [252, 136, 84], stars: 6, orb: [178, 52, 7], orbCol: [255, 170, 90], halo: true, clouds: [[204, 28, 14]], city: [34, 28, 50], lit: 0.32 },
+};
+function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ============================================================
+   The kitchen cat. It sleeps on the warm range hood, sits up when
+   the kitchen gets lively, and leaves when the smoke alarm goes.
+   Drawn over the cells; tap it to pet it.
+   ============================================================ */
+const Cat = {
+  PAL: { o: [226, 140, 62], d: [180, 98, 38], l: [248, 206, 150], k: [52, 32, 24], e: [120, 200, 90], w: [250, 246, 236], t: [200, 116, 48] },
+  SPR: {
+    sleep: [
+      '............k...k',
+      '...........kok.kok',
+      '....ooooo..ooooooo',
+      '..ooddooddooooooooo',
+      '.oooooooooooookkoo.',
+      'oooodooooddoooolllo',
+      'ooooooooooooooollo.',
+      '.tttttttttooooooo..',
+    ],
+    sit: [
+      '......k...k',
+      '......kokok',
+      '.....ooooooo',
+      '.....ooekooll',
+      '......oooollk',
+      '.....ooooo..',
+      '....oooooo..',
+      '...ooddooo..',
+      't..oooooooo.',
+      't..oodoooooo',
+      'tt.ooooooooo',
+      '.ttoooooooo.',
+      '..ttwwoowwo.',
+    ],
+    alert: [
+      '.....k....k',
+      '.....kk..kk',
+      '.....oooooo',
+      '....ooeooeo',
+      '....oooookol',
+      '.....ooolll',
+      '....ooooo..',
+      '...oooooo..',
+      '..oooddooo.',
+      't.ooooooooo',
+      't.oodooooooo',
+      'ttoooooooooo',
+      '.ttwwoooww..',
+    ],
+  },
+  x: 96, base: 15, state: 'sleep', calm: 0, away: 0, leaving: 0, t: 0,
+  update(dt, ev) {
+    this.t += dt;
+    if (this.leaving > 0) { this.leaving -= dt; if (this.leaving <= 0) this.state = 'gone'; return; }
+    let smoke = 0;
+    for (let y = 4; y <= 15; y++) for (let x = 90; x <= 116; x++) { const ty = type[idx(x, y)]; if (ty === SMOKE || ty === FIRE) smoke++; }
+    const scary = Kitchen.alarm.beeping || Kitchen.alarm.sprinkler > 0 || smoke > 30 || ev.lidpop || ev.flare || ev.dust > 4;
+    const lively = ev.pop > 0 || ev.fire > 40 || ev.geyser > 0 || ev.rattle > 0 || ev.spit > 0 || Kitchen.hood.on;
+    if (this.state === 'gone') { if (scary) this.away = 0; else if ((this.away += dt) > 18) { this.state = 'sit'; this.calm = 0; } return; }
+    if (scary) { this.leaving = 0.5; this.away = 0; Sfx.hiss && Sfx.hiss(); return; }
+    if (lively) { this.state = 'alert'; this.calm = 0; return; }
+    this.calm += dt;
+    if (this.state === 'alert' && this.calm > 3) this.state = 'sit';
+    else if (this.state === 'sit' && this.calm > 22) this.state = 'sleep';
+  },
+  pet() {
+    if (this.state === 'gone' || this.leaving > 0) return false;
+    this.state = 'sit'; this.calm = 0; this.purr = 1.2;
+    Sfx.meow && Sfx.meow(); Ach.give('cat');
+    return true;
+  },
+  draw(R, t) {
+    if (this.state === 'gone') return;
+    let spr = this.SPR[this.state === 'alert' ? 'alert' : this.state === 'sleep' ? 'sleep' : 'sit'], ox = this.x, oy = this.base - spr.length + 1;
+    let fade = 255;
+    if (this.leaving > 0) {   // a hop off the back of the hood, out of sight
+      const u = 1 - this.leaving / 0.5; spr = this.SPR.alert; ox = Math.round(this.x + u * 14); oy = Math.round(this.base - spr.length + 1 - Math.sin(u * Math.PI) * 7);
+      fade = Math.round(255 * Math.min(1, 2.2 - 2.2 * u));
+    }
+    const blink = this.state !== 'sleep' && (t % 4.3) < 0.14, swish = Math.floor(t * 2.2) % 2;
+    const breathe = this.state === 'sleep' && Math.floor(t / 1.6) % 2;
+    for (let r = 0; r < spr.length; r++) {
+      const row = spr[r];
+      for (let c = 0; c < row.length; c++) {
+        let ch = row[c]; if (ch === '.') continue;
+        if (ch === 'e' && blink) ch = 'o';
+        let x = ox + c, y = oy + r;
+        if (ch === 't' && this.state === 'sit' && swish && r < spr.length - 2) x -= 1;   // the tail flicks
+        if (breathe && r === 2 && ch !== 'k') y -= 1;
+        const p = this.PAL[ch]; if (p) R.dot(x, y, p[0], p[1], p[2], fade);
+      }
+    }
+    if (this.state === 'sleep') {   // a little z drifts up now and then
+      const u = (t % 3.2) / 3.2, zx = ox + 15 + Math.round(u * 4), zy = oy - 2 - Math.round(u * 7), a = Math.round(220 * Math.sin(u * Math.PI));
+      if (a > 30) { for (const [dx, dy] of [[0, 0], [1, 0], [2, 0], [1, 1], [0, 2], [1, 2], [2, 2]]) R.dot(zx + dx, zy + dy, 230, 236, 245, a); }
+    }
+    if (this.purr > 0) {   // a heart when petted
+      this.purr -= 1 / 60; const u = 1 - this.purr / 1.2, hx = ox + 9, hy = oy - 3 - Math.round(u * 6);
+      for (const [dx, dy] of [[0, 0], [2, 0], [0, 1], [1, 1], [2, 1], [1, 2]]) R.dot(hx + dx, hy + dy, 255, 96, 120, Math.round(255 * (1 - u)));
+    }
+  },
+};
+
+/* ============================================================
+   Sound, all synthesized: a sizzle bed that follows how much is
+   frying, bubbles, popcorn pops, fire roar, running tap, alarm,
+   and little UI chimes. Nothing plays until the first tap.
+   ============================================================ */
+const Sfx = (() => {
+  let ctx = null, master = null, noise = null, on = true;
+  const loops = {};
+  let alarmT = 0, bubbleT = 0, popT = 0, rattleT = 0;
+  function init() {
+    if (ctx) { if (ctx.state === 'suspended') ctx.resume().catch(() => {}); return; }
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    try { ctx = new AC(); } catch (e) { return; }
+    master = ctx.createGain(); master.gain.value = on ? 0.8 : 0;
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 5;
+    master.connect(comp); comp.connect(ctx.destination);
+    noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    loops.sizzle = loop('bandpass', 5200, 0.6);
+    loops.fire = loop('lowpass', 520, 0.8);
+    loops.tap = loop('bandpass', 1300, 1.2);
+    loops.rain = loop('highpass', 2600, 0.4);
+  }
+  function loop(type, f, q) {
+    const s = ctx.createBufferSource(); s.buffer = noise; s.loop = true;
+    const fl = ctx.createBiquadFilter(); fl.type = type; fl.frequency.value = f; fl.Q.value = q;
+    const g = ctx.createGain(); g.gain.value = 0;
+    s.connect(fl); fl.connect(g); g.connect(master); s.start(0, Math.random() * 2);
+    return { fl, g };
+  }
+  function blip(f, dur, vol, type = 'sine', when = 0, slide = 0) {
+    if (!ctx) return;
+    const t = ctx.currentTime + when, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function burst(dur, vol, type, f, q = 1, when = 0, slide = 0) {
+    if (!ctx) return;
+    const t = ctx.currentTime + when, s = ctx.createBufferSource(); s.buffer = noise;
+    const fl = ctx.createBiquadFilter(); fl.type = type; fl.frequency.setValueAtTime(f, t); if (slide) fl.frequency.exponentialRampToValueAtTime(slide, t + dur); fl.Q.value = q;
+    const g = ctx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(fl); fl.connect(g); g.connect(master); s.start(t, Math.random()); s.stop(t + dur + 0.05);
+  }
+  const set = (l, v, tc = 0.08) => { if (l) l.g.gain.setTargetAtTime(v, ctx.currentTime, tc); };
+  return {
+    init,
+    get on() { return on; },
+    setOn(v) { on = v; if (master) master.gain.setTargetAtTime(v ? 0.8 : 0, ctx.currentTime, 0.05); },
+    /* called once a frame with what the simulation did since the last frame */
+    update(ev, dt) {
+      if (!ctx) return;
+      set(loops.sizzle, Math.min(0.32, Math.sqrt(ev.sizzle) * 0.05), 0.12);
+      loops.sizzle.fl.frequency.setTargetAtTime(4200 + Math.random() * 2400, ctx.currentTime, 0.03);
+      set(loops.fire, Math.min(0.5, Math.sqrt(ev.fire) * 0.012), 0.15);
+      set(loops.tap, Kitchen.tap.on ? 0.12 : 0, 0.1);
+      set(loops.rain, Kitchen.alarm.sprinkler > 0 ? 0.16 : 0, 0.3);
+      bubbleT -= dt; popT -= dt; alarmT -= dt; rattleT -= dt;
+      if (ev.rattle > 0 && rattleT <= 0) { rattleT = 0.07 + Math.random() * 0.05; blip(2300 + Math.random() * 900, 0.035, 0.05, 'square'); burst(0.04, 0.12, 'highpass', 3500, 1); }
+      if (ev.spit > 0 && popT <= 0) { popT = 0.04; burst(0.06, Math.min(0.35, 0.12 + ev.spit * 0.03), 'highpass', 2600 + Math.random() * 2000, 0.8); }
+      if (ev.lidpop > 0) { burst(0.8, 0.5, 'bandpass', 500, 0.5, 0, 3000); blip(520, 0.6, 0.14, 'triangle', 0.02, 260); }
+      if (ev.bubble > 0 && bubbleT <= 0) { bubbleT = 0.05 + Math.random() * 0.12; const f = 240 + Math.random() * 360; blip(f, 0.07, Math.min(0.12, 0.03 + ev.bubble * 0.01), 'sine', 0, f * 1.9); }
+      if (ev.pop > 0 && popT <= 0) { popT = 0.035; burst(0.05, 0.4, 'bandpass', 900 + Math.random() * 900, 1.4); blip(140, 0.06, 0.12, 'sine', 0, 70); }
+      if (ev.flare > 0) burst(0.7, 0.6, 'lowpass', 1600, 0.7, 0, 140);
+      if (Kitchen.alarm.beeping && alarmT <= 0) { alarmT = 0.6; blip(3150, 0.18, 0.08, 'square'); blip(3150, 0.18, 0.08, 'square', 0.25); }
+    },
+    click() { blip(1500, 0.04, 0.05, 'square'); },
+    plop() { burst(0.08, 0.2, 'lowpass', 700, 1, 0, 200); },
+    scoop() { burst(0.12, 0.12, 'bandpass', 1200, 1, 0, 500); },
+    ding() { blip(1320, 0.5, 0.12, 'triangle'); blip(1760, 0.6, 0.1, 'triangle', 0.09); },
+    coins(n) { for (let k = 0; k < Math.min(6, n); k++) blip(1900 + k * 140, 0.08, 0.06, 'square', k * 0.06); },
+    sad() { blip(330, 0.25, 0.1, 'triangle'); blip(247, 0.4, 0.1, 'triangle', 0.2); },
+    fanfare() { [523, 659, 784, 1047].forEach((f, k) => blip(f, 0.25, 0.09, 'square', k * 0.1)); },
+    whoosh() { burst(0.5, 0.35, 'bandpass', 600, 0.6, 0, 2400); },
+    meow() { blip(620, 0.16, 0.07, 'triangle', 0, 900); blip(900, 0.34, 0.07, 'triangle', 0.14, 470); blip(1240, 0.3, 0.02, 'sine', 0.14, 700); },
+    hiss() { burst(0.45, 0.18, 'highpass', 3800, 0.7); },
+  };
+})();
+
+/* ============================================================
+   Service: shifts of order tickets, paying customers, and the
+   chaos achievements. Saves are per browser and optional.
+   ============================================================ */
+const Save = {
+  key: 'sizzle-sand-v1',
+  data: { sound: true, best: {}, ach: {}, shifts: 0, bestShift: 0, coinsAll: 0, seenHelp: false },
+  load() { try { const s = localStorage.getItem(this.key); if (s) Object.assign(this.data, JSON.parse(s)); } catch (e) { /* storage blocked: play without saves */ } },
+  save() { try { localStorage.setItem(this.key, JSON.stringify(this.data)); } catch (e) { /* ignore */ } },
+};
+
+/* ---------- customers: a name and a little pixel face ---------- */
+const NAMES = ['Lola Nena', 'Kenji', 'Ms. Okafor', 'Coach Ramos', 'Ate Joy', 'Mr. Lindqvist', 'Dani', 'Grandpa Ruiz', 'Priya', 'Tito Boy', 'Mika', 'Dr. Haddad',
+  'Sam', 'Yuki', 'Bea', 'Mang Tonyo', 'Aiko', 'Mrs. Park', 'Jun', 'Ollie', 'Nonna Rita', 'Chef Marco', 'Kai', 'Tala'];
+const Faces = {
+  cache: {},
+  url(seed) {
+    if (this.cache[seed]) return this.cache[seed];
+    const critic = seed === 4242;
+    if (typeof document === 'undefined') return '';
+    const R = mulberry(seed * 977 + 13), c = document.createElement('canvas'); c.width = c.height = 16;
+    const x = c.getContext('2d');
+    const skins = ['#f3cfb3', '#e0ac7e', '#c68a5a', '#8d5a3b', '#5c3a26', '#f6d9c4'], hairs = ['#2b1d16', '#4a3020', '#c99a52', '#ddd6cf', '#8a3b22', '#151515', '#6b4a8a'];
+    const shirt = ['#e8553d', '#3f7fd8', '#3caa72', '#f2b93b', '#9a5bd6', '#e07aa0'][Math.floor(R() * 6)];
+    const sk = skins[Math.floor(R() * skins.length)], hr = hairs[Math.floor(R() * hairs.length)];
+    const px = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(a, b, w, h); };
+    px(2, 13, 12, 3, shirt);
+    px(4, 3, 8, 10, sk); px(3, 5, 1, 5, sk); px(12, 5, 1, 5, sk);
+    const style = Math.floor(R() * 4);
+    px(4, 2, 8, 2, hr); px(3, 3, 1, style === 1 ? 8 : 3, hr); px(12, 3, 1, style === 1 ? 8 : 3, hr);
+    if (style === 2) { px(5, 1, 6, 1, hr); }
+    if (style === 3) { px(4, 2, 8, 1, '#ddd6cf'); }
+    px(5, 7, 2, 1, '#1b1b1b'); px(9, 7, 2, 1, '#1b1b1b');
+    if (R() < 0.3 || critic) { px(4, 6, 4, 3, 'rgba(20,20,20,.55)'); px(8, 6, 4, 3, 'rgba(20,20,20,.55)'); px(8, 7, 1, 1, '#1b1b1b'); }
+    if (critic) { px(3, 1, 10, 2, '#1d1d24'); px(11, 0, 2, 1, '#1d1d24'); px(2, 13, 12, 3, '#262630'); }   // beret, black turtleneck
+    px(7, 10, 2, 1, '#9a4a3a');
+    return (this.cache[seed] = c.toDataURL());
+  },
+};
+
+/* ---------- achievements: mostly for making a mess ---------- */
+const ACH = [
+  { id: 'grease', name: 'Grease fire', how: 'Leave oil on high until it catches.' },
+  { id: 'smoke', name: 'Smoke signals', how: 'Set off the smoke alarm.' },
+  { id: 'sprinkler', name: 'Fire drill', how: 'Keep the alarm going until the sprinklers open.' },
+  { id: 'boilover', name: 'Boil-over', how: 'Let milk foam spill over the pot.' },
+  { id: 'geyser', name: 'Cola geyser', how: 'Drop mints into cola and hit the ceiling.' },
+  { id: 'dust', name: 'Flour power', how: 'Light a cloud of flour.' },
+  { id: 'flare', name: 'Never add water', how: 'Pour water on burning oil.' },
+  { id: 'smother', name: 'Lid on it', how: 'Put out a grease fire with a lid.' },
+  { id: 'lidpop', name: 'Pressure cooker', how: 'Leave a lid on a boiling pot until it blows.' },
+  { id: 'tutong', name: 'Tutong', how: 'Scorch a crust of rice onto the pot.' },
+  { id: 'storm', name: 'Popcorn storm', how: 'Have 300 pieces of popcorn in the kitchen.' },
+  { id: 'charcoal', name: 'Charcoal special', how: 'Serve something that is mostly burnt.' },
+  { id: 'chef', name: 'Chef’s kiss', how: 'Serve a three-star dish.' },
+  { id: 'perfect', name: 'Flawless shift', how: 'Three stars on every order in a shift.' },
+  { id: 'eggs', name: 'Eggs three ways', how: 'Serve a sunny-side egg, scrambled eggs and an omelette.' },
+  { id: 'rush', name: 'Short-order cook', how: 'Serve five different dishes in one shift.' },
+  { id: 'cat', name: 'Kitchen cat', how: 'Pet the cat that naps on the range hood.' },
+  { id: 'critic', name: 'Critic’s choice', how: 'Serve the food critic a three-star dish.' },
+  { id: 'inspector', name: 'Clean bill', how: 'Pass a surprise health inspection.' },
+  { id: 'menu', name: 'Full menu', how: 'Three stars on every dish in the book.' },
+];
+const Ach = {
+  unlocked(id) { return !!Save.data.ach[id]; },
+  give(id) {
+    if (Save.data.ach[id]) return;
+    Save.data.ach[id] = Date.now(); Save.save();
+    const a = ACH.find(x => x.id === id);
+    if (a && UI.toast) { UI.toast({ kind: 'ach', title: a.name, text: a.how }); Sfx.fanfare(); }
+  },
+  /* look at what the kitchen did this frame */
+  check(ev, counts) {
+    if (ev.grease) this.give('grease');
+    if (Kitchen.alarm.beeping) this.give('smoke');
+    if (Kitchen.alarm.trips > 0) this.give('sprinkler');
+    if (ev.colaTop < 12) this.give('geyser');
+    if (ev.dust > 4) this.give('dust');
+    if (ev.flare) this.give('flare');
+    if (ev.tutong) this.give('tutong');
+    if (ev.smother) this.give('smother');
+    if (ev.lidpop) this.give('lidpop');
+    if (counts[POPCORN] >= 300) this.give('storm');
+    if (ev.boilover && (Kitchen.steps % 30) === 0) {
+      for (let y = 66; y < 111; y++) for (const x of [12, 16, 20, 70, 74, 78]) { const t = type[idx(x, y)]; if (t === MILKFOAM || t === MILK || t === COCOA) { this.spill = true; this.give('boilover'); return; } }
+    }
+  },
+};
+
+/* ---------- shifts ---------- */
+/* first-shift coaching for the two opening orders */
+const TIPS = {
+  cola: 'Pick Cola on the shelf and drag over the mug to pour. Add an Ice cube, then press Serve under the mug.',
+  egg: 'Pour a little Oil into the pan and tap the pan knob for MED. Place an Egg in the pan. When the white sets, Scoop it onto the plate.',
+};
+const Service = {
+  mode: 'free', shift: 0, coins: 0, tickets: [], queue: [], results: [], spawnT: 0, uid: 0, time: 0,
+  startShift() {
+    this.mode = 'shift'; this.shift = (Save.data.shifts || 0) + 1;
+    const n = Math.min(10, 5 + this.shift);
+    const easy = ['rice', 'egg', 'popcorn', 'cocoa', 'caramel', 'cola', 'scrambled'], all = RECIPES.map(r => r.id);
+    const pool = this.shift === 1 ? easy : all, spec = specialId();
+    this.queue = []; let last = '';
+    for (let k = 0; k < n; k++) {
+      let id; do { id = pool[Math.floor(Math.random() * pool.length)]; } while (id === last && pool.length > 1);
+      if (pool.includes(spec) && spec !== last && Math.random() < 0.2) id = spec;   // the special sells well
+      this.queue.push(id); last = id;
+    }
+    if (this.shift === 1) this.queue.splice(0, 2, 'cola', 'egg');   // the first ever orders are gentle ones
+    this.tickets = []; this.results = []; this.coins = 0; this.spawnT = 0; this.time = 0; this.tipped = {};
+    // from the second shift on: maybe a food critic among the orders, and one surprise
+    this.spawned = 0; this.criticAt = this.shift >= 2 && Math.random() < 0.6 ? 2 + Math.floor(Math.random() * (n - 2)) : -1;
+    this.criticResult = null; this.inspection = null; this.busRush = 0;
+    this.event = this.shift >= 2 ? { kind: Math.random() < 0.5 ? 'bus' : 'inspector', at: 45 + Math.random() * 60, state: 'wait' } : null;
+    this.incidents = { fires: 0, sprinklers: 0, smoke: 0, boilovers: 0 };
+    this.patience = Math.max(150, 260 - this.shift * 15);
+    this.spawn(); this.spawn();
+  },
+  stop() { this.mode = 'free'; this.tickets = []; this.queue = []; },
+  spawn() {
+    if (!this.queue.length || this.tickets.length >= 3) return;
+    const critic = this.spawned++ === this.criticAt, id = this.queue.shift(), seed = critic ? 4242 : 1 + Math.floor(Math.random() * 9999);
+    const pat = critic ? Math.round(this.patience * 0.8) : this.patience;
+    this.tickets.push({ uid: ++this.uid, rid: id, name: critic ? 'The Critic' : NAMES[seed % NAMES.length], seed, left: pat, total: pat, critic });
+    if (critic && typeof UI !== 'undefined') { UI.toast({ kind: 'tip', face: seed, title: 'A food critic just sat down', text: 'Three stars pays double. Anything less pays nothing.' }); Sfx.ding(); }
+    this.spawnT = this.busRush > 0 ? (this.busRush--, 5 + Math.random() * 5) : 30 + Math.random() * 25;
+  },
+  tick(dt) {
+    if (this.mode !== 'shift') return;
+    this.time += dt;
+    const first = this.tickets[0];   // in the first shift, coach the order at the front of the rail
+    if (this.shift === 1 && first && TIPS[first.rid] && !this.tipped[first.rid] && this.time > 1.2) { this.tipped[first.rid] = 1; UI.toast({ kind: 'tip', title: 'How to: ' + RECIPE_BY_ID[first.rid].name.toLowerCase(), text: TIPS[first.rid], long: true }); }
+    this.surprise();
+    for (const t of this.tickets) t.left -= dt;
+    const gone = this.tickets.filter(t => t.left <= 0);
+    for (const t of gone) { this.results.push({ rid: t.rid, stars: 0, pay: 0, name: t.name, seed: t.seed, notes: ['Gave up waiting.'], left: true }); UI.toast({ kind: 'bad', face: t.seed, title: t.name + ' left', text: 'Waited too long for ' + RECIPE_BY_ID[t.rid].name.toLowerCase() + '.' }); Sfx.sad(); }
+    this.tickets = this.tickets.filter(t => t.left > 0);
+    this.spawnT -= dt;
+    if (this.spawnT <= 0 || this.tickets.length === 0) this.spawn();
+    if (!this.tickets.length && !this.queue.length) this.finish();
+  },
+  /* the one surprise of a shift: a tour bus (three quick extra orders) or a health inspector */
+  surprise() {
+    const ev = this.event; if (!ev || ev.state === 'done') return;
+    if (ev.state === 'wait' && this.time >= ev.at && this.queue.length + this.tickets.length > 0) {
+      ev.state = 'on'; Sfx.ding();
+      if (ev.kind === 'bus') {
+        const extra = ['cola', 'popcorn', 'egg', 'rice', 'cocoa', 'scrambled'].sort(() => Math.random() - 0.5).slice(0, 3);
+        this.queue.unshift(...extra); this.spawnT = Math.min(this.spawnT, 3); this.busRush = 3; ev.state = 'done';
+        UI.toast({ kind: 'tip', title: 'A tour bus just pulled up', text: 'Three extra orders, coming in fast.' });
+      } else {
+        ev.until = this.time + 30;
+        UI.toast({ kind: 'tip', title: 'Health inspector!', text: 'No fire and no smoke alarm for the next 30 seconds.' });
+      }
+      return;
+    }
+    if (ev.state === 'on' && ev.kind === 'inspector') {
+      if (Sim.ev.fire > 20 || Kitchen.alarm.beeping) { ev.state = 'done'; this.coins -= 6; this.inspection = 'fail'; UI.toast({ kind: 'bad', title: 'The inspector saw that', text: 'Fined $6 for fire safety.' }); Sfx.sad(); }
+      else if (this.time >= ev.until) { ev.state = 'done'; this.coins += 6; this.inspection = 'pass'; UI.toast({ kind: 'ok', title: 'Inspection passed', text: 'Spotless. +$6' }); Sfx.coins(4); Ach.give('inspector'); }
+    }
+  },
+  inspecting() { const ev = this.event; return ev && ev.kind === 'inspector' && ev.state === 'on' ? Math.max(0, Math.ceil(ev.until - this.time)) : 0; },
+  wants(vid) { return this.tickets.filter(t => RECIPE_BY_ID[t.rid].vessel === vid); },
+  /* serve whatever is in a vessel to the ticket it suits best */
+  serve(vid) {
+    const v = Kitchen.vessels.find(x => x.id === vid), c = Kitchen.contents(v);
+    if (c.n < 5) return { empty: true };
+    const cands = this.wants(vid);
+    if (!cands.length) return { nobody: true };
+    let best = null;
+    for (const t of cands) { const r = judge(t.rid, c); if (!best || r.stars > best.r.stars || (r.stars === best.r.stars && t.left < best.t.left)) best = { t, r }; }
+    const { t, r } = best, rec = RECIPE_BY_ID[t.rid];
+    const speedTip = r.stars > 0 && t.left > t.total * 0.5 ? 2 : 0, special = t.rid === specialId() ? 1.5 : 1;
+    let pay = r.stars ? Math.round(rec.price * special * (0.4 + 0.2 * r.stars) * 10) / 10 + r.bonus + speedTip : 0;
+    if (t.critic) { pay = r.stars === 3 ? Math.round(rec.price * special * 2 * 10) / 10 + r.bonus + speedTip : 0; this.criticResult = r.stars; if (r.stars === 3) Ach.give('critic'); }
+    this.coins += pay; Save.data.coinsAll = (Save.data.coinsAll || 0) + pay;
+    this.tickets = this.tickets.filter(x => x !== t);
+    const res = { rid: t.rid, stars: r.stars, pay, name: t.name, seed: t.seed, notes: r.notes, good: r.good, speedTip, critic: !!t.critic };
+    this.results.push(res);
+    const prev = Save.data.best[t.rid] || 0; if (r.stars > prev) Save.data.best[t.rid] = r.stars;
+    if (r.stars === 3) Ach.give('chef');
+    if (['egg', 'scrambled', 'omelette'].every(x => (Save.data.best[x] || 0) >= 1)) Ach.give('eggs');
+    if (new Set(this.results.filter(x => x.stars > 0).map(x => x.rid)).size >= 5) Ach.give('rush');
+    if (r.notes[0] === 'This is charcoal.') Ach.give('charcoal');
+    if (RECIPES.every(x => (Save.data.best[x.id] || 0) >= 3)) Ach.give('menu');
+    Save.save();
+    Kitchen.emptyVessel(v);
+    if (!this.tickets.length) this.spawn();
+    return res;
+  },
+  finish() {
+    if (this.mode !== 'shift') return;
+    this.mode = 'done';
+    const stars = this.results.reduce((s, r) => s + r.stars, 0), max = this.results.length * 3;
+    if (this.results.length && this.results.every(r => r.stars === 3)) Ach.give('perfect');
+    Save.data.shifts = this.shift; Save.data.bestShift = Math.max(Save.data.bestShift || 0, this.coins); Save.save();
+    UI.showSummary({ shift: this.shift, coins: this.coins, stars, max, results: this.results, incidents: this.incidents, critic: this.criticResult, inspection: this.inspection });
+  },
+  review(stars, max, inc) {
+    const f = max ? stars / max : 0;
+    if (this.criticResult === 3) return ['“A revelation in falling sand. Book a table now.”', 'The Critic'];
+    if (this.criticResult !== null && this.criticResult !== undefined) return ['“Overrated. I have had better from a vending machine.”', 'The Critic'];
+    const chaos = inc.fires + inc.sprinklers * 2 + inc.boilovers;
+    if (f > 0.9 && !chaos) return ['“Immaculate. I cried into my rice.”', 'The Pixel Gazette'];
+    if (f > 0.9) return ['“Perfect food. The fire was a bit much.”', 'Grain & Flame Weekly'];
+    if (inc.sprinklers) return ['“Got soaked by the sprinklers. Food was ' + (f > 0.5 ? 'worth it' : 'not worth it') + '.”', 'A damp diner'];
+    if (f > 0.6) return ['“Solid cooking, friendly chaos.”', 'Neighbourhood Eats'];
+    if (f > 0.3) return ['“Some of it was food.”', 'Honest Reviews Monthly'];
+    return ['“I have seen better kitchens on fire. Actually, this one was.”', 'Inspector Ruiz'];
+  },
+};
+
+/* ============================================================
+   UI: tool rail, ingredient shelf, pointer input on the kitchen,
+   the little controls drawn over fixtures, tickets, toasts, sheets,
+   and turning the frame sideways on upright phones.
+   ============================================================ */
+const $ = (s) => document.querySelector(s);
+const TOOLS = [
+  { id: 'pour', label: 'Pour', r: 2 },
+  { id: 'scoop', label: 'Scoop', r: 7 },
+  { id: 'stir', label: 'Stir', r: 6 },
+  { id: 'wipe', label: 'Wipe', r: 4 },
+  { id: 'torch', label: 'Torch', r: 2 },
+  { id: 'foam', label: 'Foam', r: 4 },
+  { id: 'build', label: 'Brick', r: 1 },
+];
+/* pixel icons as tiny SVGs: each string row is a line of pixels, letters pick colours */
+function pixSvg(rows, pal) {
+  let r = '';
+  rows.forEach((row, y) => { for (let x = 0; x < row.length; x++) { const c = pal[row[x]]; if (c) r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${c}"/>`; } });
+  return `<svg viewBox="0 0 ${rows[0].length} ${rows.length}" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+}
+const TOOL_ICONS = {
+  scoop: pixSvg(['.........', '......cc.', '.....c...', '....c....', '...c.....', 'ss.c.....', 'sssss....', '.sss.....', '.........'], { c: '#c8ced6', s: '#9aa3ad' }),
+  stir: pixSvg(['......w..', '.....w...', '....w....', '...w.....', '..w......', '.www.....', 'wwwww....', '.www.....', '.........'], { w: '#c8955a' }),
+  wipe: pixSvg(['.........', '.........', '.yyyyyyy.', '.yyyyyyy.', '.ggggggg.', '.ggggggg.', '.........', '.b..b..b.', '..b..b...'], { y: '#ffd23a', g: '#3caa72', b: '#6fc3ff' }),
+  torch: pixSvg(['....y....', '...yoy...', '...ooo...', '..oroo...', '...rr....', '...ss....', '..ssss...', '..ssss...', '..ssss...'], { y: '#fff3a0', o: '#ff9a2e', r: '#e8462a', s: '#5a6270' }),
+  foam: pixSvg(['...kk....', '..kkkw...', '...rr.w..', '..rrrr...', '..rwwr...', '..rrrr...', '..rrrr...', '..rrrr...', '..rrrr...'], { k: '#30343c', r: '#d6392f', w: '#f4f6f8' }),
+  build: pixSvg(['.........', 'bbbmbbbb.', 'bbbmbbbb.', 'mmmmmmmmm', 'bmbbbbmbb', 'bmbbbbmbb', 'mmmmmmmmm', 'bbbmbbbb.', '.........'], { b: '#b4523a', m: '#d9cfc0' }),
+};
+const Icons = {
+  cache: {},
+  /* a 12x12 pixel drawing of an ingredient: heaps for grains, drops for liquids, little objects for stamps */
+  ing(ing) {
+    if (this.cache[ing.key]) return this.cache[ing.key];
+    const c = document.createElement('canvas'); c.width = c.height = 12; const x = c.getContext('2d');
+    const R = mulberry(ing.key.length * 31 + ing.key.charCodeAt(0));
+    const px = (a, b, col) => { x.fillStyle = col; x.fillRect(a, b, 1, 1); };
+    const hex = (rgb, d = 0) => `rgb(${clamp(rgb[0] + d, 0, 255)},${clamp(rgb[1] + d, 0, 255)},${clamp(rgb[2] + d, 0, 255)})`;
+    const shape = {
+      egg: () => { for (let yy = 1; yy < 12; yy++) for (let xx = 1; xx < 11; xx++) { const d = ((xx - 5.5) / 4.6) ** 2 + ((yy - 6.5) / 5) ** 2; if (d < 1) px(xx, yy, d < 0.22 ? '#ffb01c' : '#f4f2ea'); } },
+      butter: () => { for (let yy = 4; yy < 10; yy++) for (let xx = 1; xx < 11; xx++) px(xx, yy, yy === 4 ? '#fff3b8' : '#fce68a'); },
+      choc: () => { for (let yy = 2; yy < 11; yy++) for (let xx = 2; xx < 10; xx++) px(xx, yy, (xx % 3 === 1 || yy % 3 === 1) ? '#5a301a' : '#7a4428'); },
+      garlic: () => { for (let yy = 2; yy < 11; yy++) for (let xx = 2; xx < 10; xx++) { const d = ((xx - 5.5) / 3.6) ** 2 + ((yy - 7) / 4) ** 2; if (d < 1) px(xx, yy, xx === 5 ? '#d8cfb0' : '#f4eedc'); } px(5, 2, '#9ab86a'); px(6, 1, '#9ab86a'); },
+      chicken: () => { for (let yy = 1; yy < 9; yy++) for (let xx = 3; xx < 11; xx++) { const d = ((xx - 7) / 3.8) ** 2 + ((yy - 4.5) / 3.6) ** 2; if (d < 1) px(xx, yy, '#ee9c90'); } for (let k = 0; k < 4; k++) { px(3 - (k > 2 ? 1 : 0) + k * 0, 8 + k * 0, '#f4f0e6'); } px(2, 9, '#f4f0e6'); px(3, 9, '#f4f0e6'); px(1, 10, '#f4f0e6'); px(2, 10, '#f4f0e6'); px(4, 8, '#f4f0e6'); },
+      noodles: () => { for (let yy = 3; yy < 10; yy++) for (let xx = 1; xx < 11; xx++) px(xx, yy, ((xx + (yy % 2)) % 2) ? '#e8cc88' : '#d4b26a'); },
+      ice: () => { for (let yy = 2; yy < 10; yy++) for (let xx = 2; xx < 10; xx++) px(xx, yy, xx === 2 || yy === 2 ? '#eef9ff' : '#bfe6f8'); },
+      mints: () => { for (let yy = 3; yy < 9; yy++) for (let xx = 1; xx < 11; xx++) px(xx, yy, (xx % 3 === 0) ? '#d8dde2' : '#fbfbfb'); x.fillStyle = '#2f8f5a'; x.fillRect(1, 5, 10, 2); },
+    }[ing.key];
+    if (shape) shape();
+    else {
+      const d = E[ing.el], col = d.ramp ? d.ramp[0] : d.col;
+      if (d.cat === LIQUID) {   // a droplet
+        for (let yy = 1; yy < 12; yy++) for (let xx = 1; xx < 11; xx++) { const w = yy < 6 ? (yy - 1) * 0.9 : 4.6 - Math.max(0, yy - 9) * 1.2; if (Math.abs(xx - 5.5) <= w) px(xx, yy, hex(col, xx < 5 && yy > 4 && yy < 9 ? 40 : 0)); }
+      } else {   // a little heap of grains
+        for (let yy = 4; yy < 12; yy++) for (let xx = 0; xx < 12; xx++) { if (Math.abs(xx - 5.5) <= (yy - 4) * 0.9 + 0.5) px(xx, yy, hex(col, (R() - 0.5) * d.vary * 2)); }
+      }
+    }
+    return (this.cache[ing.key] = c.toDataURL());
+  },
+};
+
+const UI = {
+  tool: 'pour', ing: Tools.INGREDIENTS[0], held: null, ptr: null, hover: null, paused: false, speed: 1, lastStamp: null,
+  init() {
+    // tool rail
+    const tools = $('#tools');
+    tools.innerHTML = TOOLS.map(t => `<button class="tool" data-tool="${t.id}" aria-pressed="false">${t.id === 'pour' ? '<img class="sw" id="pourIcon" alt="">' : TOOL_ICONS[t.id]}<span>${t.id === 'pour' ? 'Pour' : t.label}</span></button>${t.id === 'pour' ? '<div class="tsep"></div>' : ''}`).join('');
+    tools.querySelectorAll('.tool').forEach(b => b.onclick = () => { Sfx.init(); Sfx.click(); this.setTool(b.dataset.tool); });
+    // ingredient shelf
+    const tray = $('#tray');
+    tray.innerHTML = Tools.INGREDIENTS.map((g, k) => `<button class="ing" data-k="${k}" aria-pressed="false"><img alt="" src="${Icons.ing(g)}"><span>${g.label}</span></button>`).join('');
+    tray.querySelectorAll('.ing').forEach(b => b.onclick = () => { Sfx.init(); Sfx.click(); this.setIng(Tools.INGREDIENTS[+b.dataset.k]); });
+    this.setIng(this.ing);
+    // fixtures you can operate
+    const hot = $('#hot');
+    const at = (x, y) => `left:${(x / GW * 100).toFixed(2)}%;top:${(y / GH * 100).toFixed(2)}%`;
+    hot.innerHTML = Kitchen.burners.map((b, k) => `<button class="knob" data-b="${k}" style="${at(b.knobX, 124)}" aria-label="${b.label} burner"><span></span></button><div class="lcd" id="lcd${k}" style="${at(b.knobX + 21, 124)}" title="${b.label} temperature">--°</div>`).join('')
+      + `<button class="chip" id="hTap" style="${at(274, 78)}" aria-pressed="false">Tap</button>`
+      + `<button class="chip" id="hHood" style="${at(80, 30)}" aria-pressed="false">Fan</button>`
+      + Kitchen.lids.map((L, k) => `<button class="chip lidchip" data-l="${k}" style="${at(k === 0 ? 12 : 146, k === 0 ? 70 : 96)}" aria-pressed="false" aria-label="Lid on the ${L.id}">Lid</button>`).join('')
+      + Kitchen.vessels.map(v => `<div class="serve" data-v="${v.id}" style="${at((v.x0 + v.x1) / 2, 122)}"><button class="go" data-v="${v.id}">Serve</button><button class="clear" data-v="${v.id}" aria-label="Empty the ${v.name.toLowerCase()}">Empty</button></div>`).join('')
+      + `<button class="pet" id="hCat" style="${at(105, 10)}" aria-label="Pet the cat"></button>`
+      + `<div class="alarm" id="hAlarm" style="${at(190, 11)}" hidden>SMOKE!</div>`
+      + `<div class="knobpop" id="knobpop" hidden></div>`;
+    hot.querySelectorAll('.knob').forEach(b => b.onclick = (e) => { e.stopPropagation(); Sfx.init(); Sfx.click(); this.openKnob(+b.dataset.b); });
+    $('#hCat').onclick = () => { Sfx.init(); Cat.pet(); };
+    $('#hTap').onclick = () => { Sfx.init(); Sfx.click(); Kitchen.tap.on = !Kitchen.tap.on; this.syncFixtures(); };
+    $('#hHood').onclick = () => { Sfx.init(); Sfx.click(); Kitchen.hood.on = !Kitchen.hood.on; this.syncFixtures(); };
+    hot.querySelectorAll('.lidchip').forEach(b => b.onclick = () => {
+      Sfx.init(); const k = +b.dataset.l, L = Kitchen.lids[k];
+      if (Kitchen.setLid(k, !L.on)) Sfx.plop(); else this.toast({ kind: 'bad', title: 'The lid will not fit', text: 'Something is piled up too high in the ' + L.id + '.' });
+      this.syncFixtures();
+    });
+    hot.querySelectorAll('.serve .go').forEach(b => b.onclick = () => this.serve(b.dataset.v));
+    hot.querySelectorAll('.serve .clear').forEach(b => b.onclick = () => { Sfx.init(); Sfx.scoop(); Kitchen.emptyVessel(Kitchen.vessels.find(v => v.id === b.dataset.v)); });
+    document.addEventListener('pointerdown', (e) => { if (!e.target.closest('#knobpop') && !e.target.closest('.knob')) $('#knobpop').hidden = true; });
+    this.syncFixtures();
+    this.bindPointer();
+    // top bar
+    $('#bBook').onclick = () => { Sfx.init(); Sfx.click(); this.showBook(); };
+    $('#bSpeed').onclick = () => { Sfx.click(); this.speed = this.speed === 1 ? 2 : this.speed === 2 ? 4 : 1; $('#bSpeed').textContent = this.speed + '×'; };
+    $('#bPause').onclick = () => { Sfx.click(); this.paused = !this.paused; $('#bPause').setAttribute('aria-pressed', String(this.paused)); $('#bPause').textContent = this.paused ? '▶' : 'II'; };
+    $('#bMenu').onclick = () => { Sfx.init(); Sfx.click(); this.showMenu(); };
+    $('#bookClose').onclick = () => { $('#book').hidden = true; };
+    $('#mShift').onclick = () => { Sfx.init(); Sfx.ding(); this.startShift(); };
+    $('#mFree').onclick = () => { Sfx.init(); Sfx.click(); Service.stop(); Save.data.seenHelp = true; Save.save(); $('#menu').hidden = true; this.renderTickets(true); };
+    $('#mClean').onclick = () => { Sfx.init(); Sfx.whoosh(); Kitchen.clearMess(); for (const b of Kitchen.burners) b.level = 0; Kitchen.tap.on = false; Kitchen.hood.on = false; this.syncFixtures(); $('#menu').hidden = true; if (Service.mode !== 'shift') { Service.stop(); this.renderTickets(true); } this.toast({ kind: 'ok', title: 'Spotless', text: 'Every pot scrubbed and the burners off.' }); };
+    $('#mSound').onclick = () => { Sfx.init(); Save.data.sound = !Save.data.sound; Sfx.setOn(Save.data.sound); Save.save(); this.renderMenu(); };
+    $('#mScreen').onclick = () => { const s = Save.data.screen || 'land'; Save.data.screen = { land: 'land2', land2: 'portrait', portrait: 'land' }[s]; Save.save(); Orient.apply(); this.renderMenu(); };
+    $('#sumNext').onclick = () => { Sfx.init(); Sfx.ding(); $('#summary').hidden = true; this.startShift(); };
+    $('#sumFree').onclick = () => { $('#summary').hidden = true; Service.stop(); this.renderTickets(true); };
+    window.addEventListener('keydown', (e) => {
+      if (e.target.closest && e.target.closest('input,textarea')) return;
+      if (e.code === 'Space') { e.preventDefault(); $('#bPause').click(); }
+      const n = '1234567'.indexOf(e.key); if (n >= 0 && n < TOOLS.length) this.setTool(TOOLS[n].id);
+    });
+  },
+  setTool(id) { this.tool = id; document.querySelectorAll('#tools .tool').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === id))); },
+  setIng(g) {
+    this.ing = g; this.setTool('pour');
+    document.querySelectorAll('#tray .ing').forEach(b => b.setAttribute('aria-pressed', String(Tools.INGREDIENTS[+b.dataset.k] === g)));
+    $('#pourIcon').src = Icons.ing(g);
+    document.querySelector('#tools .tool[data-tool="pour"] span').textContent = g.mode === 'stamp' ? 'Place' : 'Pour';
+  },
+  openKnob(k) {
+    const pop = $('#knobpop'), b = Kitchen.burners[k];
+    pop.style.left = (b.knobX / GW * 100) + '%'; pop.style.top = (124 / GH * 100) + '%';
+    pop.innerHTML = Kitchen.LEVELS.map((l, i) => `<button data-l="${i}" aria-pressed="${i === b.level}">${l}</button>`).join('');
+    pop.querySelectorAll('button').forEach(x => x.onclick = () => { Kitchen.setBurner(k, +x.dataset.l); Sfx.click(); pop.hidden = true; this.syncFixtures(); });
+    pop.hidden = false;
+  },
+  /* the stove displays: food temperature in the pot and pan */
+  updateLcd() {
+    for (let k = 0; k < Kitchen.burners.length; k++) {
+      const el = $('#lcd' + k); if (!el) continue;
+      const T = Kitchen.reading(k);
+      el.textContent = Math.round(T) + '°';
+      el.className = 'lcd ' + (T < 60 ? 't-cool' : T < 140 ? 't-warm' : T < 240 ? 't-hot' : 't-smoke');
+    }
+  },
+  /* money floating up off the dish that was just served */
+  floatPay(vid, r) {
+    const v = Kitchen.vessels.find(x => x.id === vid); if (!v) return;
+    const el = document.createElement('div');
+    el.className = 'floaty ' + (r.stars ? 'ok' : 'bad');
+    el.style.left = ((v.x0 + v.x1) / 2 / GW * 100) + '%'; el.style.top = ((v.y0 + 2) / GH * 100) + '%';
+    el.innerHTML = r.stars ? `<b>${'★'.repeat(r.stars)}${'☆'.repeat(3 - r.stars)}</b>+$${r.pay}` : '<b>☆☆☆</b>no tip';
+    $('#hot').appendChild(el);
+    setTimeout(() => el.remove(), 1700);
+  },
+  syncFixtures() {
+    document.querySelectorAll('#hot .knob').forEach(el => { const b = Kitchen.burners[+el.dataset.b]; el.classList.toggle('on', b.level > 0); el.querySelector('span').textContent = b.label.toUpperCase() + ' ' + Kitchen.LEVELS[b.level]; });
+    $('#hTap').setAttribute('aria-pressed', String(Kitchen.tap.on)); $('#hTap').textContent = Kitchen.tap.on ? 'Tap: on' : 'Tap';
+    $('#hHood').setAttribute('aria-pressed', String(Kitchen.hood.on)); $('#hHood').textContent = Kitchen.hood.on ? 'Fan: on' : 'Fan';
+    document.querySelectorAll('#hot .lidchip').forEach(el => { const on = Kitchen.lids[+el.dataset.l].on; el.setAttribute('aria-pressed', String(on)); el.textContent = on ? 'Lid: on' : 'Lid'; });
+  },
+  /* ---------- pointer on the kitchen ---------- */
+  toFrame(e) {
+    const h = document.documentElement, vw = window.innerWidth, vh = window.innerHeight;
+    if (!h.classList.contains('rot')) return [e.clientX, e.clientY];
+    return h.classList.contains('flip') ? [vh - e.clientY, e.clientX] : [e.clientY, vw - e.clientX];
+  },
+  sceneBox() {   // the scene's box in frame coordinates (offsets ignore the rotation)
+    let el = $('#scene'), x = 0, y = 0;
+    while (el && el.id !== 'root') { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; }
+    return { x, y, w: $('#scene').clientWidth, h: $('#scene').clientHeight };
+  },
+  toGrid(e) {
+    const [fx, fy] = this.toFrame(e), b = this.sceneBox();
+    return { x: Math.floor((fx - b.x) / b.w * GW), y: Math.floor((fy - b.y) / b.h * GH) };
+  },
+  bindPointer() {
+    const sc = $('#scene');
+    sc.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('#hot > *')) return;
+      e.preventDefault(); Sfx.init();
+      try { sc.setPointerCapture(e.pointerId); } catch (x) { /* fine */ }
+      $('#knobpop').hidden = true;
+      const g = this.toGrid(e); this.ptr = { id: e.pointerId, x: g.x, y: g.y, px: g.x, py: g.y, down: true };
+      this.begin(g.x, g.y);
+    });
+    sc.addEventListener('pointermove', (e) => {
+      const g = this.toGrid(e);
+      this.hover = e.pointerType === 'mouse' && !e.target.closest('#hot > *') ? g : null;
+      if (this.ptr && this.ptr.id === e.pointerId) { this.ptr.x = g.x; this.ptr.y = g.y; }
+    });
+    const end = (e) => { if (!this.ptr || this.ptr.id !== e.pointerId) return; this.finish(this.ptr.x, this.ptr.y); this.ptr = null; };
+    sc.addEventListener('pointerup', end); sc.addEventListener('pointercancel', end);
+    sc.addEventListener('pointerleave', () => { this.hover = null; });
+    sc.addEventListener('contextmenu', (e) => e.preventDefault());
+  },
+  begin(x, y) {
+    if (this.tool === 'pour' && this.ing.mode === 'stamp') { if (Tools.stamp(this.ing.key, x, y)) Sfx.plop(); this.lastStamp = { x, y }; }
+    if (this.tool === 'scoop') { this.held = Tools.pick(x, y, 7); if (this.held.length) Sfx.scoop(); }
+  },
+  /* runs every frame while a finger or button is down */
+  apply() {
+    const p = this.ptr; if (!p) return;
+    const { x, y } = p;
+    switch (this.tool) {
+      case 'pour':
+        if (this.ing.mode === 'pour') Tools.pour(x, y, this.ing.el, CATA[this.ing.el] === LIQUID ? 3 : 4);
+        else if ((this.ing.key === 'garlic' || this.ing.key === 'mints') && this.lastStamp && Math.hypot(x - this.lastStamp.x, y - this.lastStamp.y) > 7) { Tools.stamp(this.ing.key, x, y); this.lastStamp = { x, y }; }
+        break;
+      case 'stir': Tools.stir(x, y, 6, 140); break;
+      case 'wipe': Tools.wipe(x, y, 4); break;
+      case 'torch': Tools.torch(x, y); break;
+      case 'foam': Tools.spray(x, y); break;
+      case 'build': {   // join up fast strokes so walls have no gaps
+        const n = Math.max(1, Math.ceil(Math.hypot(x - p.px, y - p.py)));
+        for (let k = 0; k <= n; k++) Tools.build(Math.round(lerp(p.px, x, k / n)), Math.round(lerp(p.py, y, k / n)), 1);
+        break;
+      }
+    }
+    p.px = x; p.py = y;
+  },
+  finish(x, y) {
+    if (this.tool === 'scoop' && this.held) {
+      const v = Kitchen.vessels.find(v => x >= v.x0 - 4 && x <= v.x1 + 4 && y <= v.y1 + 2);
+      Tools.drop(x, y, this.held, v ? v.x1 - v.x0 - 1 : 0); if (this.held.length) Sfx.plop();
+      this.held = null;
+    }
+  },
+  overlay() {
+    const ov = {};
+    if (this.held && this.ptr) { ov.held = this.held; ov.x = this.ptr.x; ov.y = this.ptr.y; }
+    const at = this.ptr || this.hover;
+    if (at) { const t = TOOLS.find(t => t.id === this.tool); const r = this.tool === 'pour' && this.ing.mode === 'stamp' ? 4 : t.r; ov.ring = { x: at.x, y: at.y, r }; }
+    return ov;
+  },
+  /* ---------- service ---------- */
+  startShift() {
+    Save.data.seenHelp = true; Save.save();
+    $('#menu').hidden = true; $('#summary').hidden = true;
+    Kitchen.clearMess(); for (const b of Kitchen.burners) b.level = 0; Kitchen.tap.on = false; this.syncFixtures();
+    Service.startShift(); this.renderTickets(true);
+    this.toast({ kind: 'ok', title: 'Shift ' + Service.shift + ' is open', text: 'Tickets clip onto the rail. Serve from the plate, bowl or mug.' });
+  },
+  serve(vid) {
+    Sfx.init();
+    if (Service.mode !== 'shift') { this.toast({ kind: 'bad', title: 'Nobody ordered yet', text: 'Start a shift from the menu to get tickets.' }); return; }
+    const r = Service.serve(vid);
+    if (r.empty) { this.toast({ kind: 'bad', title: 'The ' + vid + ' is empty', text: 'Scoop some food onto it first.' }); return; }
+    if (r.nobody) { this.toast({ kind: 'bad', title: 'No ticket wants a ' + vid, text: 'Check which dish goes in which: plate, bowl or mug.' }); return; }
+    const rec = RECIPE_BY_ID[r.rid];
+    let words = (r.notes[0] || (r.good && r.good[0]) || 'Thanks!');
+    if (r.critic) words = r.stars === 3 ? 'A rave review! Double pay.' : 'Not impressed. ' + words;
+    this.toast({ kind: r.stars ? 'ok' : 'bad', face: r.seed, title: `${r.name}: ${rec.name}`, text: words, stars: r.stars, pay: r.pay });
+    if (r.stars) { Sfx.ding(); Sfx.coins(r.stars * 2); } else Sfx.sad();
+    this.floatPay(vid, r);
+    this.renderTickets(true);
+  },
+  renderTickets(full) {
+    const box = $('#tickets');
+    if (Service.mode !== 'shift') {
+      if (full) box.innerHTML = `<span class="idle">${Service.mode === 'done' ? 'Shift over.' : 'Free cooking. Make a mess.'}</span>`;
+      $('#coins').textContent = '$' + Math.round(Service.coins || 0); $('#shiftInfo').textContent = 'free cook';
+      return;
+    }
+    const have = [...box.querySelectorAll('.ticket')].map(t => +t.dataset.uid), want = Service.tickets.map(t => t.uid);
+    if (full || have.join() !== want.join()) {
+      box.innerHTML = Service.tickets.map(t => {
+        const r = RECIPE_BY_ID[t.rid];
+        return `<div class="ticket ${have.includes(t.uid) ? '' : 'new'}${t.critic ? ' critic' : ''}" data-uid="${t.uid}"><img alt="" src="${Faces.url(t.seed)}"><span class="who">${t.name}${t.critic ? ' <em class="spec">critic</em>' : t.rid === specialId() ? ' <em class="spec">special</em>' : ''}</span><span class="dish">${r.name}</span><span class="ves">${r.vessel}</span><div class="pat"><b></b></div><button class="how" data-r="${t.rid}" aria-label="How to make ${r.name}">?</button></div>`;
+      }).join('') || '<span class="idle">Waiting for the next order…</span>';
+      box.querySelectorAll('.how').forEach(b => b.onclick = () => { Sfx.click(); this.showBook(b.dataset.r); });
+    }
+    box.querySelectorAll('.ticket').forEach(el => {
+      const t = Service.tickets.find(x => x.uid === +el.dataset.uid); if (!t) return;
+      const f = clamp(t.left / t.total, 0, 1); el.querySelector('.pat b').style.width = (f * 100).toFixed(1) + '%';
+      el.classList.toggle('late', f < 0.45); el.classList.toggle('urgent', f < 0.2);
+    });
+    const done = Service.results.length, total = done + Service.tickets.length + Service.queue.length;
+    const insp = Service.inspecting();
+    $('#coins').textContent = '$' + Math.round(Service.coins); $('#shiftInfo').textContent = `shift ${Service.shift} · ${done}/${total} served` + (insp ? ` · inspector ${insp}s` : '');
+    document.querySelectorAll('#hot .serve').forEach(el => { const n = Service.wants(el.dataset.v).length; el.querySelector('.go').disabled = !n; });
+  },
+  toast(o) {
+    const box = $('#toasts'), el = document.createElement('div');
+    el.className = 'toast ' + (o.kind || 'ok');
+    const lead = o.face ? `<img alt="" src="${Faces.url(o.face)}">` : o.kind === 'ach' ? '<div class="badge">★</div>' : o.kind === 'tip' ? '<div class="badge" style="background:var(--good);color:#06130b">?</div>' : '<div class="badge" style="background:var(--panel2);color:var(--chalk)">!</div>';
+    const stars = o.stars !== undefined ? ` <span class="stars">${'★'.repeat(o.stars)}${'☆'.repeat(3 - o.stars)}</span>${o.pay ? ` <span style="color:var(--good)">+$${o.pay}</span>` : ''}` : '';
+    el.innerHTML = `${lead}<b>${o.title}${stars}</b><span>${o.text || ''}</span>`;
+    box.prepend(el);
+    while (box.children.length > 3) box.lastChild.remove();
+    setTimeout(() => el.remove(), o.long ? 9000 : o.kind === 'ach' ? 4200 : 3600);
+  },
+  /* ---------- sheets ---------- */
+  renderMenu() {
+    $('#mSound').textContent = 'Sound: ' + (Save.data.sound ? 'on' : 'off');
+    $('#mScreen').hidden = !Main.touch;
+    $('#mScreen').textContent = 'Screen: ' + ({ land: 'sideways ↻', land2: 'sideways ↺', portrait: 'upright' }[Save.data.screen || 'land']);
+    $('#mShift').textContent = Service.mode === 'shift' ? 'Restart the shift' : (Save.data.shifts ? `Start shift ${Save.data.shifts + 1}` : 'Start a shift');
+    $('#achs').innerHTML = ACH.map(a => `<div class="${Ach.unlocked(a.id) ? 'got' : ''}">${Ach.unlocked(a.id) ? '★ ' : ''}${a.name}<small>${a.how}</small></div>`).join('');
+  },
+  showMenu() { this.renderMenu(); $('#menu').hidden = false; },
+  showBook(focus) {
+    const spec = specialId();
+    $('#recipes').innerHTML = RECIPES.map(r => { const b = Save.data.best[r.id] || 0; return `<div class="recipe${r.id === spec ? ' special' : ''}" id="rc-${r.id}"><small>${r.vessel} · $${r.price}${r.id === spec ? ' · today’s special, pays 1.5×' : ''}</small><b>${r.name}</b><p>${r.how}</p><span class="best">${b ? '★'.repeat(b) + '☆'.repeat(3 - b) : 'not served yet'}</span></div>`; }).join('');
+    $('#book').hidden = false;
+    if (focus) { const el = $('#rc-' + focus); if (el) { el.scrollIntoView({ block: 'center' }); el.style.boxShadow = '0 0 0 3px var(--flame)'; } }
+  },
+  showSummary(s) {
+    const [quote, by] = Service.review(s.stars, s.max, s.incidents);
+    $('#sumTitle').textContent = `Shift ${s.shift}: $${Math.round(s.coins)}`;
+    $('#sumQuote').innerHTML = `${quote}<small>${by}</small>`;
+    $('#sumRows').innerHTML = s.results.map(r => `<tr><td><img alt="" src="${Faces.url(r.seed)}"> ${r.name}</td><td>${RECIPE_BY_ID[r.rid].name}</td><td class="st">${'★'.repeat(r.stars)}${'☆'.repeat(3 - r.stars)}</td><td class="pay">${r.pay ? '$' + r.pay : '–'}</td></tr>`).join('');
+    const inc = s.incidents, bits = [];
+    if (inc.fires) bits.push(`${inc.fires} fire${inc.fires > 1 ? 's' : ''}`); if (inc.sprinklers) bits.push(`${inc.sprinklers} sprinkler soaking${inc.sprinklers > 1 ? 's' : ''}`);
+    if (inc.smoke) bits.push('the smoke alarm'); if (inc.boilovers) bits.push('a boil-over');
+    let extra = '';
+    if (s.inspection) extra += s.inspection === 'pass' ? ' Passed the health inspection.' : ' Failed the health inspection.';
+    $('#sumChaos').textContent = (bits.length ? 'Incidents: ' + bits.join(', ') + '.' : 'No incidents. The fire inspector is impressed.') + extra;
+    $('#summary').hidden = false;
+    Sfx.fanfare(); this.renderTickets(true);
+  },
+  /* ---------- frame sizing ---------- */
+  fit() {
+    const st = $('#stage'), cs = getComputedStyle(st);
+    const w = st.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), h = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    const sw = Math.max(100, Math.min(w, h * GW / GH)), sh = sw * GH / GW;
+    const sc = $('#scene'); sc.style.width = Math.floor(sw) + 'px'; sc.style.height = Math.floor(sh) + 'px';
+  },
+};
+
+/* phones held upright still get a landscape kitchen: the whole frame turns 90 degrees */
+const Orient = {
+  apply() {
+    const root = $('#root'), vw = window.innerWidth, vh = window.innerHeight, scr = Save.data.screen || 'land';
+    const rot = !!Main.touch && vh > vw && scr !== 'portrait', flip = rot && scr === 'land2';
+    const ew = rot ? vh : vw, eh = rot ? vw : vh, h = document.documentElement;
+    h.classList.toggle('rot', rot); h.classList.toggle('flip', flip); h.classList.toggle('short', eh < 560); h.classList.toggle('narrow', ew < 760);
+    if (rot) { root.style.width = vh + 'px'; root.style.height = vw + 'px'; root.style.transform = flip ? `translateY(${vh}px) rotate(-90deg)` : `translateX(${vw}px) rotate(90deg)`; }
+    else { root.style.width = ''; root.style.height = ''; root.style.transform = ''; }
+    UI.fit();
+  },
+};
+
+/* ============================================================
+   Main loop: a fixed 60 simulation steps per second (times the
+   speed setting), one render per frame, sound and achievements
+   driven by what the steps reported.
+   ============================================================ */
+const Main = {
+  touch: false, last: 0, acc: 0, t: 0, uiT: 0, prevTrips: 0,
+  init(data) {
+    Save.load();
+    this.touch = (window.matchMedia && matchMedia('(pointer: coarse)').matches) || ('ontouchstart' in window);
+    this.calm = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    Kitchen.build();
+    Render.init($('#cBg'), $('#cFx'), $('#cGlow'), $('#cHaze'));
+    UI.init();
+    Sfx.setOn(Save.data.sound !== false);
+    Orient.apply();
+    window.addEventListener('resize', () => Orient.apply());
+    window.addEventListener('orientationchange', () => setTimeout(() => Orient.apply(), 150));
+    let restored = false;
+    try { restored = this.restore(data); } catch (e) { restored = false; }
+    if (!restored) { Kitchen.build(); this.opening(); }
+    try { window.claude?.hot?.snapshot?.(() => this.snapshot()); } catch (e) { /* no live updates here */ }
+    $('#veil').hidden = true;
+    if (!Save.data.seenHelp && !restored) UI.showMenu();
+    requestAnimationFrame((t) => { this.last = t; requestAnimationFrame((n) => this.frame(n)); });
+  },
+  /* when a new version of the page loads in place, the kitchen comes along: every cell, the
+     knobs and lids, and the shift in progress. Elements are matched by name, so a version that
+     adds new ones still restores. */
+  snapshot() {
+    const b64 = (u8) => { let s = ''; for (let k = 0; k < u8.length; k += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(k, k + 0x8000)); return btoa(s); };
+    const bytes = (ta) => new Uint8Array(ta.buffer, ta.byteOffset, ta.byteLength);
+    const svc = Service, keep = ['mode', 'shift', 'coins', 'tickets', 'queue', 'results', 'spawnT', 'uid', 'time', 'patience', 'incidents', 'tipped'];
+    return {
+      sizzle: 1, keys: E.map(d => d.key),
+      type: b64(type), temp: b64(bytes(temp)), cook: b64(bytes(cook)), aux: b64(aux), shade: b64(shade),
+      burners: Kitchen.burners.map(b => [b.level, b.cur]), lids: Kitchen.lids.map(L => L.on), tap: Kitchen.tap.on, hood: Kitchen.hood.on,
+      service: Object.fromEntries(keep.map(k => [k, svc[k]])), speed: UI.speed, tool: UI.tool, ing: UI.ing.key,
+    };
+  },
+  restore(d) {
+    if (!d || d.sizzle !== 1 || !d.type) return false;
+    const un = (s) => { const bin = atob(s), u = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) u[k] = bin.charCodeAt(k); return u; };
+    const t = un(d.type), T = new Float32Array(un(d.temp).buffer), C = new Float32Array(un(d.cook).buffer), A = un(d.aux), H = un(d.shade);
+    if (t.length !== GN || T.length !== GN) return false;
+    const map = d.keys.map(k => EL[k] === undefined ? AIR : EL[k]);
+    Kitchen.build();   // fixtures and their colours; then lay the saved cells over them
+    for (let i = 0; i < GN; i++) {
+      const id = map[t[i]] || AIR;
+      if (CATA[type[i]] === STATIC && type[i] !== AIR) { temp[i] = T[i]; continue; }   // fixed parts stay as built
+      if (CATA[id] === STATIC && id !== STEEL && id !== BRICK) continue;
+      type[i] = id; temp[i] = T[i]; cook[i] = C[i]; aux[i] = A[i]; shade[i] = H[i]; vel[i] = 0;
+    }
+    d.burners.forEach(([lv, cur], k) => { if (Kitchen.burners[k]) { Kitchen.burners[k].level = lv; Kitchen.burners[k].cur = cur; } });
+    (d.lids || []).forEach((on, k) => { const L = Kitchen.lids[k]; if (!L) return; if (on) { L.on = true; L.cells = Kitchen.lidCells(L); for (const i of L.cells) type[i] = STEEL; Kitchen.paintLid(L); } });
+    for (let i = 0; i < GN; i++) if ((type[i] === STEEL || type[i] === BRICK) && !SC[i]) { const c = E[type[i]].col, v = (shade[i] / 255 - 0.5) * 20; SC[i] = rgba32(clamp(c[0] + v, 0, 255), clamp(c[1] + v, 0, 255), clamp(c[2] + v, 0, 255), 255); }
+    Kitchen.tap.on = !!d.tap; Kitchen.hood.on = !!d.hood;
+    if (d.service) Object.assign(Service, d.service);
+    Service.tickets = (Service.tickets || []).filter(x => RECIPE_BY_ID[x.rid]); Service.queue = (Service.queue || []).filter(id => RECIPE_BY_ID[id]);
+    UI.speed = d.speed || 1; $('#bSpeed').textContent = UI.speed + '×';
+    const g = Tools.INGREDIENTS.find(x => x.key === d.ing); if (g) UI.setIng(g); if (d.tool) UI.setTool(d.tool);
+    UI.syncFixtures(); UI.renderTickets(true);
+    return true;
+  },
+  /* something already going when the page opens: rice ticking over on a low flame */
+  opening() {
+    const p = Kitchen.pot;
+    let r = 0, w = 0;
+    for (let y = p.y1; y >= p.y1 - 26 && (r < 150 || w < 300); y--) for (let x = p.x0; x <= p.x1; x++) {
+      const i = idx(x, y); if (type[i] !== AIR) continue;
+      if (r < 150) { setCell(i, RICE); r++; } else if (w < 300) { setCell(i, WATER, 60); w++; }
+    }
+    Kitchen.setBurner(0, 1); UI.syncFixtures();
+    for (let k = 0; k < 240; k++) Sim.step();
+  },
+  shake: 0, shookTrips: 0,
+  kick(a) { this.shake = Math.max(this.shake, a); },
+  applyShake() {
+    const sc = $('#scene');
+    if (this.shake > 0.3 && !this.calm) { sc.style.transform = `translate(${((Math.random() * 2 - 1) * this.shake).toFixed(1)}px, ${((Math.random() * 2 - 1) * this.shake).toFixed(1)}px)`; this.shake *= 0.86; }
+    else if (this.shake) { this.shake = 0; sc.style.transform = ''; }
+  },
+  frame(now) {
+    requestAnimationFrame((n) => this.frame(n));
+    const dt = Math.min(0.1, Math.max(0, (now - this.last) / 1000)); this.last = now;
+    this.t += dt;
+    Sim.resetEv();
+    if (!UI.paused) {
+      UI.apply();
+      this.acc += dt * STEPS_PER_SEC * UI.speed;
+      let n = 0;
+      while (this.acc >= 1 && n < 9) { Sim.step(); this.acc -= 1; n++; }
+      if (n === 9) this.acc = 0;
+      Service.tick(dt * UI.speed);
+      if (Service.mode === 'shift') {
+        const inc = Service.incidents;
+        if (Sim.ev.grease) inc.fires++;
+        if (Kitchen.alarm.trips > this.prevTrips) inc.sprinklers++;
+        if (Kitchen.alarm.beeping) inc.smoke = 1;
+        if (Ach.spill) inc.boilovers++;
+      }
+      this.prevTrips = Kitchen.alarm.trips;
+    }
+    // big moments shake the kitchen a little
+    const ev = Sim.ev;
+    if (ev.flare) this.kick(6); if (ev.grease) this.kick(5); if (ev.dust > 4) this.kick(5); if (ev.lidpop) this.kick(7); if (ev.rattle) this.kick(1.2); if (ev.spit > 3) this.kick(1.5);
+    if (ev.geyser > 25) this.kick(3); if (Kitchen.alarm.trips > this.shookTrips) { this.shookTrips = Kitchen.alarm.trips; this.kick(4); }
+    this.applyShake();
+    Cat.update(dt, ev); $('#hCat').hidden = Cat.state === 'gone';
+    Render.frame(this.t, UI.overlay());
+    Sfx.update(Sim.ev, dt);
+    Ach.spill = false;
+    Ach.check(Sim.ev, Render.counts);
+    this.skyT = (this.skyT || 0) + dt;
+    if (this.skyT > 30) { this.skyT = 0; if (skyPeriod() !== Render.period) Render.paintBackground(); }
+    this.uiT += dt;
+    if (this.uiT > 0.25) {
+      this.uiT = 0;
+      UI.renderTickets(false);
+      UI.updateLcd();
+      if (Kitchen.lids.some((L, k) => L.on !== (UI.lidShown || [])[k])) { UI.lidShown = Kitchen.lids.map(L => L.on); UI.syncFixtures(); }
+      $('#hAlarm').hidden = !Kitchen.alarm.beeping;
+      $('#hAlarm').textContent = Kitchen.alarm.sprinkler > 0 ? 'SPRINKLERS!' : 'SMOKE!';
+    }
+  },
+};
+function boot(data) {
+  try { Main.init(data || window.claude?.hot?.data); }
+  catch (e) { const v = $('#veil'); if (v) { v.hidden = false; v.textContent = 'The kitchen would not start: ' + e.message; } throw e; }
+}
+window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
+
+</script>
+</body>
+</html>

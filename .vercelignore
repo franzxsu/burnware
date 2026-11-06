@@ -1,0 +1,4 @@
+# the site is the built files; the parts they're made from stay in the repo only
+src
+build.sh
+README.md

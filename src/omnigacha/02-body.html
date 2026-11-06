@@ -1,0 +1,157 @@
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#ffcf33" stroke="#1a1433" stroke-width="2.5"/><circle cx="12" cy="12" r="6" fill="none" stroke="#c98a00" stroke-width="1.6"/><path d="M9 9.6h6M12 9.6v6" stroke="#1a1433" stroke-width="2.2" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<div id="bg" aria-hidden="true"><div class="dots"></div><div class="spot"></div><div class="floor"></div></div>
+
+<div id="app">
+  <header id="top">
+    <div id="logo"><span class="logo-main" id="logo-main">OMNIGACHA</span><span class="logo-jp" id="logo-jp">全部ガチャ</span><span id="ng-badge" hidden></span></div>
+    <div id="wallet" title="Your tokens">
+      <svg class="coin" aria-hidden="true"><use href="#i-coin"/></svg>
+      <span id="tokens">100</span><span class="tok-unit">TOKENS</span>
+      <span id="tps">+0/s</span>
+    </div>
+    <div id="hdr-btns">
+      <button class="icon-btn" id="btn-music" aria-pressed="true" aria-label="Music" title="Music">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1a1433" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3" fill="#1a1433"/><circle cx="17" cy="16" r="3" fill="#1a1433"/><path class="off-only" d="M3 3l18 18" stroke="#ff5a3c" stroke-width="3"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-sfx" aria-pressed="true" aria-label="Sound effects" title="Sound effects">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1a1433" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5h4l5-4v13l-5-4H3z" fill="#1a1433"/><path class="on-only" d="M16 9a4 4 0 0 1 0 6M18.6 6.4a8 8 0 0 1 0 11.2"/><path class="off-only" d="M16 9.5l5 5M21 9.5l-5 5" stroke="#ff5a3c"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-menu" aria-label="Game menu" title="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1a1433" stroke-width="2.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="stage">
+    <section id="left" aria-label="The gacha machine">
+      <div id="banners" role="group" aria-label="Banners"></div>
+      <div id="machine-zone">
+        <div id="bubble" role="status"><span class="who">GACHA-CHAN</span><span id="bubble-text">Psst. Pull me.</span></div>
+        <div id="machine" role="button" tabindex="0" aria-label="Tap the machine to shake out tokens">
+          <svg id="m-svg" viewBox="0 0 300 440" aria-hidden="true" focusable="false">
+            <ellipse cx="150" cy="434" rx="132" ry="9" fill="rgba(0,0,0,.35)"/>
+            <rect x="100" y="2" width="100" height="18" rx="7" class="m-acc"/>
+            <rect x="60" y="12" width="180" height="36" rx="13" class="m-main"/>
+            <text x="150" y="37" class="m-sign">全部ガチャ</text>
+            <circle cx="150" cy="150" r="105" class="m-domeback"/>
+            <rect x="62" y="238" width="176" height="24" rx="8" class="m-ink"/>
+            <rect x="28" y="254" width="244" height="166" rx="20" class="m-main"/>
+            <rect x="44" y="264" width="212" height="9" rx="4.5" fill="rgba(255,255,255,.28)"/>
+            <g class="m-face" id="m-face">
+              <g class="eye"><ellipse cx="112" cy="298" rx="8" ry="11"/><circle cx="115" cy="294" r="3"/></g>
+              <g class="eye"><ellipse cx="188" cy="298" rx="8" ry="11"/><circle cx="191" cy="294" r="3"/></g>
+              <path class="joy-eye" d="M103 301 q9 -12 18 0"/>
+              <path class="joy-eye" d="M179 301 q9 -12 18 0"/>
+              <ellipse cx="92" cy="314" rx="9" ry="5" class="cheek"/>
+              <ellipse cx="208" cy="314" rx="9" ry="5" class="cheek"/>
+              <path class="mouth" id="m-mouth" d="M140 308 Q150 318 160 308"/>
+            </g>
+            <g>
+              <rect x="42" y="334" width="70" height="64" rx="13" class="m-acc"/>
+              <rect x="51" y="344" width="52" height="42" rx="9" class="m-hole"/>
+              <path d="M51 356 h52" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+              <text x="77" y="396" class="m-tiny">TAKE</text>
+            </g>
+            <g>
+              <rect x="206" y="332" width="48" height="66" rx="11" class="m-acc"/>
+              <rect x="226" y="342" width="8" height="30" rx="4" class="m-ink"/>
+              <text x="230" y="390" class="m-tiny" id="m-price">10</text>
+            </g>
+            <g id="crank">
+              <circle cx="158" cy="364" r="33" class="m-acc"/>
+              <rect x="122" y="355" width="72" height="18" rx="9" class="m-paper"/>
+              <circle cx="158" cy="364" r="6" class="m-ink"/>
+            </g>
+            <rect x="36" y="416" width="228" height="18" rx="7" class="m-ink"/>
+          </svg>
+          <canvas id="dome" aria-hidden="true"></canvas>
+          <svg id="m-front" viewBox="0 0 300 440" aria-hidden="true" focusable="false">
+            <circle cx="150" cy="150" r="105" fill="none" stroke="#1a1433" stroke-width="6"/>
+            <path d="M74 112 A 84 84 0 0 1 124 64" stroke="rgba(255,255,255,.75)" stroke-width="9" fill="none" stroke-linecap="round"/>
+            <circle cx="69" cy="134" r="5" fill="rgba(255,255,255,.75)"/>
+          </svg>
+          <div id="m-out"><div class="mini-cap" id="m-out-cap"></div></div>
+        </div>
+        <div id="pull-row">
+          <button class="pull-btn" id="pull1"><span class="p-label">PULL ×1</span><span class="p-cost"><svg aria-hidden="true"><use href="#i-coin"/></svg><span id="cost1">10</span></span></button>
+          <button class="pull-btn ten" id="pull10"><span class="p-label">PULL ×10</span><span class="p-cost"><svg aria-hidden="true"><use href="#i-coin"/></svg><span id="cost10">100</span></span></button>
+        </div>
+        <div id="pity"></div>
+        <p id="tap-hint">Tap the machine to shake loose tokens.</p>
+      </div>
+    </section>
+
+    <aside id="side" aria-label="Shop, missions and collection">
+      <div id="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-shop" aria-selected="true" aria-controls="panel-shop" data-tab="shop">Shop</button>
+        <button class="tab" role="tab" id="tab-missions" aria-selected="false" aria-controls="panel-missions" data-tab="missions">Missions<span class="badge" id="mbadge" hidden>0</span></button>
+        <button class="tab" role="tab" id="tab-dex" aria-selected="false" aria-controls="panel-dex" data-tab="dex">Collection</button>
+      </div>
+      <div class="panel-wrap">
+        <div class="panel" id="panel-shop" role="tabpanel" aria-labelledby="tab-shop"></div>
+        <div class="panel" id="panel-missions" role="tabpanel" aria-labelledby="tab-missions" hidden></div>
+        <div class="panel" id="panel-dex" role="tabpanel" aria-labelledby="tab-dex" hidden></div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<div id="reveal" class="overlay" hidden>
+  <div class="rv-raybox"><div class="rv-rays"></div></div>
+  <div class="rv-flash" id="rv-flash"></div>
+  <div class="rv-stage" id="rv-stage">
+    <div class="rv-up" id="rv-up" hidden>RARITY UP!</div>
+    <button class="cap" id="rv-cap" aria-label="Tap to open the capsule">
+      <span class="cap-glow"></span>
+      <span class="cap-half cap-top"></span>
+      <span class="cap-half cap-bot"></span>
+      <svg class="cracks" viewBox="0 0 170 170" aria-hidden="true"><path class="k1" d="M14 86 L38 74 L52 94 L76 70 L92 92"/><path class="k2" d="M92 92 L110 72 L124 96 L156 80"/></svg>
+    </button>
+    <div class="rv-hint" id="rv-hint">TAP TO OPEN</div>
+    <div class="rv-card" id="rv-card" hidden>
+      <div class="rv-rarity" id="rv-rarity">SSR</div>
+      <div class="rv-rname" id="rv-rname">SUPER SUPER RARE</div>
+      <div class="rv-emoji" id="rv-emoji"></div>
+      <div class="rv-label">
+        <div class="rv-tags" id="rv-tags"></div>
+        <h2 class="rv-name" id="rv-name"></h2>
+        <p class="rv-flavor" id="rv-flavor"></p>
+      </div>
+      <p class="rv-quote" id="rv-quote"></p>
+      <button class="big-btn" id="rv-ok">Nice</button>
+    </div>
+  </div>
+  <button class="rv-skip" id="rv-skip">Skip ▸▸</button>
+</div>
+
+<div id="multi" class="overlay" hidden>
+  <div class="mp-wrap">
+    <div class="mp-title">10× PULL</div>
+    <div class="mp-grid" id="mp-grid"></div>
+    <div class="mp-sum" id="mp-sum"></div>
+    <button class="big-btn" id="mp-ok">Collect all</button>
+  </div>
+</div>
+
+<div id="modal" class="overlay" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="Details">
+    <button class="modal-x" id="modal-x" aria-label="Close">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div id="toasts" aria-live="polite"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<div id="ending" hidden>
+  <div id="end-lines"></div>
+  <div id="credits" hidden><div id="credits-roll"></div></div>
+  <button class="big-btn ghost" id="end-skip" hidden>Skip credits</button>
+  <div id="end-final" hidden></div>
+</div>

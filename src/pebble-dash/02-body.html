@@ -1,0 +1,91 @@
+
+<div id="root">
+<div id="game" aria-label="Rally stage"></div>
+
+<div id="hud" hidden>
+  <div class="pos"><div class="p" id="hPos">4<small>/4</small></div><div class="lap"><span id="hLap">LAP 1/3</span></div></div>
+  <div class="note" id="hNote" hidden>
+    <div class="main"><svg id="hNoteIco" viewBox="0 0 48 48" aria-hidden="true"></svg><div class="txt" id="hNoteTxt"></div></div>
+    <div class="sub"><span id="hNoteNext"></span><span id="hNoteDist"></span></div>
+  </div>
+  <div class="board">
+    <div class="row"><span class="k" id="hTimeK">TIME</span><span class="v big" id="hTime">0:00.00</span></div>
+    <div class="row"><span class="k">LAP</span><span class="v" id="hLapT">0:00.00</span></div>
+    <div class="row"><span class="k" id="hBestK">BEST</span><span class="v" id="hBest">--:--.--</span></div>
+    <div class="row" id="hDeltaRow" hidden><span class="k">GHOST</span><span class="v" id="hDelta">+0.00</span></div>
+  </div>
+  <div class="drift" id="hDrift" hidden><div class="dcur" id="hDCur"></div><div class="dmult" id="hDMult"></div></div>
+  <canvas id="minimap" width="300" height="300" aria-hidden="true"></canvas>
+  <div class="speedo">
+    <svg viewBox="0 0 168 112" aria-hidden="true"><path id="hArcBg" fill="none" stroke="#2a2e37" stroke-width="10" stroke-linecap="round"/><path id="hArc" fill="none" stroke="#ffd23a" stroke-width="10" stroke-linecap="round"/><path id="hArcRed" fill="none" stroke="#ff4b2b" stroke-width="10" stroke-linecap="butt" opacity=".55"/></svg>
+    <div class="gear" id="hGear">1</div><div class="kmh" id="hKmh">0</div><div class="unit">KM/H</div>
+  </div>
+  <div class="lights" id="hLights" hidden><i></i><i></i><i></i></div>
+  <div class="msg" id="hMsg" hidden></div>
+  <div class="toast" id="hToast" hidden></div>
+  <div class="hudbtns"><button class="hudbtn" id="bCam" aria-label="Change camera">CAM</button><button class="hudbtn" id="bReset" aria-label="Put the car back on the road">↺</button><button class="hudbtn" id="bPause" aria-label="Pause">II</button></div>
+</div>
+
+<div id="touch" hidden>
+  <div class="pad" id="tPad" aria-hidden="true"><i class="base"></i><i class="knob"></i><span>SLIDE TO STEER</span></div>
+  <button class="tb steer" id="tL" aria-label="Steer left">◀</button>
+  <button class="tb steer" id="tR" aria-label="Steer right">▶</button>
+  <button class="tb" id="tHb" aria-label="Handbrake">E-BRAKE</button>
+  <button class="tb" id="tBrk" aria-label="Brake and reverse">BRAKE</button>
+  <button class="tb" id="tGas" aria-label="Accelerate">GAS</button>
+</div>
+
+<div class="screen" id="menu" hidden>
+  <div class="menu-grid">
+    <div class="pane left">
+      <h1 class="title">PEBBLE DASH</h1>
+      <p class="tag">Tiny rally cars. Loose gravel. Big slides.</p>
+      <div class="lbl">EVENT</div>
+      <div class="events" id="mEvents" role="group" aria-label="Event"></div>
+      <p class="blurb ev-blurb" id="mEventBlurb"></p>
+      <button class="go" id="mGo">START RACE</button>
+    </div>
+    <div class="pane right">
+      <div class="lbl">STAGE</div>
+      <div class="cards stages" id="mStages" role="group" aria-label="Stage"></div>
+      <div class="todrow"><p class="blurb" id="mStageBlurb"></p>
+        <div class="segs"><div class="seg" id="mTod" role="group" aria-label="Time of day"><button data-tod="day">Day</button><button data-tod="sunset">Sunset</button><button data-tod="night">Night</button></div>
+        <div class="seg" id="mWx" role="group" aria-label="Weather"><button data-wx="clear">Clear</button><button data-wx="rain">Rain</button></div></div></div>
+      <div class="lbl">CAR</div>
+      <div class="cards cars" id="mCars" role="group" aria-label="Car"></div>
+      <p class="blurb" id="mCarBlurb"></p>
+      <div class="opts" id="mOpts">
+        <button class="opt" id="oCam">Camera <b>Pocket</b></button>
+        <button class="opt" id="oAssist">Assists <b>Full</b></button>
+        <button class="opt" id="oDiff">Rivals <b>Pro</b></button>
+        <button class="opt" id="oMini">Miniature <b>On</b></button>
+        <button class="opt" id="oVoice">Co-driver <b>On</b></button>
+        <button class="opt" id="oSound">Sound <b>On</b></button>
+        <button class="opt" id="oGfx">Graphics <b>Fancy</b></button>
+        <button class="opt" id="oScreen" hidden>Screen <b>Sideways ↻</b></button>
+        <button class="opt" id="oSteer" hidden>Steering <b>Buttons</b></button>
+      </div>
+      <p class="help" id="mHelp"><kbd>↑</kbd> gas · <kbd>↓</kbd> brake / reverse · <kbd>←</kbd><kbd>→</kbd> steer · <kbd>Space</kbd> handbrake · <kbd>R</kbd> back on the road · <kbd>C</kbd> camera · <kbd>Esc</kbd> pause. Pace notes: 6 is flat out, 1 is nearly a hairpin.</p>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="pause" hidden>
+  <div class="dialog" role="dialog" aria-label="Paused">
+    <h2>Paused</h2>
+    <div class="btns"><button class="pri" id="pResume">Resume</button><button id="pRestart">Restart</button><button id="pMenu">Menu</button></div>
+  </div>
+</div>
+
+<div class="screen" id="results" hidden>
+  <div class="dialog wide" role="dialog" aria-label="Results">
+    <h2 id="rTitle">Finished</h2>
+    <div id="rBody"></div>
+    <div class="btns"><button class="pri" id="rAgain">Race again</button><button id="rNext">Next stage</button><button id="rReplay">Replay</button><button id="rMenu">Menu</button></div>
+  </div>
+</div>
+
+<div id="replay" hidden><span class="rtag">● REPLAY</span><span class="rtime" id="rpTime"></span><button id="rpSpeed">1×</button><button id="rpCam">CAM</button><button id="rpExit">Exit</button></div>
+
+<div id="veil">PEBBLE DASH<small id="veilTxt">building the stage…</small></div>
+</div>

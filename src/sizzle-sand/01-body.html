@@ -1,0 +1,66 @@
+
+<div id="root">
+  <header class="bar">
+    <div class="brand" aria-label="Sizzle Sand">SIZZLE<i>SAND</i></div>
+    <div class="tickets" id="tickets" aria-live="polite"><span class="idle">Free cooking. Make a mess.</span></div>
+    <div class="stats"><span class="coins" id="coins">$0</span><span class="sub" id="shiftInfo">free cook</span></div>
+    <div class="topbtns">
+      <button class="tbtn" id="bBook" aria-label="Recipe book">Recipes</button>
+      <button class="tbtn" id="bSpeed" aria-label="Cooking speed">1×</button>
+      <button class="tbtn" id="bPause" aria-label="Pause" aria-pressed="false">II</button>
+      <button class="tbtn" id="bMenu" aria-label="Menu">Menu</button>
+    </div>
+  </header>
+
+  <aside class="tools" id="tools" aria-label="Tools"></aside>
+
+  <main class="stage" id="stage">
+    <div class="scene" id="scene">
+      <canvas id="cBg" aria-hidden="true"></canvas>
+      <canvas id="cFx" aria-label="The kitchen"></canvas>
+      <canvas id="cHaze" aria-hidden="true"></canvas>
+      <canvas id="cGlow" aria-hidden="true"></canvas>
+      <div class="hot" id="hot"></div>
+    </div>
+    <div class="toasts" id="toasts"></div>
+  </main>
+
+  <footer class="tray" id="tray" aria-label="Ingredients"></footer>
+
+  <section class="sheet" id="menu" hidden>
+    <div class="card">
+      <h2>SIZZLE SAND</h2>
+      <p>A kitchen where every grain is simulated. Heat moves through the pan, water boils off, oil smokes and then catches, rice soaks up water and sugar turns to caramel. Cook what the tickets ask for, or just cook.</p>
+      <ol class="steps">
+        <li>Pick an ingredient on the shelf, then press and drag in the kitchen to pour it.</li>
+        <li>Tap a burner knob on the stove to set the heat. Tap the tap and the hood to turn them on.</li>
+        <li>Use the scoop to move food onto the plate, bowl or mug, then press Serve.</li>
+        <li>Things will catch fire. A lid or the foam puts it out. Water makes it much worse.</li>
+      </ol>
+      <div class="row"><button class="btn pri" id="mShift">Start a shift</button><button class="btn" id="mFree">Free cooking</button><button class="btn" id="mClean">Clean the kitchen</button><button class="btn" id="mSound">Sound: on</button><button class="btn" id="mScreen" hidden>Screen: sideways</button></div>
+      <h3>Achievements</h3>
+      <div class="achs" id="achs"></div>
+    </div>
+  </section>
+
+  <section class="sheet" id="book" hidden>
+    <div class="card" style="width:min(820px,100%)">
+      <h2>Recipe book</h2>
+      <p>Everything here is physics, so these are ways that work rather than the only way. Stars show your best so far.</p>
+      <div class="recipes" id="recipes"></div>
+      <div class="row"><button class="btn pri" id="bookClose">Back to the kitchen</button></div>
+    </div>
+  </section>
+
+  <section class="sheet" id="summary" hidden>
+    <div class="card">
+      <h2 id="sumTitle">Shift over</h2>
+      <div class="quote" id="sumQuote"></div>
+      <table class="res"><tbody id="sumRows"></tbody></table>
+      <p id="sumChaos"></p>
+      <div class="row"><button class="btn pri" id="sumNext">Next shift</button><button class="btn" id="sumFree">Free cooking</button></div>
+    </div>
+  </section>
+
+  <div id="veil">SIZZLE SAND</div>
+</div>
