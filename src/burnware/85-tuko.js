@@ -18,7 +18,8 @@ const TUKO_LINES = [
   'Omnigacha keeps asking me to pull. I do not have thumbs.',
   'Click the clock in the corner to time travel. SparkNet News in Torch follows you to that year.',
   'Rain.wav is my favourite. It sounds like the roof of my old house.',
-  'Kaiju Rampage is not ready yet. I am still growing. Forty metres is a lot of metres.',
+  'Kaiju Rampage tip: knock out the bottom floor and the whole building comes down. I read that somewhere. I am a gecko.',
+  'In Kaiju Rampage, a roar knocks helicopters out of the sky. Also it is very good for your lungs.',
   'You can make your own painting the wallpaper. Paint > File > Set As Wallpaper.',
   'If you leave me alone for a while, the screen saver comes out. I hide behind it.',
 ];

@@ -1,7 +1,7 @@
 #!/bin/sh
 # Rebuilds the site from the parts in src/:
 #   index.html             the Burnware desktop
-#   apps/omnigacha.html    apps/wrc-1988.html    apps/sizzle-sand.html
+#   apps/omnigacha.html    apps/wrc-1988.html    apps/sizzle-sand.html    apps/kaiju-rampage.html
 # It only glues files together, so there is nothing to install. Run it from anywhere:  sh build.sh
 set -e
 cd "$(dirname "$0")"
@@ -76,5 +76,17 @@ JS="10-core.js 11-elements.js 12-sim.js 13-kitchen.js 14-tools.js 15-recipes.js 
   echo '<script>'; for f in $JS; do [ -f $D/$f ] && { cat $D/$f; echo; }; done; echo '</script>'
   printf '</body>\n</html>\n'
 } > apps/sizzle-sand.html
+
+# ---------- Kaiju Rampage ----------
+D=src/kaiju-rampage
+JS="10-core.js 15-audio.js 20-world.js 30-voxels.js 32-city.js 34-damage.js 35-fx.js 40-kaiju.js 45-moves.js 50-units.js 55-army.js 60-game.js 62-hud.js 99-main.js"
+{
+  open_page "Kaiju Rampage: Tuko, 40 metres tall, loose in a city made of blocks." "$BASE_BW" "../"
+  head_part $D/00-head.html
+  printf '</head>\n<body>\n'
+  cat $D/01-body.html
+  echo '<script>'; for f in $JS; do echo "/* ---- $f ---- */"; cat "$D/$f"; done; echo '</script>'
+  printf '</body>\n</html>\n'
+} > apps/kaiju-rampage.html
 
 wc -c index.html apps/*.html

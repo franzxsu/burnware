@@ -1,0 +1,35 @@
+
+<div id="view" aria-label="Kaiju Rampage, a 3D city"></div>
+<div id="loading">LOADING THE CITY…</div>
+<div class="hud" id="tl" hidden>
+  <div class="lbl"><span>Tuko</span><span id="hpnum">100</span></div><div class="bar" id="hpbar"><i></i></div>
+  <div class="lbl"><span>Beam</span><span id="ennum">100</span></div><div class="bar" id="enbar"><i></i></div>
+</div>
+<div class="hud" id="tc" hidden><div id="timer">3:00</div><div id="wave"></div></div>
+<div class="hud" id="tr" hidden><div id="dmglbl">Damage so far</div><div id="dmg">$0</div><div id="combo"></div></div>
+<div id="topbtns" hidden><button id="bMute" aria-label="Sound">Sound on</button><button id="bPause" aria-label="Pause">Pause</button></div>
+<svg id="cross" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="9" fill="none" stroke="#66e8ff" stroke-width="2"/><path d="M13 0v7M13 19v7M0 13h7M19 13h7" stroke="#66e8ff" stroke-width="2"/></svg>
+<div id="toast" aria-live="polite"></div>
+<div id="pad"></div><div id="stick"><i></i></div>
+<div id="acts" aria-label="Actions"><button data-a="stomp">STOMP</button><button data-a="tail">TAIL</button><button data-a="roar">ROAR</button><button data-a="beam">BEAM</button></div>
+<div id="news" hidden><b>BREAKING</b><div class="roll"><span id="ticker"></span></div></div>
+<section class="screen" id="title" hidden>
+  <div class="card">
+    <p class="sub">Tonight on the evening news</p>
+    <h1 class="title">KAIJU<br><em>RAMPAGE</em></h1>
+    <p class="sub">Starring Tuko, now 40 metres tall</p>
+    <button class="big" id="go">START THE RAMPAGE</button>
+    <div class="keys" id="keys"></div>
+    <div class="best" id="best"></div>
+    <p class="note">Three minutes. Flatten what you can. The army will have opinions. Nobody gets hurt: people run for the subway and pop out of sight.</p>
+  </div>
+</section>
+<section class="screen" id="results" hidden>
+  <div class="card">
+    <p class="sub" id="resWhy">Rampage report</p>
+    <div class="rank" id="rank"></div>
+    <div class="report" id="report"></div>
+    <div class="best" id="resBest"></div>
+    <button class="big" id="again">RAMPAGE AGAIN</button>
+  </div>
+</section>

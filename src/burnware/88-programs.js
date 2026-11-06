@@ -7,6 +7,7 @@ const HOSTED = [
   { id: 'omni', title: 'Omnigacha', icon: 'gacha', src: 'apps/omnigacha.html', w: 460, h: 800, blurb: 'A gacha machine that pulls for everything.' },
   { id: 'pebble', title: 'WRC 1988', icon: 'car', src: 'apps/wrc-1988.html', w: 1020, h: 640, blurb: 'Flat out on loose gravel. Season 1988.' },
   { id: 'sizzle', title: 'Sizzle Sand', icon: 'pan', src: 'apps/sizzle-sand.html', w: 960, h: 700, blurb: 'A kitchen where every grain is simulated.' },
+  { id: 'kaiju', title: 'Kaiju Rampage', icon: 'gecko', src: 'apps/kaiju-rampage.html', w: 1100, h: 680, blurb: 'Tuko, 40 metres tall, loose in a city made of blocks.' },
 ];
 const Host = {
   mount(win, a) {
@@ -99,19 +100,6 @@ APPS.video = {
 };
 APPS.video.single = true;
 APPS.video.reopen = (w, a) => { if (a && a.autoplay && w.playNow) w.playNow(); };
-
-/* ---------- the one still being built ---------- */
-APPS.kaiju = {
-  title: 'Kaiju Rampage', icon: 'gecko', w: 400, h: 250, resizable: false, center: true, single: true,
-  open(win) {
-    const cv = h('canvas', { width: 96, height: 64, style: { width: '120px', height: '80px', imageRendering: 'pixelated', flex: 'none' } });
-    Icons.draw(TUKO[0], 4, cv.getContext('2d'), 0, 0);
-    win.body.append(
-      h('div.teaser', cv, h('div', h('b', 'KAIJU.EXE is still being built.'), h('p', 'Tuko is eating a lot of mosquitoes so he can grow 40 metres tall. When he is big enough, this is where the city gets it.'), h('p', h('small', 'Check back soon.')))),
-      h('div.dlgbtns', h('button.btn.def', { text: 'OK', on: { click: () => { Sound.click(); WM.close(win); } } })));
-    Sound.ding();
-  },
-};
 
 /* the new programs go first in the Start menu, and on the desktop right after the system icons */
 APP_ORDER.unshift('omni', 'pebble', 'sizzle', 'video', 'kaiju');

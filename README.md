@@ -12,7 +12,7 @@ Press the power button, wait for the BIOS and the boot screen, and you're on the
 | **WRC 1988** | A fan-made 3D rally game dressed like a late-80s arcade cabinet: loose gravel, big slides, rivals, ghosts and replays. (It started life as Pebble Dash. Not affiliated with the FIA World Rally Championship.) |
 | **Sizzle Sand** | A kitchen where every grain is simulated. Heat spreads, water boils off, oil catches fire. |
 | **Rain.wav** | A one-minute lo-fi music video. Every pixel and every note was made in code. Plays in the Media Player. |
-| **Kaiju Rampage** | Still being built. |
+| **Kaiju Rampage** | You're Tuko the gecko, 40 metres tall, in a 3D city made of 30,000 blocks. Stomp, tail-spin, roar and beam; buildings collapse when a floor gives way; police, tanks, helicopters and jets try to stop you. Three minutes, scored in dollars of damage. Nobody gets hurt. |
 
 Plus the built-in programs: Paint, Minesweeper, Solitaire, Snake, Notepad, Command Prompt, Torch (the World Wide Web, as it was), Smoke Signals (chat with DialUpDan), MixBurner (the music player) and Display Properties. Tuko the gecko lives on the desktop. There's a locked folder, and he knows the password.
 
@@ -31,6 +31,7 @@ src/burnware/           the desktop's parts: one file per program or system piec
 src/omnigacha/          the parts of each big program
 src/wrc-1988/
 src/sizzle-sand/
+src/kaiju-rampage/
 build.sh                glues the parts in src/ into index.html and apps/
 ```
 

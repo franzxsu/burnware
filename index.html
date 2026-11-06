@@ -739,7 +739,7 @@ const FS = {
     return { txt: 'txt', img: 'img', sys: 'sys', snd: 'music', vid: 'video' }[n.kind] || 'txt';
   },
 };
-const README = `Welcome to Burnware!\r\n====================\r\n\r\nYou are using the only operating system built entirely\r\nout of burnt tokens.\r\n\r\nOn the desktop:\r\n  * Omnigacha: a gacha machine that pulls for everything.\r\n    Tap it for tokens. The rates are what they are.\r\n  * WRC 1988: rallying the way it looked in 1988.\r\n  * Sizzle Sand: a kitchen where every grain is simulated.\r\n    Things will catch fire. Water makes it worse.\r\n  * Rain.wav: a lo-fi music video, made from code.\r\n  * Kaiju Rampage: still being built. Tuko is growing.\r\n\r\nThings to try:\r\n  * Drag windows around by their title bar. Resize them\r\n    from the bottom-right corner.\r\n  * Paint something, then use File > Set as Wallpaper.\r\n  * Beat Minesweeper on Expert. (Nobody has. Be the first.)\r\n  * Open Smoke Signals and say hi to DialUpDan.\r\n  * Open Command Prompt and type HELP.\r\n  * Surf the World Wide Web with Torch.\r\n  * There is a locked folder somewhere. Tuko knows things.\r\n\r\nEverything you save stays in this browser.\r\nWhen you are done, use Start > Shut Down like a civilised person.\r\n`;
+const README = `Welcome to Burnware!\r\n====================\r\n\r\nYou are using the only operating system built entirely\r\nout of burnt tokens.\r\n\r\nOn the desktop:\r\n  * Omnigacha: a gacha machine that pulls for everything.\r\n    Tap it for tokens. The rates are what they are.\r\n  * WRC 1988: rallying the way it looked in 1988.\r\n  * Sizzle Sand: a kitchen where every grain is simulated.\r\n    Things will catch fire. Water makes it worse.\r\n  * Rain.wav: a lo-fi music video, made from code.\r\n  * Kaiju Rampage: Tuko, 40 metres tall, loose in a city of\r\n    blocks. Stomp, spin, roar and beam. The army objects.\r\n\r\nThings to try:\r\n  * Drag windows around by their title bar. Resize them\r\n    from the bottom-right corner.\r\n  * Paint something, then use File > Set as Wallpaper.\r\n  * Beat Minesweeper on Expert. (Nobody has. Be the first.)\r\n  * Open Smoke Signals and say hi to DialUpDan.\r\n  * Open Command Prompt and type HELP.\r\n  * Surf the World Wide Web with Torch.\r\n  * There is a locked folder somewhere. Tuko knows things.\r\n\r\nEverything you save stays in this browser.\r\nWhen you are done, use Start > Shut Down like a civilised person.\r\n`;
 const TODO = `TO DO\r\n-----\r\n[ ] beat Minesweeper on Expert\r\n[x] beat Minesweeper on Beginner (took 3 tries, dont tell anyone)\r\n[ ] DO NOT pick up the phone while the internet is on\r\n[ ] save up for a 2 GB hard drive (who even needs that much??)\r\n[ ] learn HTML. make a homepage. get a guestbook\r\n[ ] find out what Y2K actually is\r\n[ ] defragment the hard drive and watch the little blocks\r\n[ ] stop naming files FINAL_final\r\n`;
 const POEM = `dial-up, at midnight\r\n\r\nthe modem sings its broken song,\r\na whistle, then a hiss,\r\nand somewhere down the copper line\r\nthe whole wide world says this:\r\n\r\n"hello, small hut, so warm and dry,\r\nwhile rain taps on your thatch,\r\nhere is a page, it loads one line\r\nat a time. you'll catch up. relax."\r\n`;
 const TREASURE = `YOU FOUND IT!\r\n\r\nThe password was the snack. Tuko is very proud of you.\r\n\r\nAs a reward, a new wallpaper is waiting for you in\r\nDisplay Properties: "Golden hour".\r\n\r\nAlso, here is a secret: if you type  tuko dance  in the\r\nterminal, something happens.\r\n`;
@@ -1127,7 +1127,7 @@ APPS.help = {
       <li><b>WRC 1988:</b> a fan-made rally game, dressed like it's 1988, on loose gravel. Arrow keys or WASD, Space for the handbrake. On a phone, turn it sideways.</li>
       <li><b>Sizzle Sand:</b> a kitchen where every grain is simulated. Cook what the tickets ask for, or just cook. Things will catch fire.</li>
       <li><b>Rain.wav:</b> a lo-fi music video, every pixel and note made in code. It plays in the Media Player.</li>
-      <li><b>Kaiju Rampage:</b> still being built.</li></ul>
+      <li><b>Kaiju Rampage:</b> you are Tuko, 40 metres tall, in a city made of blocks. WASD to walk, drag to look, Space to stomp, E to spin the tail, R to roar, hold F (or the right mouse button) for the beam. Buildings fall when you knock out a floor. Three minutes; the army will have opinions. Nobody gets hurt: everyone makes it to the subway.</li></ul>
       <p>Each of the big ones runs in its own window. Use <b>Full screen</b> or <b>New tab</b> in its toolbar to give it the whole screen.</p>
       <h3>The time machine</h3>
       <p>Click the clock on the taskbar to pick a year. Burnware moves to it, and <b>SparkNet News</b> in Torch shows real headlines from that year, read live from Wikipedia. Any year from 1000 to now works.</p>
@@ -2534,7 +2534,8 @@ const TUKO_LINES = [
   'Omnigacha keeps asking me to pull. I do not have thumbs.',
   'Click the clock in the corner to time travel. SparkNet News in Torch follows you to that year.',
   'Rain.wav is my favourite. It sounds like the roof of my old house.',
-  'Kaiju Rampage is not ready yet. I am still growing. Forty metres is a lot of metres.',
+  'Kaiju Rampage tip: knock out the bottom floor and the whole building comes down. I read that somewhere. I am a gecko.',
+  'In Kaiju Rampage, a roar knocks helicopters out of the sky. Also it is very good for your lungs.',
   'You can make your own painting the wallpaper. Paint > File > Set As Wallpaper.',
   'If you leave me alone for a while, the screen saver comes out. I hide behind it.',
 ];
@@ -2591,6 +2592,7 @@ const HOSTED = [
   { id: 'omni', title: 'Omnigacha', icon: 'gacha', src: 'apps/omnigacha.html', w: 460, h: 800, blurb: 'A gacha machine that pulls for everything.' },
   { id: 'pebble', title: 'WRC 1988', icon: 'car', src: 'apps/wrc-1988.html', w: 1020, h: 640, blurb: 'Flat out on loose gravel. Season 1988.' },
   { id: 'sizzle', title: 'Sizzle Sand', icon: 'pan', src: 'apps/sizzle-sand.html', w: 960, h: 700, blurb: 'A kitchen where every grain is simulated.' },
+  { id: 'kaiju', title: 'Kaiju Rampage', icon: 'gecko', src: 'apps/kaiju-rampage.html', w: 1100, h: 680, blurb: 'Tuko, 40 metres tall, loose in a city made of blocks.' },
 ];
 const Host = {
   mount(win, a) {
@@ -2683,19 +2685,6 @@ APPS.video = {
 };
 APPS.video.single = true;
 APPS.video.reopen = (w, a) => { if (a && a.autoplay && w.playNow) w.playNow(); };
-
-/* ---------- the one still being built ---------- */
-APPS.kaiju = {
-  title: 'Kaiju Rampage', icon: 'gecko', w: 400, h: 250, resizable: false, center: true, single: true,
-  open(win) {
-    const cv = h('canvas', { width: 96, height: 64, style: { width: '120px', height: '80px', imageRendering: 'pixelated', flex: 'none' } });
-    Icons.draw(TUKO[0], 4, cv.getContext('2d'), 0, 0);
-    win.body.append(
-      h('div.teaser', cv, h('div', h('b', 'KAIJU.EXE is still being built.'), h('p', 'Tuko is eating a lot of mosquitoes so he can grow 40 metres tall. When he is big enough, this is where the city gets it.'), h('p', h('small', 'Check back soon.')))),
-      h('div.dlgbtns', h('button.btn.def', { text: 'OK', on: { click: () => { Sound.click(); WM.close(win); } } })));
-    Sound.ding();
-  },
-};
 
 /* the new programs go first in the Start menu, and on the desktop right after the system icons */
 APP_ORDER.unshift('omni', 'pebble', 'sizzle', 'video', 'kaiju');
