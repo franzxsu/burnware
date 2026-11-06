@@ -13,6 +13,7 @@ Press the power button, wait for the BIOS and the boot screen, and you're on the
 | **Sizzle Sand** | A kitchen where every grain is simulated. Heat spreads, water boils off, oil catches fire. |
 | **Rain.wav** | A one-minute lo-fi music video. Every pixel and every note was made in code. Plays in the Media Player. |
 | **Burn Studio** | A music maker in the spirit of GarageBand: drums, bass, keys and synth tracks, four scenes to arrange, a loop library that always fits your key, a playable keyboard and drum pads (or A to K on a computer), recording, and WAV export. Every sound is synthesized live. |
+| **Games folder** | Number Place (sudoku with unique-answer puzzles), Blockfall (falling blocks), Five Letters (a daily 5-letter word guess), Typing Racer (race three rivals by typing) and Spider Solitaire (1, 2 or 4 suits), styled like the games that shipped with a 1998 PC. Word list: [word-list](https://github.com/sindresorhus/word-list) (MIT). |
 | **Kaiju Rampage** | You're Tuko the gecko, 40 metres tall, in a 3D city made of 30,000 blocks. Stomp, tail-spin, roar and beam; buildings collapse when a floor gives way; police, tanks, helicopters and jets try to stop you. Three minutes, scored in dollars of damage. Nobody gets hurt. |
 
 Plus the built-in programs: Paint, Minesweeper, Solitaire, Snake, Notepad, Command Prompt, Torch (the World Wide Web, as it was), Smoke Signals (chat with DialUpDan), MixBurner (the music player) and Display Properties. Tuko the gecko lives on the desktop. There's a locked folder, and he knows the password.

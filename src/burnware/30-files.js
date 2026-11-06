@@ -117,6 +117,7 @@ APPS.help = {
       <li><b>Rain.wav:</b> a lo-fi music video, every pixel and note made in code. It plays in the Media Player.</li>
       <li><b>Burn Studio:</b> make a song. Tap out drums, draw bass and chords on a grid, drop in loops from the library, play live on the keyboard (A to K on a computer) and record it. Song ☰ exports a WAV.</li>
       <li><b>Kaiju Rampage:</b> you are Tuko, 40 metres tall, in a city made of blocks. WASD to walk, drag to look, Space to stomp, E to spin the tail, R to roar, hold F (or the right mouse button) for the beam. Buildings fall when you knock out a floor. Three minutes; the army will have opinions. Nobody gets hurt: everyone makes it to the subway.</li></ul>
+      <li><b>Games folder:</b> Number Place (sudoku), Blockfall (falling blocks), Five Letters (a word a day), Typing Racer and Spider Solitaire, alongside Minesweeper, Solitaire and Snake. On the desktop and in Start, Programs.</li>
       <p>Each of the big ones runs in its own window. Use <b>Full screen</b> or <b>New tab</b> in its toolbar to give it the whole screen.</p>
       <h3>The time machine</h3>
       <p>Click the clock on the taskbar to pick a year. Burnware moves to it, and <b>SparkNet News</b> in Torch shows real headlines from that year, read live from Wikipedia. Any year from 1000 to now works.</p>
