@@ -19,6 +19,7 @@ const TUKO_LINES = [
   'I made a song in Burn Studio. It is mostly kick drum. Like my heartbeat when I see a moth.',
   'Click the clock in the corner to time travel. SparkNet News in Torch follows you to that year.',
   'Five Letters has a new word every day. Yesterday it was SNACK. I wish.',
+  'Pinball: light B, U, R and N at the top and the jackpot is worth more. I would help but my arms are too short for the flippers.',
   'Blockfall tip: leave a gap on the side for the long piece. Then wait. And wait. It never comes.',
   'Typing Racer: I type 4 words per minute. Toes are not built for this.',
   'Rain.wav is my favourite. It sounds like the roof of my old house.',

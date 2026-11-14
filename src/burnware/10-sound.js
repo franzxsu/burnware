@@ -50,6 +50,9 @@ const Sound = (() => {
       if (!ctx) return; const t = now() + 0.05, bus = echoBus();
       [[587.3, 0], [493.9, 0.18], [392, 0.36], [329.6, 0.54], [261.6, 0.75]].forEach(([f, d]) => tone(f, t + d, 1.8, { type: 'triangle', vol: 0.1, attack: 0.03, to: bus }));
     },
+    /* building blocks for programs that need their own sound effects */
+    beep(f, dur, o, delay = 0) { if (ctx) tone(f, now() + delay, dur, o); },
+    hiss(dur, o, delay = 0) { if (ctx) noise(now() + delay, dur, o); },
     click() { if (!ctx) return; noise(now(), 0.025, { vol: 0.12, freq: 3200, q: 2 }); },
     ding() { if (!ctx) return; const t = now(); tone(880, t, 0.5, { type: 'triangle', vol: 0.16 }); tone(1318, t + 0.02, 0.6, { type: 'sine', vol: 0.06 }); },
     chord() { if (!ctx) return; const t = now(); [523, 659, 784].forEach((f, k) => tone(f, t + k * 0.02, 0.7, { type: 'triangle', vol: 0.09 })); },
