@@ -11,24 +11,25 @@ APPS.terminal = {
     const promptEl = h('span');
     const line = h('div.in', promptEl, inp);
     win.body.append(out); out.append(line);
-    let cwd = 'C:', hist = [], hi = 0, busy = null;
+    let cwd = 'C:', hist = [], hi = 0, busy = null, reader = null;   // reader: a running program waiting for you to type an answer
     const P = () => (cwd === 'C:' ? 'C:\\' : cwd) + '>';
     const print = (s = '', cls) => { const d = h('div' + (cls ? '.' + cls : ''), s); out.insertBefore(d, line); out.scrollTop = out.scrollHeight; return d; };
-    const setPrompt = () => { promptEl.textContent = P(); };
+    const setPrompt = () => { promptEl.textContent = reader ? reader.q + ' ' : P(); };
+    const ask = (q, cb) => { reader = { q, cb }; setPrompt(); };
     const abs = (p) => { if (!p) return cwd; p = p.replace(/\//g, '\\'); if (/^c:/i.test(p)) return p.replace(/\\+$/, '') || 'C:'; if (p.startsWith('\\')) return 'C:' + p.replace(/\\+$/, ''); const parts = FS.split(cwd); for (const seg of p.split('\\')) { if (!seg || seg === '.') continue; if (seg === '..') { if (parts.length > 1) parts.pop(); } else parts.push(seg); } return parts.join('\\'); };
     const stop = () => { if (busy) { busy(); busy = null; } };
     const cmds = {
       help: () => print('Commands:\n  DIR [path]     list files            CD [path]       change folder\n  TYPE file      show a text file      MD name         make a folder\n  DEL file       delete (careful)      START program   open a program\n  CLS            clear the screen      ECHO text       say something\n  DATE / TIME    what it is            VER             Burnware version\n  TREE           folder tree           COLOR a|b|c|d   change colours\n  PING host      test the internet     CALC 2+2        a calculator\n  FORTUNE        wisdom                MATRIX          follow the white rabbit\n  HACK           look busy             TUKO [dance|say text]\n  WEATHER, WHOAMI, BEEP, HISTORY, EXIT'),
       dir: (a) => {
-        const p = abs(a[0]), n = FS.resolve(p); if (!n || n.type !== 'dir') return print('File Not Found', 'err');
+        const all = a.some(x => /^\/a/i.test(x)), p = abs(a.filter(x => !x.startsWith('/')).join(' ')), n = FS.resolve(p); if (!n || n.type !== 'dir') return print('File Not Found', 'err');
         if (n.locked) return print('Access is denied.', 'err');
         print(` Volume in drive C is BURNWARE\n Directory of ${p === 'C:' ? 'C:\\' : p}\n`);
         let files = 0, dirs = 0, bytes = 0;
-        for (const c of n.children) { const s = FS.size(c); if (c.type === 'dir') dirs++; else { files++; bytes += s; } print(`${c.type === 'dir' ? '<DIR>'.padEnd(10) : String(s).padStart(10)}  ${c.name}`); }
+        for (const c of n.children) { if (c.hidden && !all) continue; const s = FS.size(c); if (c.type === 'dir') dirs++; else { files++; bytes += s; } print(`${c.type === 'dir' ? '<DIR>'.padEnd(10) : String(s).padStart(10)}  ${c.name}`); }
         print(`${String(files).padStart(10)} file(s) ${String(bytes).padStart(12)} bytes\n${String(dirs).padStart(10)} dir(s)    1,337,000,000 bytes free`);
       },
       cd: (a) => { if (!a[0]) return print(cwd === 'C:' ? 'C:\\' : cwd); const p = abs(a.join(' ')), n = FS.resolve(p); if (!n || n.type !== 'dir') return print('Invalid directory', 'err'); if (n.locked) return print('Access is denied. (It is password protected. Open it in My Computer.)', 'err'); cwd = p; },
-      type: (a) => { const n = FS.resolve(abs(a.join(' '))); if (!n || n.type !== 'file') return print('File not found', 'err'); if (n.kind === 'img') return print('That is a picture. Try: start ' + n.name, 'dim'); if (n.kind === 'snd') return print('♪ ♫ ♪  (it is a sound. Try: start ' + n.name + ')', 'dim'); if (n.kind === 'app') return print('[shortcut to ' + n.app + ']', 'dim'); print((n.text || '').replace(/\r\n/g, '\n')); },
+      type: (a) => { const n = FS.resolve(abs(a.join(' '))); if (!n || n.type !== 'file') return print('File not found', 'err'); if (n.kind === 'img') return print('That is a picture. Try: start ' + n.name, 'dim'); if (n.kind === 'snd') return print('♪ ♫ ♪  (it is a sound. Try: start ' + n.name + ')', 'dim'); if (n.kind === 'app') return print('[shortcut to ' + n.app + ']', 'dim'); if (n.kind === 'song') return print('♪ (it is a song. Try: start ' + n.name + ')', 'dim'); print((n.text || '').replace(/\r\n/g, '\n')); },
       md: (a) => { if (!a[0]) return print('Required parameter missing', 'err'); const p = abs(a.join(' ')); if (!FS.mkdir(p)) print('Unable to create directory', 'err'); },
       del: (a) => {
         const raw = a.join(' ');
@@ -78,12 +79,24 @@ APPS.terminal = {
         print(bub + '\n   \\\n    \\    __\n      (o >_______\n       \\  ___  _ \\___~\n        \'-\'  \'-\' \'-\'', 'hot');
       },
     };
+    /* hidden files: DIR /A lists them, ATTRIB shows which ones they are */
+    cmds.attrib = (a) => { const p = abs(a.join(' ')), n = FS.resolve(p); if (!n) return print('File not found', 'err'); for (const c of (n.type === 'dir' ? n.children : [n])) if (c.type === 'file') print(`  ${c.hidden ? 'H' : ' '}${c.system || c.kind === 'sys' ? 'S' : ' '}    ${FS.join(n.type === 'dir' ? p : FS.parentPath(p), c.name)}`); };
+    const help0 = cmds.help; cmds.help = () => { help0(); print('  DIR /A         also list hidden files   ATTRIB       show file attributes\n  To run a .BAT or .EXE file, go to its folder and type its name.'); };
+    /* typing a file's name runs it, the way DOS does */
+    const runFile = (name, args) => {
+      const dir = FS.resolve(cwd), want = name.toLowerCase(); if (!dir) return false;
+      const n = dir.children.find(c => c.type === 'file' && [want, want + '.bat', want + '.exe'].includes(c.name.toLowerCase())); if (!n) return false;
+      if (n.kind === 'bat' && typeof TermProgs !== 'undefined' && TermProgs[n.prog]) { TermProgs[n.prog]({ print, ask, args }); return true; }
+      if (n.kind === 'app') { WM.open(n.app); return true; }
+      return false;
+    };
     Object.assign(cmds, { ls: cmds.dir, cat: cmds.type, mkdir: cmds.md, rm: cmds.del, erase: cmds.del, clear: cmds.cls, '?': cmds.help, quit: cmds.exit, format: () => nuke(true), 'cd..': () => cmds.cd(['..']), 'cd\\': () => cmds.cd(['\\']) });
     function nuke(fmt) {
       print(fmt ? 'WARNING, ALL DATA ON NON-REMOVABLE DISK DRIVE C: WILL BE LOST!\nProceed with Format (Y/N)?' : 'Deleting everything...', 'err');
       setTimeout(() => Boot.bsod('BURNWARE_WAS_ASKED_TO_DELETE_ITSELF', 'You asked Burnware to delete everything. Burnware politely declined, by crashing.'), 1200);
     }
     const run = (raw) => {
+      if (reader) { const r = reader; reader = null; print(r.q + ' ' + raw); try { r.cb(raw.trim()); } catch (e) { print('Error: ' + e.message, 'err'); } setPrompt(); return; }
       print(P() + raw);
       const s = raw.trim(); if (!s) return;
       hist.push(s); hi = hist.length;
@@ -91,7 +104,7 @@ APPS.terminal = {
       if (c === 'rm' && parts[1] === '-rf') return nuke();
       const f = cmds[c]; if (f) { try { f(parts.slice(1), s); } catch (e) { print('Error: ' + e.message, 'err'); } }
       else if (/^c:$/i.test(c)) cwd = 'C:';
-      else print(`Bad command or file name: ${parts[0]}`, 'err');
+      else if (!runFile(parts[0], parts.slice(1))) print(`Bad command or file name: ${parts[0]}`, 'err');
       setPrompt();
     };
     inp.addEventListener('keydown', (e) => {

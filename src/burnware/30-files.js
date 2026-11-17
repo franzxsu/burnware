@@ -10,6 +10,8 @@ const Files = {
     if (n.kind === 'img') return WM.open('paint', { path });
     if (n.kind === 'snd') return WM.open('music', { track: n.track });
     if (n.kind === 'vid') return WM.open('video', { src: n.src, title: n.name });
+    if (n.kind === 'song') return WM.open('studio', { hash: n.hash });
+    if (n.kind === 'bat') return WM.alert(n.name, `${n.name} is an MS-DOS batch file.\n\nTo run it, open the Command Prompt, go to its folder and type its name.`, 'terminal');
     if (n.kind === 'sys') return WM.ask('Open System File', `${n.name} is a system file. Burnware needs it to keep running.\nOpening it is fine. Editing it is how blue screens are made.`, ['Open anyway', 'Cancel'], 'warn').then(r => { if (r === 'Open anyway') WM.open('notepad', { path }); });
     return WM.open('notepad', { path });
   },
@@ -70,6 +72,7 @@ APPS.explorer = {
       grid.replaceChildren();
       if (!kids.length) grid.append(h('div.empty-note', inBin() ? 'The Recycle Bin is empty.' : 'This folder is empty.'));
       kids.forEach((n, i) => {
+        if (n.hidden && !inBin()) return;   // hidden files only show up in the Command Prompt, with DIR /A
         const b = h('button.fitem', { title: n.name }, Icons.img(FS.iconFor(n)), h('span', n.name));
         const launch = () => { const t = Date.now(); if (t - (b._t || 0) < 800) return; b._t = t; openItem(n, i); };
         b.onclick = () => { $$('.fitem.sel', grid).forEach(x => x.classList.remove('sel')); b.classList.add('sel'); sel = { n, i }; stR.textContent = n.type === 'dir' ? 'Folder' : fmtSize(FS.size(n)); if (isTouch()) launch(); };

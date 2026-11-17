@@ -39,7 +39,7 @@ const Host = {
     win.onClose = () => { try { frame.src = 'about:blank'; } catch (e) { /* ignore */ } };
   },
 };
-for (const a of HOSTED) APPS[a.id] = { title: a.title, icon: a.icon, w: a.w, h: a.h, minW: 300, minH: 260, center: true, hosted: true, open(win) { Host.mount(win, a); } };
+for (const a of HOSTED) APPS[a.id] = { title: a.title, icon: a.icon, w: a.w, h: a.h, minW: 300, minH: 260, center: true, hosted: true, open(win, args) { Host.mount(win, args && args.hash ? Object.assign({}, a, { src: a.src + args.hash }) : a); } };
 function tapBtn(text, title, fn) { const b = h('button.tool', { text, title }); onTap(b, fn); return b; }
 if (!isTouch()) {   // with a mouse and keyboard: when a hosted window comes to the front, hand the keyboard to the program inside it
   const focus = WM.focus.bind(WM);

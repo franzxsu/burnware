@@ -75,7 +75,7 @@ APPS.paint = {
       cv.setPointerCapture(e.pointerId); const [x, y] = at(e), col = e.button === 2 ? bg : fg;
       if (tool === 'pick') { const p = ctx.getImageData(x, y, 1, 1).data; const c = '#' + [p[0], p[1], p[2]].map(v => v.toString(16).padStart(2, '0')).join(''); if (e.button === 2) bg = c; else fg = c; showCur(); return; }
       push(); dirty = true; title(); down = { col }; last = [x, y]; start = [x, y];
-      if (tool === 'fill') { flood(x, y, col); down = false; return; }
+      if (tool === 'fill') { flood(x, y, col); down = false; if (typeof Quest !== 'undefined') Quest.painted(path); return; }
       if (tool === 'pencil') dot(x, y, 1, col);
       if (tool === 'brush') dot(x, y, size + 1, col);
       if (tool === 'eraser') dot(x, y, size * 3 + 3, bg);

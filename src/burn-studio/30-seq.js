@@ -6,7 +6,7 @@
    ============================================================ */
 const App = {
   song: null, track: 0, scene: 0, bar: 0, rec: false, len: 2, surface: null, octave: 0, saveT: null,
-  changed(full) { clearTimeout(this.saveT); this.saveT = setTimeout(() => Store.save(this.song), 350); UI.scenes(); if (full) UI.all(); },
+  changed(full) { clearTimeout(this.saveT); if (!this.peek) this.saveT = setTimeout(() => Store.save(this.song), 350); UI.scenes(); if (full) UI.all(); },
   pick(i) { this.track = i; this.surface = null; UI.all(); },
   setScene(s) {
     if (Seq.playing && !this.song.chain && s !== Seq.scene) { Seq.queued = s; this.scene = s; UI.all(); toast('Scene ' + 'ABCD'[s] + ' comes in on the next loop'); return; }

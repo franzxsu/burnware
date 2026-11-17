@@ -22,6 +22,7 @@ const TUKO_LINES = [
   'Pinball: light B, U, R and N at the top and the jackpot is worth more. I would help but my arms are too short for the flippers.',
   'Blockfall tip: leave a gap on the side for the long piece. Then wait. And wait. It never comes.',
   'Typing Racer: I type 4 words per minute. Toes are not built for this.',
+  'I am a detective now. I have a notebook. If you are stuck on a case, my notes have hints.',
   'Rain.wav is my favourite. It sounds like the roof of my old house.',
   'Kaiju Rampage tip: knock out the bottom floor and the whole building comes down. I read that somewhere. I am a gecko.',
   'In Kaiju Rampage, a roar knocks helicopters out of the sky. Also it is very good for your lungs.',

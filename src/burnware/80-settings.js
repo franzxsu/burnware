@@ -60,7 +60,7 @@ const Gen = {
     g.fillStyle = 'rgba(255,255,255,.85)'; g.font = `700 ${s * 6}px Silkscreen, monospace`; g.textAlign = 'center'; g.fillText('Burnware', w / 2, h / 2 + 10 * s);
   },
 };
-const WALLS = [['terraces', 'Rice terraces'], ['clouds', 'Clouds'], ['stars', 'Starry night'], ['sunset', 'Sunset'], ['kubo', 'Hut in the rain'], ['teal', 'Plain teal'], ['golden', 'Golden hour (secret)'], ['custom', 'My painting']];
+const WALLS = [['terraces', 'Rice terraces'], ['clouds', 'Clouds'], ['stars', 'Starry night'], ['sunset', 'Sunset'], ['kubo', 'Hut in the rain'], ['teal', 'Plain teal'], ['golden', 'Golden hour (secret)'], ['fireflies', 'Firefly night (from Luz)'], ['custom', 'My painting']];
 const SCHEMES = {
   ember: { name: 'Ember', t1: '#5c1408', t2: '#e2642c', desk: '#2a1620', sel: '#8a2410' },
   kubo: { name: 'Classic teal', t1: '#0b3a68', t2: '#1d8b98', desk: '#1f6f6b', sel: '#0b3a68' },
@@ -72,7 +72,7 @@ const SCHEMES = {
 const Wall = {
   paint() {
     const cv = $('#wall'), d = $('#desk'), W = d.clientWidth, H = d.clientHeight; if (!W || !H) return;
-    let id = Store.data.wall; if (id === 'golden' && !Store.data.secret) id = 'terraces'; if (id === 'custom' && !Store.data.customWall) id = 'terraces';
+    let id = Store.data.wall; if (id === 'golden' && !Store.data.secret) id = 'terraces'; if (id === 'fireflies' && !(Store.data.quest && Store.data.quest.closed)) id = 'terraces'; if (id === 'custom' && !Store.data.customWall) id = 'terraces';
     const px = id === 'custom' ? 1 : 3;   // the painted ones are drawn chunky on purpose
     cv.width = Math.ceil(W / px); cv.height = Math.ceil(H / px); cv.style.imageRendering = px > 1 ? 'pixelated' : 'auto';
     const g = cv.getContext('2d'); g.imageSmoothingEnabled = false;
@@ -138,7 +138,7 @@ APPS.settings = {
       tabs.replaceChildren(...T.map(([id, l]) => { const b = h('button' + (id === tab ? '.on' : ''), { role: 'tab', 'aria-selected': String(id === tab), text: l }); b.onclick = () => { tab = id; render(); }; return b; }));
       pane.replaceChildren();
       if (tab === 'bg') {
-        const walls = WALLS.filter(([id]) => (id !== 'golden' || Store.data.secret) && (id !== 'custom' || Store.data.customWall));
+        const walls = WALLS.filter(([id]) => (id !== 'golden' || Store.data.secret) && (id !== 'fireflies' || (Store.data.quest && Store.data.quest.closed)) && (id !== 'custom' || Store.data.customWall));
         const list = h('div.list.sunk', walls.map(([id, label]) => { const b = h('button' + (Store.data.wall === id ? '.on' : ''), { text: label }); b.onclick = () => { Store.data.wall = id; Store.save(); Wall.paint(); showPreview(id); $$('button', list).forEach(x => x.classList.toggle('on', x === b)); }; return b; }));
         pane.append(h('div.monitor', preview), h('div', { style: { marginBottom: '4px' } }, 'Wallpaper:'), list, h('p', { style: { fontSize: '11px', color: '#555' } }, 'Tip: in Paint, File > Set As Wallpaper uses your own painting.'));
         showPreview(Store.data.wall);

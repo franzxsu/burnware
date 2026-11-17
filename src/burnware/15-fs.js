@@ -88,7 +88,7 @@ const FS = {
   iconFor(n) {
     if (n.type === 'dir') return n.locked ? 'folderlock' : n.icon || 'folder';
     if (n.kind === 'app') { const a = APPS[n.app]; return a ? a.icon : 'app'; }
-    return { txt: 'txt', img: 'img', sys: 'sys', snd: 'music', vid: 'video' }[n.kind] || 'txt';
+    return { txt: 'txt', img: 'img', sys: 'sys', snd: 'music', vid: 'video', song: 'studio', bat: 'terminal' }[n.kind] || 'txt';
   },
 };
 const README = `Welcome to Burnware!\r\n====================\r\n\r\nYou are using the only operating system built entirely\r\nout of burnt tokens.\r\n\r\nOn the desktop:\r\n  * Omnigacha: a gacha machine that pulls for everything.\r\n    Tap it for tokens. The rates are what they are.\r\n  * WRC 1988: rallying the way it looked in 1988.\r\n  * Sizzle Sand: a kitchen where every grain is simulated.\r\n    Things will catch fire. Water makes it worse.\r\n  * Rain.wav: a lo-fi music video, made from code.\r\n  * Burn Studio: make a song. Drums, bass, keys, synths.\r\n  * Kaiju Rampage: Tuko, 40 metres tall, loose in a city of\r\n    blocks. Stomp, spin, roar and beam. The army objects.\r\n\r\nThings to try:\r\n  * Drag windows around by their title bar. Resize them\r\n    from the bottom-right corner.\r\n  * Paint something, then use File > Set as Wallpaper.\r\n  * Beat Minesweeper on Expert. (Nobody has. Be the first.)\r\n  * Open Smoke Signals and say hi to DialUpDan.\r\n  * Open Command Prompt and type HELP.\r\n  * Surf the World Wide Web with Torch.\r\n  * There is a locked folder somewhere. Tuko knows things.\r\n\r\nEverything you save stays in this browser.\r\nWhen you are done, use Start > Shut Down like a civilised person.\r\n`;

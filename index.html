@@ -563,6 +563,8 @@ Object.assign(SPR, {
   words: ['................', '................', '.GGGG.yyyy.dddd.', '.GGGG.yyyy.dddd.', '.GGGG.yyyy.dddd.', '.kkkk.kkkk.kkkk.', '................', '.dddd.GGGG.GGGG.', '.dddd.GGGG.GGGG.', '.dddd.GGGG.GGGG.', '.kkkk.kkkk.kkkk.', '................', '................', '................', '................', '................'],
   typing: ['.....kwkwk......', '.....wkwkw......', '.....kwkwk......', '.....k..........', '.kkkkkkkkkkkkkk.', '.kggggggggggggk.', '.kgwdwdwdwdwdgk.', '.kggggggggggggk.', '.kgdwdwdwdwdwgk.', '.kggggggggggggk.', '.kgggwwwwwwgggk.', '.kggggggggggggk.', '.kkkkkkkkkkkkkk.', '................', '................', '................'],
   spider: ['.ttttttttt......', '.tTtTtTtTt......', '.tkkkkkkkkkk....', '.tkwwwwwwwwwk...', '.tkwwkwwwkwwk...', '.tkwwwkwkwwwk...', '.tkkwwkkkwwkk...', '.tkwkkkkkkkwk...', '.tkwwwkkkwwwk...', '..kwkkkkkkkwk...', '..kkwwkkkwwkk...', '..kwwkwwwkwwk...', '..kwkwwwwwkwk...', '..kwwwwwwwwwk...', '..kkkkkkkkkkk...', '................'],
+  casefile: ['..kkkkkkkkkkk...', '..kRRRRRRRRRk...', '..kyyyyyyyyyk...', '..kykkkkkkkyk...', '..kyyyyyyyyyk...', '..kykkkkkyyyk...', '..kyyyyyyyyyk...', '..kykkkkkkkyk...', '..kyyyyykkkkk...', '..kykkkkwcwwk...', '..kyyyykcwwwk...', '..kyyyykwwwck...', '..kkkkkkkwwkkk..', '.........kk.kkk.', '.............kk.', '................'],
+  jar: ['................', '....kkkkkkkk....', '....kddddddk....', '...kkkkkkkkkk...', '...kcTTTTTTck...', '..kcTTlTTTTTck..', '..kcTTTTTmTTck..', '..kcTTTyTTTTck..', '..kcTmTTTTlTck..', '..kcTTTTmTTTck..', '..kcTlTTTTTTck..', '..kcTTTTTTyTck..', '...kcccccccck...', '....kkkkkkkk....', '................', '................'],
   pinball: ['......kkkk......', '....kkwwggkk....', '...kwwwgggggk...', '..kwwwggggggdk..', '..kwwgggggggdk..', '..kwggggggggdk..', '..kgggggggggdk..', '...kgggggggdk...', '....kkgdddkk....', '......kkkk......', '................', 'kkkk........kkkk', 'krrrkk....kkrrrk', '.kkrrrk..krrrkk.', '...kkrk..krkk...', '.....kk..kk.....'],
   gamesdir: ['................', '................', '.kkkkkk.........', 'kyllllyk........', 'kyyyyyyykkkkkkk.', 'kylllllllllllyk.', 'kyyyyykkkyyyyyk.', 'kyyyykdgdkyyyyk.', 'kyyykgkgkgkyyyk.', 'kyyykddgddkyyyk.', 'kyyyykgkgkyyyyk.', 'kYYYYYkkkYYYYYk.', 'kkkkkkkkkkkkkkk.', '................', '................', '................'],
   studio: ['................', '.........kk.....', '.........kwk....', '.........k.kk...', '.........k......', '.......kkk......', '......kkkk......', '.......kk.......', '................', 'kkkkkkkkkkkkkkkk', 'kwkkwkwkkwkkwkwk', 'kwkkwkwkkwkkwkwk', 'kwkkwkwkkwkkwkwk', 'kwwkwwkwwkwwkwwk', 'kwwkwwkwwkwwkwwk', 'kkkkkkkkkkkkkkkk'],
@@ -756,7 +758,7 @@ const FS = {
   iconFor(n) {
     if (n.type === 'dir') return n.locked ? 'folderlock' : n.icon || 'folder';
     if (n.kind === 'app') { const a = APPS[n.app]; return a ? a.icon : 'app'; }
-    return { txt: 'txt', img: 'img', sys: 'sys', snd: 'music', vid: 'video' }[n.kind] || 'txt';
+    return { txt: 'txt', img: 'img', sys: 'sys', snd: 'music', vid: 'video', song: 'studio', bat: 'terminal' }[n.kind] || 'txt';
   },
 };
 const README = `Welcome to Burnware!\r\n====================\r\n\r\nYou are using the only operating system built entirely\r\nout of burnt tokens.\r\n\r\nOn the desktop:\r\n  * Omnigacha: a gacha machine that pulls for everything.\r\n    Tap it for tokens. The rates are what they are.\r\n  * WRC 1988: rallying the way it looked in 1988.\r\n  * Sizzle Sand: a kitchen where every grain is simulated.\r\n    Things will catch fire. Water makes it worse.\r\n  * Rain.wav: a lo-fi music video, made from code.\r\n  * Burn Studio: make a song. Drums, bass, keys, synths.\r\n  * Kaiju Rampage: Tuko, 40 metres tall, loose in a city of\r\n    blocks. Stomp, spin, roar and beam. The army objects.\r\n\r\nThings to try:\r\n  * Drag windows around by their title bar. Resize them\r\n    from the bottom-right corner.\r\n  * Paint something, then use File > Set as Wallpaper.\r\n  * Beat Minesweeper on Expert. (Nobody has. Be the first.)\r\n  * Open Smoke Signals and say hi to DialUpDan.\r\n  * Open Command Prompt and type HELP.\r\n  * Surf the World Wide Web with Torch.\r\n  * There is a locked folder somewhere. Tuko knows things.\r\n\r\nEverything you save stays in this browser.\r\nWhen you are done, use Start > Shut Down like a civilised person.\r\n`;
@@ -1042,6 +1044,8 @@ const Files = {
     if (n.kind === 'img') return WM.open('paint', { path });
     if (n.kind === 'snd') return WM.open('music', { track: n.track });
     if (n.kind === 'vid') return WM.open('video', { src: n.src, title: n.name });
+    if (n.kind === 'song') return WM.open('studio', { hash: n.hash });
+    if (n.kind === 'bat') return WM.alert(n.name, `${n.name} is an MS-DOS batch file.\n\nTo run it, open the Command Prompt, go to its folder and type its name.`, 'terminal');
     if (n.kind === 'sys') return WM.ask('Open System File', `${n.name} is a system file. Burnware needs it to keep running.\nOpening it is fine. Editing it is how blue screens are made.`, ['Open anyway', 'Cancel'], 'warn').then(r => { if (r === 'Open anyway') WM.open('notepad', { path }); });
     return WM.open('notepad', { path });
   },
@@ -1102,6 +1106,7 @@ APPS.explorer = {
       grid.replaceChildren();
       if (!kids.length) grid.append(h('div.empty-note', inBin() ? 'The Recycle Bin is empty.' : 'This folder is empty.'));
       kids.forEach((n, i) => {
+        if (n.hidden && !inBin()) return;   // hidden files only show up in the Command Prompt, with DIR /A
         const b = h('button.fitem', { title: n.name }, Icons.img(FS.iconFor(n)), h('span', n.name));
         const launch = () => { const t = Date.now(); if (t - (b._t || 0) < 800) return; b._t = t; openItem(n, i); };
         b.onclick = () => { $$('.fitem.sel', grid).forEach(x => x.classList.remove('sel')); b.classList.add('sel'); sel = { n, i }; stR.textContent = n.type === 'dir' ? 'Folder' : fmtSize(FS.size(n)); if (isTouch()) launch(); };
@@ -1297,7 +1302,7 @@ APPS.paint = {
       cv.setPointerCapture(e.pointerId); const [x, y] = at(e), col = e.button === 2 ? bg : fg;
       if (tool === 'pick') { const p = ctx.getImageData(x, y, 1, 1).data; const c = '#' + [p[0], p[1], p[2]].map(v => v.toString(16).padStart(2, '0')).join(''); if (e.button === 2) bg = c; else fg = c; showCur(); return; }
       push(); dirty = true; title(); down = { col }; last = [x, y]; start = [x, y];
-      if (tool === 'fill') { flood(x, y, col); down = false; return; }
+      if (tool === 'fill') { flood(x, y, col); down = false; if (typeof Quest !== 'undefined') Quest.painted(path); return; }
       if (tool === 'pencil') dot(x, y, 1, col);
       if (tool === 'brush') dot(x, y, size + 1, col);
       if (tool === 'eraser') dot(x, y, size * 3 + 3, bg);
@@ -1688,24 +1693,25 @@ APPS.terminal = {
     const promptEl = h('span');
     const line = h('div.in', promptEl, inp);
     win.body.append(out); out.append(line);
-    let cwd = 'C:', hist = [], hi = 0, busy = null;
+    let cwd = 'C:', hist = [], hi = 0, busy = null, reader = null;   // reader: a running program waiting for you to type an answer
     const P = () => (cwd === 'C:' ? 'C:\\' : cwd) + '>';
     const print = (s = '', cls) => { const d = h('div' + (cls ? '.' + cls : ''), s); out.insertBefore(d, line); out.scrollTop = out.scrollHeight; return d; };
-    const setPrompt = () => { promptEl.textContent = P(); };
+    const setPrompt = () => { promptEl.textContent = reader ? reader.q + ' ' : P(); };
+    const ask = (q, cb) => { reader = { q, cb }; setPrompt(); };
     const abs = (p) => { if (!p) return cwd; p = p.replace(/\//g, '\\'); if (/^c:/i.test(p)) return p.replace(/\\+$/, '') || 'C:'; if (p.startsWith('\\')) return 'C:' + p.replace(/\\+$/, ''); const parts = FS.split(cwd); for (const seg of p.split('\\')) { if (!seg || seg === '.') continue; if (seg === '..') { if (parts.length > 1) parts.pop(); } else parts.push(seg); } return parts.join('\\'); };
     const stop = () => { if (busy) { busy(); busy = null; } };
     const cmds = {
       help: () => print('Commands:\n  DIR [path]     list files            CD [path]       change folder\n  TYPE file      show a text file      MD name         make a folder\n  DEL file       delete (careful)      START program   open a program\n  CLS            clear the screen      ECHO text       say something\n  DATE / TIME    what it is            VER             Burnware version\n  TREE           folder tree           COLOR a|b|c|d   change colours\n  PING host      test the internet     CALC 2+2        a calculator\n  FORTUNE        wisdom                MATRIX          follow the white rabbit\n  HACK           look busy             TUKO [dance|say text]\n  WEATHER, WHOAMI, BEEP, HISTORY, EXIT'),
       dir: (a) => {
-        const p = abs(a[0]), n = FS.resolve(p); if (!n || n.type !== 'dir') return print('File Not Found', 'err');
+        const all = a.some(x => /^\/a/i.test(x)), p = abs(a.filter(x => !x.startsWith('/')).join(' ')), n = FS.resolve(p); if (!n || n.type !== 'dir') return print('File Not Found', 'err');
         if (n.locked) return print('Access is denied.', 'err');
         print(` Volume in drive C is BURNWARE\n Directory of ${p === 'C:' ? 'C:\\' : p}\n`);
         let files = 0, dirs = 0, bytes = 0;
-        for (const c of n.children) { const s = FS.size(c); if (c.type === 'dir') dirs++; else { files++; bytes += s; } print(`${c.type === 'dir' ? '<DIR>'.padEnd(10) : String(s).padStart(10)}  ${c.name}`); }
+        for (const c of n.children) { if (c.hidden && !all) continue; const s = FS.size(c); if (c.type === 'dir') dirs++; else { files++; bytes += s; } print(`${c.type === 'dir' ? '<DIR>'.padEnd(10) : String(s).padStart(10)}  ${c.name}`); }
         print(`${String(files).padStart(10)} file(s) ${String(bytes).padStart(12)} bytes\n${String(dirs).padStart(10)} dir(s)    1,337,000,000 bytes free`);
       },
       cd: (a) => { if (!a[0]) return print(cwd === 'C:' ? 'C:\\' : cwd); const p = abs(a.join(' ')), n = FS.resolve(p); if (!n || n.type !== 'dir') return print('Invalid directory', 'err'); if (n.locked) return print('Access is denied. (It is password protected. Open it in My Computer.)', 'err'); cwd = p; },
-      type: (a) => { const n = FS.resolve(abs(a.join(' '))); if (!n || n.type !== 'file') return print('File not found', 'err'); if (n.kind === 'img') return print('That is a picture. Try: start ' + n.name, 'dim'); if (n.kind === 'snd') return print('♪ ♫ ♪  (it is a sound. Try: start ' + n.name + ')', 'dim'); if (n.kind === 'app') return print('[shortcut to ' + n.app + ']', 'dim'); print((n.text || '').replace(/\r\n/g, '\n')); },
+      type: (a) => { const n = FS.resolve(abs(a.join(' '))); if (!n || n.type !== 'file') return print('File not found', 'err'); if (n.kind === 'img') return print('That is a picture. Try: start ' + n.name, 'dim'); if (n.kind === 'snd') return print('♪ ♫ ♪  (it is a sound. Try: start ' + n.name + ')', 'dim'); if (n.kind === 'app') return print('[shortcut to ' + n.app + ']', 'dim'); if (n.kind === 'song') return print('♪ (it is a song. Try: start ' + n.name + ')', 'dim'); print((n.text || '').replace(/\r\n/g, '\n')); },
       md: (a) => { if (!a[0]) return print('Required parameter missing', 'err'); const p = abs(a.join(' ')); if (!FS.mkdir(p)) print('Unable to create directory', 'err'); },
       del: (a) => {
         const raw = a.join(' ');
@@ -1755,12 +1761,24 @@ APPS.terminal = {
         print(bub + '\n   \\\n    \\    __\n      (o >_______\n       \\  ___  _ \\___~\n        \'-\'  \'-\' \'-\'', 'hot');
       },
     };
+    /* hidden files: DIR /A lists them, ATTRIB shows which ones they are */
+    cmds.attrib = (a) => { const p = abs(a.join(' ')), n = FS.resolve(p); if (!n) return print('File not found', 'err'); for (const c of (n.type === 'dir' ? n.children : [n])) if (c.type === 'file') print(`  ${c.hidden ? 'H' : ' '}${c.system || c.kind === 'sys' ? 'S' : ' '}    ${FS.join(n.type === 'dir' ? p : FS.parentPath(p), c.name)}`); };
+    const help0 = cmds.help; cmds.help = () => { help0(); print('  DIR /A         also list hidden files   ATTRIB       show file attributes\n  To run a .BAT or .EXE file, go to its folder and type its name.'); };
+    /* typing a file's name runs it, the way DOS does */
+    const runFile = (name, args) => {
+      const dir = FS.resolve(cwd), want = name.toLowerCase(); if (!dir) return false;
+      const n = dir.children.find(c => c.type === 'file' && [want, want + '.bat', want + '.exe'].includes(c.name.toLowerCase())); if (!n) return false;
+      if (n.kind === 'bat' && typeof TermProgs !== 'undefined' && TermProgs[n.prog]) { TermProgs[n.prog]({ print, ask, args }); return true; }
+      if (n.kind === 'app') { WM.open(n.app); return true; }
+      return false;
+    };
     Object.assign(cmds, { ls: cmds.dir, cat: cmds.type, mkdir: cmds.md, rm: cmds.del, erase: cmds.del, clear: cmds.cls, '?': cmds.help, quit: cmds.exit, format: () => nuke(true), 'cd..': () => cmds.cd(['..']), 'cd\\': () => cmds.cd(['\\']) });
     function nuke(fmt) {
       print(fmt ? 'WARNING, ALL DATA ON NON-REMOVABLE DISK DRIVE C: WILL BE LOST!\nProceed with Format (Y/N)?' : 'Deleting everything...', 'err');
       setTimeout(() => Boot.bsod('BURNWARE_WAS_ASKED_TO_DELETE_ITSELF', 'You asked Burnware to delete everything. Burnware politely declined, by crashing.'), 1200);
     }
     const run = (raw) => {
+      if (reader) { const r = reader; reader = null; print(r.q + ' ' + raw); try { r.cb(raw.trim()); } catch (e) { print('Error: ' + e.message, 'err'); } setPrompt(); return; }
       print(P() + raw);
       const s = raw.trim(); if (!s) return;
       hist.push(s); hi = hist.length;
@@ -1768,7 +1786,7 @@ APPS.terminal = {
       if (c === 'rm' && parts[1] === '-rf') return nuke();
       const f = cmds[c]; if (f) { try { f(parts.slice(1), s); } catch (e) { print('Error: ' + e.message, 'err'); } }
       else if (/^c:$/i.test(c)) cwd = 'C:';
-      else print(`Bad command or file name: ${parts[0]}`, 'err');
+      else if (!runFile(parts[0], parts.slice(1))) print(`Bad command or file name: ${parts[0]}`, 'err');
       setPrompt();
     };
     inp.addEventListener('keydown', (e) => {
@@ -2434,7 +2452,7 @@ const Gen = {
     g.fillStyle = 'rgba(255,255,255,.85)'; g.font = `700 ${s * 6}px Silkscreen, monospace`; g.textAlign = 'center'; g.fillText('Burnware', w / 2, h / 2 + 10 * s);
   },
 };
-const WALLS = [['terraces', 'Rice terraces'], ['clouds', 'Clouds'], ['stars', 'Starry night'], ['sunset', 'Sunset'], ['kubo', 'Hut in the rain'], ['teal', 'Plain teal'], ['golden', 'Golden hour (secret)'], ['custom', 'My painting']];
+const WALLS = [['terraces', 'Rice terraces'], ['clouds', 'Clouds'], ['stars', 'Starry night'], ['sunset', 'Sunset'], ['kubo', 'Hut in the rain'], ['teal', 'Plain teal'], ['golden', 'Golden hour (secret)'], ['fireflies', 'Firefly night (from Luz)'], ['custom', 'My painting']];
 const SCHEMES = {
   ember: { name: 'Ember', t1: '#5c1408', t2: '#e2642c', desk: '#2a1620', sel: '#8a2410' },
   kubo: { name: 'Classic teal', t1: '#0b3a68', t2: '#1d8b98', desk: '#1f6f6b', sel: '#0b3a68' },
@@ -2446,7 +2464,7 @@ const SCHEMES = {
 const Wall = {
   paint() {
     const cv = $('#wall'), d = $('#desk'), W = d.clientWidth, H = d.clientHeight; if (!W || !H) return;
-    let id = Store.data.wall; if (id === 'golden' && !Store.data.secret) id = 'terraces'; if (id === 'custom' && !Store.data.customWall) id = 'terraces';
+    let id = Store.data.wall; if (id === 'golden' && !Store.data.secret) id = 'terraces'; if (id === 'fireflies' && !(Store.data.quest && Store.data.quest.closed)) id = 'terraces'; if (id === 'custom' && !Store.data.customWall) id = 'terraces';
     const px = id === 'custom' ? 1 : 3;   // the painted ones are drawn chunky on purpose
     cv.width = Math.ceil(W / px); cv.height = Math.ceil(H / px); cv.style.imageRendering = px > 1 ? 'pixelated' : 'auto';
     const g = cv.getContext('2d'); g.imageSmoothingEnabled = false;
@@ -2512,7 +2530,7 @@ APPS.settings = {
       tabs.replaceChildren(...T.map(([id, l]) => { const b = h('button' + (id === tab ? '.on' : ''), { role: 'tab', 'aria-selected': String(id === tab), text: l }); b.onclick = () => { tab = id; render(); }; return b; }));
       pane.replaceChildren();
       if (tab === 'bg') {
-        const walls = WALLS.filter(([id]) => (id !== 'golden' || Store.data.secret) && (id !== 'custom' || Store.data.customWall));
+        const walls = WALLS.filter(([id]) => (id !== 'golden' || Store.data.secret) && (id !== 'fireflies' || (Store.data.quest && Store.data.quest.closed)) && (id !== 'custom' || Store.data.customWall));
         const list = h('div.list.sunk', walls.map(([id, label]) => { const b = h('button' + (Store.data.wall === id ? '.on' : ''), { text: label }); b.onclick = () => { Store.data.wall = id; Store.save(); Wall.paint(); showPreview(id); $$('button', list).forEach(x => x.classList.toggle('on', x === b)); }; return b; }));
         pane.append(h('div.monitor', preview), h('div', { style: { marginBottom: '4px' } }, 'Wallpaper:'), list, h('p', { style: { fontSize: '11px', color: '#555' } }, 'Tip: in Paint, File > Set As Wallpaper uses your own painting.'));
         showPreview(Store.data.wall);
@@ -2560,6 +2578,7 @@ const TUKO_LINES = [
   'Pinball: light B, U, R and N at the top and the jackpot is worth more. I would help but my arms are too short for the flippers.',
   'Blockfall tip: leave a gap on the side for the long piece. Then wait. And wait. It never comes.',
   'Typing Racer: I type 4 words per minute. Toes are not built for this.',
+  'I am a detective now. I have a notebook. If you are stuck on a case, my notes have hints.',
   'Rain.wav is my favourite. It sounds like the roof of my old house.',
   'Kaiju Rampage tip: knock out the bottom floor and the whole building comes down. I read that somewhere. I am a gecko.',
   'In Kaiju Rampage, a roar knocks helicopters out of the sky. Also it is very good for your lungs.',
@@ -2651,7 +2670,7 @@ const Host = {
     win.onClose = () => { try { frame.src = 'about:blank'; } catch (e) { /* ignore */ } };
   },
 };
-for (const a of HOSTED) APPS[a.id] = { title: a.title, icon: a.icon, w: a.w, h: a.h, minW: 300, minH: 260, center: true, hosted: true, open(win) { Host.mount(win, a); } };
+for (const a of HOSTED) APPS[a.id] = { title: a.title, icon: a.icon, w: a.w, h: a.h, minW: 300, minH: 260, center: true, hosted: true, open(win, args) { Host.mount(win, args && args.hash ? Object.assign({}, a, { src: a.src + args.hash }) : a); } };
 function tapBtn(text, title, fn) { const b = h('button.tool', { text, title }); onTap(b, fn); return b; }
 if (!isTouch()) {   // with a mouse and keyboard: when a hosted window comes to the front, hand the keyboard to the program inside it
   const focus = WM.focus.bind(WM);
@@ -3887,6 +3906,812 @@ const GAME_IDS = ['mines', 'solitaire', 'spider', 'pinball', 'blocks', 'sudoku',
   Desktop.items.splice(sol >= 0 ? sol + 1 : Desktop.items.length, 0, ...['spider', 'pinball', 'blocks', 'sudoku', 'words', 'typing'].map(id => ({ label: APPS[id].title, icon: APPS[id].icon, open: () => WM.open(id) })));
   Desktop.items.splice(at >= 0 ? at : Desktop.items.length, 0, { label: 'Games', icon: 'gamesdir', open: () => WM.open('explorer', { path: 'C:\\Programs\\Games' }) });
 })();
+/* ---- 68-quest.js ---- */
+/* ============================================================
+   STATION 7: a mystery hidden inside Burnware itself.
+
+   This computer had an owner before you. In 1997 it was Station 7
+   at an internet cafe, and a girl called Luz left a locked program
+   on it for a friend who never came. Five words open it. She hid
+   them in the Recycle Bin, behind DIR /A, in a painting, in a song,
+   and on a web page that only exists in the past.
+
+   This file: what has been found so far, the files it puts on the
+   C: drive, and the hooks into the rest of Burnware.
+   68-quest-notes.js is Tuko's notebook, 68-quest-web*.js is her
+   website through the years, 68-quest-jar.js is her program.
+   ============================================================ */
+const Q_LIGHTS = [['NINGNING', 'sparkle'], ['KISLAP', 'a glint'], ['LIWANAG', 'light'], ['SINAG', 'a ray of light'], ['BAGA', 'an ember']];
+const Q_SONG = 'WzEsImZvciBtaWdzIiw3NiwwLDcsIm1ham9yIiwxLDAsW1siODA4Iiw5MCwwLDAsNixbIjAuMC4xLjcwLDguMC4xLjcwLDQuMy4xLjM1LDEyLjMuMS4zNSwyLjMuMS4zNSw2LjMuMS4zNSwxMC4zLjEuMzUsMTQuMy4xLjM1IiwiIiwiIiwiIl1dLFsiU3ViIiw3NSwwLDAsNixbIjAuNDcuNC43MCw0LjQ1LjQuNzAsOC40My40LjcwLDEyLjQ1LjQuNzAiLCIiLCIiLCIiXV0sWyJFLVBpYW5vIiw3NSwwLDAsMjUsWyIwLjcxLjQuODUsNC42OS40Ljg1LDguNjcuNC44NSwxMi42OS40Ljg1IiwiIiwiIiwiIl1dLFsiTGVhZCIsNzUsMCwwLDI1LFsiIiwiIiwiIiwiIl1dXV0';
+/* The text files. Each paragraph is one long line, so Notepad wraps it to fit any window (or phone). */
+const crlf = (s) => s.trim().replace(/\n/g, '\r\n') + '\r\n';
+const Q_README = crlf(`
+MIGS!!!
+
+(If you are not Migs, close this. It's private. ...ok fine, read it. But be nice.)
+
+December 28, 1997
+Kubo Net Cafe, Station 7
+(the one by the window)
+
+You promised you'd be back for Christmas and we'd open the jar together. Then the landslide closed the road, and Ate Bing shuts the cafe for good on the 31st. So I'm leaving it here, on OUR station, and hoping.
+
+JAR.EXE is my program. My first real one. It needs FIVE LIGHTS to open. Each light is one word. I hid them the way you taught me to hide things:
+
+1. The first one I threw away, so Ate Bing wouldn't read it. Things you throw away don't go far.
+
+2. The second only shows itself if you ask DOS nicely. Remember? DIR with the slash-A. Then run what you find.
+
+3. The third is in a picture of the night we met. It looks like nothing. Fill the night with light.
+
+4. The fourth was on my homepage, www.alitaptap.net, the very first week it existed. It isn't there now. But you were there THEN.
+
+5. The fifth is our song. Don't just listen. Read it. The notes are the letters.
+
+When you have all five, run JAR.EXE and type them in. Any order.
+
+I'll wait as long as the cafe lets me.
+
+- Luz (alitaptap)
+
+P.S. Don't let Ate Bing format this machine.
+`);
+const Q_DIARY = crlf(`
+LUZ'S DIARY. DO NOT READ.
+(This means you, Ate Bing.)
+
+Saved on Station 7 because we don't have a computer at home. Yet.
+
+--- Aug 14, 1996 ---
+Brownout. The whole village went dark at 7 and everybody went home except me and the new boy at Station 6, because we had both paid for two hours and Ate Bing does not do refunds. We sat in the dark waiting for the power. Then the fireflies came in through the window. Dozens. He said "they look like tiny monitors." His name is Migs. He is weird.
+
+--- Sep 2, 1996 ---
+Migs showed me how to make a web page!! He says every page needs a secret word, so your friends know it's really yours. I put ours right on the page. He says that defeats the purpose.
+
+He calls me alitaptap now. Firefly. Because of the brownout, and because I "can't sit still and glow when I'm right." Fine. Then he is Tala, the star, since he thinks he's so far above everyone.
+
+--- Apr 1, 1997 ---
+THE COMET. Ate Bing let us up on the rooftop after closing. Two tails, right over the rice terraces. Migs brought pancit canton. We didn't talk for like an hour. Best night of my life. Do not tell him.
+
+--- Jun 20, 1997 ---
+Migs is moving to the city. His dad got a job there. Eight hours by bus. He says he'll be back at Christmas. He PROMISED. "Pangako," he said, like it was a magic word.
+
+I am not crying. Station 7's monitor is just very bright.
+
+--- Oct 9, 1997 ---
+Learning QBasic from the library book. I'm making him something. A jar. You put lights in and it opens. It only has to work once.
+
+--- Nov 23, 1997 ---
+Wrote him a song in the tracker. Four notes that keep coming back. It's not just a song. He'll get it. He reads everything.
+
+--- Dec 20, 1997 ---
+Ate Bing put a sign on the door: KUBO NET CLOSES DEC 31. She's going abroad to work. Everything must go, even the stations.
+
+Every time my hour runs out she still yells "EXTEND?" across the room like nothing is changing. I always say yes. I am out of allowance.
+
+--- Dec 27, 1997 ---
+Landslide on the mountain road. No buses. Migs called the cafe phone. He's not coming.
+
+OK. Plan B. I hide the lights. I leave the jar. Station 7 remembers.
+`);
+const Q_LIGHT1 = crlf(`
+(If you are Ate Bing: this is just homework. Very boring. Close it.)
+
+Migs. You found the first one. Of course you checked the bin.
+
+LIGHT 1 is
+
+    N I N G N I N G
+
+It means sparkle. It's my word for the first time my page finished loading and I knew I had made a thing.
+
+Four more.
+- L
+`);
+const Q_BAT = crlf(`
+@ECHO OFF
+REM  LANTERN.BAT
+REM  by alitaptap, Station 7, Dec 1997
+REM
+REM  Migs: yes, I know you can TYPE
+REM  a batch file to read it.
+REM  The light is not in here.
+REM  I'm not new.
+REM  Run it and answer the question.
+REM
+CALL C:\\STATION7\\LANTERN.COM %1
+`);
+const Q_PRICES = crlf(`
+*** KUBO NET CAFE ***
+Ember Village's FIRST internet cafe!
+8 stations * 28.8k modem * air-con (when it works)
+
+Internet / games ..... P30 an hour
+Typing & printing .... P5 a page
+Floppy disk .......... P25
+Pancit canton ........ P12
+  (with egg) ......... P17
+Iced tea ............. P8
+
+RULES (by Ate Bing)
+1. No feet on the tower.
+2. When your time is up, I will ask you: EXTEND?
+3. No saving on the stations.  <-- Luz. I can see your folder. - A.B.
+4. No refunds. Not even in a brownout.
+
+*** CLOSING DEC 31, 1997 ***
+Thank you for two good years. All 8 stations are for sale. Ask Ate Bing.
+`);
+const Q_NOTE = crlf(`
+hello it is me, tuko.
+
+i was chasing a moth behind the hard drive and i found a folder that is not ours:
+
+    C:\\STATION7
+
+it smells like 1997 and instant noodles. there is a letter in it for somebody called Migs. i do not think he ever read it.
+
+open My Computer and have a look. i started some case notes. i am a detective now.
+
+- tuko
+`);
+/* LANTERN.BAT: the hidden program behind clue 2 */
+const TermProgs = {
+  lantern({ print, ask }) {
+    print('\nLANTERN.BAT  (c) 1997 alitaptap, Station 7\nA lantern only lights for people who were there.\n', 'hot');
+    print('Every time my hour ran out, what did Ate Bing yell across the room?');
+    ask('>', (v) => {
+      if (!/extend/i.test(v)) return print(v ? '\nThe lantern stays dark.  (It\'s in my diary, Migs.)\n' : '\nThe lantern waits. Run it again when you know.\n', 'err');
+      Sound.chord();
+      print('\n...the lantern flickers...\n\n    .---.\n   (  *  )\n    \'---\'\n     |_|\n\nLIGHT 2 is   K I S L A P\n\nIt means a glint. Like a comet\'s tail, seen from a rooftop.\n\nThree more.\n', 'hot');
+      Quest.lead('bat');
+    });
+  },
+};
+const Quest = {
+  get s() {
+    const d = Store.data; if (!d.quest) d.quest = {};
+    const q = d.quest; q.leads = q.leads || {}; q.eras = q.eras || {}; q.hint = q.hint || {}; if (!Array.isArray(q.lights) || q.lights.length !== 5) q.lights = [0, 0, 0, 0, 0];
+    return q;
+  },
+  save() { Store.save(); if (typeof QuestNotes !== 'undefined') QuestNotes.refresh(); },
+  /* ---- the files ---- */
+  station() {
+    const F = FS.file.bind(FS);
+    return FS.dir('STATION7', [
+      F('READ ME MIGS.txt', 'txt', { text: Q_README }), F('diary.txt', 'txt', { text: Q_DIARY }),
+      F('night.bmp', 'img', { gen: 'night' }), F('our song.bsg', 'song', { hash: '#s=' + Q_SONG + '&peek', text: 'BSG1 tracker module: for migs' }),
+      F('JAR.EXE', 'app', { app: 'jar' }), F('LANTERN.BAT', 'bat', { hidden: true, prog: 'lantern', text: Q_BAT }), F('KUBONET.TXT', 'txt', { text: Q_PRICES }),
+    ]);
+  },
+  /* put the case on the C: drive (once; again only if you ask for the files back) */
+  seed(force) {
+    const s = this.s; if (!FS.root || (s.seeded && !force)) return;
+    const kids = FS.root.children, old = kids.findIndex(c => c.name.toUpperCase() === 'STATION7');
+    if (old >= 0) kids.splice(old, 1);
+    kids.push(this.station());
+    FS.bin = FS.bin.filter(n => !n.quest); FS.bin.push(FS.file('not important.txt', 'txt', { text: Q_LIGHT1, from: 'C:\\STATION7', quest: 'bin' }));
+    const desk = FS.resolve('C:\\Desktop') || FS.mkdir('C:\\Desktop');
+    if (desk && !s.started && !desk.children.some(c => c.name === 'note from tuko.txt')) desk.children.push(FS.file('note from tuko.txt', 'txt', { text: Q_NOTE }));
+    s.seeded = true; Store.save(); FS.save();
+  },
+  /* ---- finding things ---- */
+  lead(id) {
+    const s = this.s; if (s.leads[id]) return false;
+    s.leads[id] = Date.now(); s.started = true; this.icon(); this.marks(); this.save();
+    const n = Q_NOTES[id]; if (n && Boot.ready) Tuko.say('New case note: ' + n[0], 6500, [['Open my notes', () => WM.open('casefile')]]);
+    return true;
+  },
+  era(id) { const s = this.s; if (s.eras[id]) return; s.eras[id] = Date.now(); if (s.started) this.save(); else Store.save(); },
+  light(i) { const s = this.s; if (s.lights[i]) return false; s.lights[i] = 1; s.started = true; this.icon(); this.save(); return true; },
+  onOpen(path) {
+    const p = String(path).toLowerCase();
+    if (p.startsWith('c:\\station7') || p.endsWith('note from tuko.txt')) this.lead('start');
+    if (p.endsWith('read me migs.txt')) this.lead('readme');
+    if (p.endsWith('station7\\not important.txt')) this.lead('bin');
+    if (p.endsWith('our song.bsg')) this.lead('song');
+  },
+  painted(path) { if (path && /station7\\night\.bmp$/i.test(path)) this.lead('paint'); },
+  begin() { this.lead('start'); WM.open('explorer', { path: 'C:\\STATION7' }); },
+  /* ---- what to do next, for hints ---- */
+  stage() {
+    const s = this.s, L = s.leads;
+    if (!L.readme) return 'start';
+    const found = [L.bin, L.bat, L.paint, L.web96, 0];
+    for (let i = 0; i < 5; i++) if (!s.lights[i] && !found[i]) return 'L' + (i + 1);
+    if (s.lights.includes(0)) return 'type';
+    if (!s.opened) return 'jar';
+    if (!s.caught) return 'catch';
+    return s.closed ? 'done' : 'tell';
+  },
+  /* is everything the case needs still on the C: drive? (people empty Recycle Bins) */
+  missing() {
+    const s = this.s, need = ['READ ME MIGS.txt', 'diary.txt', 'JAR.EXE'];
+    if (!s.lights[1] && !s.leads.bat) need.push('LANTERN.BAT'); if (!s.lights[2] && !s.leads.paint) need.push('night.bmp'); if (!s.lights[4]) need.push('our song.bsg');
+    if (need.some(f => !FS.resolve('C:\\STATION7\\' + f))) return true;
+    return !s.lights[0] && !s.leads.bin && !FS.bin.some(n => n.quest === 'bin') && !FS.resolve('C:\\STATION7\\not important.txt');
+  },
+  hint() {
+    if (!this.s.closed && this.missing()) return { text: 'Uh oh. Some of the case files are gone (deleted, or the Recycle Bin was emptied). In this notebook, open the Notes menu and choose "Put the case files back".', n: 1, of: 1 };
+    const s = this.s, st = this.stage(), list = Q_HINTS[st], k = Math.min(s.hint[st] || 0, list.length - 1);
+    s.hint[st] = k + 1; Store.save();
+    return { text: list[k], n: k + 1, of: list.length };
+  },
+  /* ---- the end: tell her, and the fireflies come home ---- */
+  close(name) {
+    const s = this.s; s.name = String(name || '').trim().slice(0, 24); s.closed = Date.now(); this.lead('closed');
+    Store.data.wall = 'fireflies'; this.save(); Wall.paint(); Sound.tada();
+    setTimeout(() => Tuko.say('Um. There are fireflies on the desktop. They came down the phone line. I am trying VERY hard not to eat them. (You can change the wallpaper back in Display Properties.)', 16000), 2500);
+  },
+  /* ---- plumbing ---- */
+  marks() { if (this.s.leads.readme && !Web.bookmarks.some(b => b[1] === 'www.alitaptap.net')) Web.bookmarks.push(['alitaptap (from the READ ME)', 'www.alitaptap.net']); },
+  icon() {
+    if (!this.s.started || Desktop.items.some(it => it.label === 'Case Notes')) return;
+    Desktop.items.push({ label: 'Case Notes', icon: 'casefile', open: () => WM.open('casefile') });
+    if (Boot.ready) Desktop.render();
+  },
+  init() {
+    this.icon(); this.marks(); Flies.sync();
+    /* Tuko brings it up a few seconds after start-up (a good while later on a first visit, so his welcome goes first) */
+    const first = !!Store.data.firstBoot; let waited = 0;
+    const wait = setInterval(() => {
+      if (!Boot.ready) return; waited += 1;
+      if (this.s.started) return clearInterval(wait);
+      if (waited < (first ? 50 : 7) || $('#tuko .bubble') || WM.wins.some(w => w.hosted && !w.min)) return;
+      clearInterval(wait);
+      Tuko.say('Psst. I was chasing a moth behind the hard drive and I found a folder that is not ours. C:\\STATION7. Somebody used this computer before us.', 40000, [['Show me', () => this.begin()], ['Later', () => {}]]);
+    }, 1000);
+  },
+};
+/* fireflies drifting over the desktop: the "Firefly night" wallpaper you earn at the end */
+const Flies = {
+  el: null,
+  sync() {
+    const on = Store.data.wall === 'fireflies' && !!(Store.data.quest && Store.data.quest.closed);
+    if (!on) { if (this.el) { this.el.remove(); this.el = null; } return; }
+    if (this.el) return;
+    gameCSS('css-flies', `
+#flies { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+#flies span { position: absolute; animation: fly-x linear infinite alternate; }
+#flies i { display: block; width: 4px; height: 4px; border-radius: 50%; background: #f2ff9c; box-shadow: 0 0 6px 3px rgba(200,255,90,.55), 0 0 16px 7px rgba(170,255,60,.22); animation: fly-y ease-in-out infinite alternate, fly-glow ease-in-out infinite; }
+@keyframes fly-x { from { transform: translateX(-9vw); } to { transform: translateX(9vw); } }
+@keyframes fly-y { from { transform: translateY(-7vh); } to { transform: translateY(7vh); } }
+@keyframes fly-glow { 0%, 100% { opacity: .15; } 45%, 60% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { #flies span, #flies i { animation: none; } }
+`);
+    const R = mulberry(1997);
+    this.el = h('div#flies', { 'aria-hidden': 'true' }, Array.from({ length: 16 }, () => h('span', { style: { left: (6 + R() * 88) + '%', top: (28 + R() * 60) + '%', animationDuration: (14 + R() * 18) + 's', animationDelay: (-R() * 20) + 's' } },
+      h('i', { style: { animationDuration: `${9 + R() * 12}s, ${2.4 + R() * 3.5}s`, animationDelay: `${-R() * 12}s, ${-R() * 5}s` } }))));
+    $('#wall').after(this.el);
+  },
+};
+/* pictures: the night she met him (clue 3), and the wallpaper from the ending */
+Gen.night = function (g, w, h) {
+  g.fillStyle = '#000000'; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#010101'; g.textAlign = 'center'; g.textBaseline = 'middle';   // one shade off black: invisible until the sky around it changes colour
+  g.font = `bold ${Math.floor(w / 6.4)}px Arial, Helvetica, sans-serif`; g.fillText('LIWANAG', w / 2, h * 0.42);
+  g.font = `bold ${Math.floor(w / 22)}px Arial, Helvetica, sans-serif`; g.fillText('LIGHT 3.  It means light.', w / 2, h * 0.66);
+  const R = mulberry(814); g.fillStyle = '#ffffff'; for (let k = 0; k < 26; k++) g.fillRect(Math.floor(R() * w), Math.floor(R() * h * 0.9), 1, 1);
+  g.fillStyle = '#4a4a4a'; g.font = '11px "Courier New", monospace'; g.textAlign = 'right'; g.fillText('the night we met. 8/14/96  -L', w - 8, h - 10); g.textAlign = 'left';
+};
+Gen.fireflies = function (g, w, h) {
+  this.sky(g, w, h, [[0, '#03051a'], [0.7, '#0c1a44'], [1, '#16305a']]); const R = mulberry(97);
+  for (let k = 0; k < w * h / 260; k++) { const b = 110 + R() * 130; g.fillStyle = `rgb(${b},${b},${Math.min(255, b + 30)})`; g.fillRect(Math.floor(R() * w), Math.floor(R() * h * 0.7), 1, 1); }
+  this.ridge(g, w, h, h * 0.8, h * 0.05, '#081226', 7); this.ridge(g, w, h, h * 0.9, h * 0.03, '#050b18', 3);
+  /* the cafe, with one window still lit */
+  const bw = Math.max(26, Math.floor(w * 0.16)), bh = Math.floor(bw * 0.55), bx = Math.floor(w * 0.6), by = Math.floor(h * 0.86) - bh;
+  g.fillStyle = '#04070f'; g.fillRect(bx, by, bw, bh + 4); g.fillRect(bx - 2, by - 2, bw + 4, 3); g.fillRect(bx + bw - 7, by - 9, 3, 8);
+  g.fillStyle = '#ffd84a'; g.fillRect(bx + 4, by + Math.floor(bh * 0.35), Math.floor(bw * 0.28), Math.floor(bh * 0.34));
+  g.fillStyle = '#fff4b0'; g.fillRect(bx + 5, by + Math.floor(bh * 0.35) + 1, Math.floor(bw * 0.1), 2);
+};
+/* hooks: opening a file, restoring from the bin, a fresh C: drive, the wallpaper, start-up */
+(() => {
+  const open0 = Files.openFile; Files.openFile = function (path) { const r = open0.call(this, path); Quest.onOpen(path); return r; };
+  const load0 = FS.load.bind(FS); FS.load = function () { load0(); Quest.seed(); };
+  const reset0 = FS.reset.bind(FS); FS.reset = function () { reset0(); Quest.seed(true); };
+  const paint0 = Wall.paint.bind(Wall); Wall.paint = function () { paint0(); Flies.sync(); };
+  const init0 = Tuko.init.bind(Tuko); Tuko.init = function () { init0(); Quest.init(); };
+})();
+/* ---- 68-quest-notes.js ---- */
+/* ============================================================
+   STATION 7: Tuko's case notes. A yellow pad that fills in as you
+   find things, a timeline of what you've learned from her website
+   in different years, and hints (gentle first, blunt by the third).
+   ============================================================ */
+/* each note: [what Tuko says in his bubble, what he writes on the pad] */
+const Q_NOTES = {
+  start: ['there is a folder on C: that is not ours.', 'Found a folder behind the hard drive: C:\\STATION7. It is not ours. It smells like 1997 and instant noodles.'],
+  readme: ['a girl left a locked jar for a boy.', 'A girl called Luz left a program, JAR.EXE, for a boy called Migs. Five "lights" open it. Each light is a word. I checked the walls: I do not think Migs ever came.'],
+  bin: ['light 1 was in the bin!', 'Light 1 was in the Recycle Bin. People throw away the strangest things. Once I found a whole sandwich in there.'],
+  bat: ['the black window had a secret.', 'Light 2 was in a hidden file. Only the Command Prompt could see it. DOS can keep a secret. I cannot.'],
+  paint: ['the black picture was NOT black.', 'Light 3: the black picture was not black. I poured paint on the sky and a word came out. Art is confusing.'],
+  web96: ['her homepage changes with the year!', 'Light 4: her homepage is different in different years. In 1996 the word was right there on the page. Time travel is easier than I thought.'],
+  song: ['the song is four notes. suspicious.', 'The song is four notes, over and over. She says "read it". Notes have letter names. Humans hide words in everything.'],
+  jar: ['THE JAR OPENED.', 'The jar opened. I read her letter. I am fine. I have something in my eye. Probably a moth.'],
+  caught: ['seven fireflies. i ate none.', 'Caught all seven fireflies. I did not eat a single one. Please write that down. The last one is called PANGAKO.'],
+  closed: ['CASE CLOSED.', 'CASE CLOSED. We told her. She is okay. He did come back. The rooftop is still there.'],
+};
+/* what her website tells you, by the year you visited it */
+const Q_ERAS = {
+  e96: [1996, 'Luz is 15. She makes her first web page at Kubo Net Cafe, on Station 7. A boy called Migs, at Station 6, shows her how.'],
+  e97: [1997, 'Migs has moved to the city. The cafe is closing on December 31. She leaves the jar on Station 7 for him.'],
+  e98: [1998, 'The cafe is gone and the stations were sold. One of them is this computer.'],
+  e99: [1999, 'She leaves Ember Village to study computer science in the city. She has lost his phone number.'],
+  e02: [2002, 'She keeps a blog. She still thinks about the jar.'],
+  e04: [2004, 'Migs finds her blog, eight years after the brownout. He DID come back, in January 1998. The cafe was already empty.'],
+  e08: [2008, 'They are friends again. She makes games for a living now.'],
+  e16: [2016, 'She runs a small studio, Alitaptap Games. She is still looking for Station 7.'],
+};
+const Q_HINTS = {
+  start: ['There is a folder on the C: drive that is not ours. Open My Computer, then STATION7, and read READ ME MIGS.'],
+  L1: ['Clue 1 says she threw it away. Where do thrown-away files go on this computer?', 'Open the Recycle Bin on the desktop. One file in there came from C:\\STATION7.', 'In the Recycle Bin, open "not important.txt" and choose Restore. Then open it from the STATION7 folder.'],
+  L2: ['Clue 2 wants the Command Prompt. She says: DIR with the slash-A.', 'Open Command Prompt. Type  cd station7  and then  dir /a  . A hidden file appears. Type its name to run it.', 'Type  lantern  . It asks what Ate Bing yelled when the hour ran out. Her diary says: EXTEND.'],
+  L3: ['night.bmp looks like nothing. She says to fill the night with light. Which Paint tool fills things?', 'Open night.bmp. In Paint, pick a bright colour and the Fill bucket, then click on the black sky.', 'The word is painted in a black that is one tiny shade off the sky. One bucket of colour on the sky and you can read it.'],
+  L4: ['Clue 4: the word WAS on her homepage "the very first week it existed". Not now. But this computer has a time machine.', 'Click the clock in the corner and change the year. Then open www.alitaptap.net in Torch. (If Torch is already open, press Refresh.)', 'Her diary says she made the page in September 1996. Set the year to 1996, open www.alitaptap.net and look for "Our secret word".'],
+  L5: ['"our song" opens in Burn Studio. She says do not just listen: read it. Every note has a letter name.', 'In Burn Studio, each note sits on a row, and the row has a letter on the left (ignore the number after it). Read the four notes from left to right.', 'The four notes are B, A, G, A.'],
+  type: ['You have found more lights than the jar knows about. Open JAR.EXE in the STATION7 folder and type each word in.'],
+  jar: ['That is all five. Open JAR.EXE in the STATION7 folder and type them in, any order.'],
+  catch: ['The jar is open, but she said there are two more inside. Run JAR.EXE again and stay to the very end. Tap the fireflies to catch them.'],
+  tell: ['The jar said somebody should tell her it worked. "She\'ll still be alitaptap, wherever the web goes. WHENEVER the web goes." Hmm. Whenever.', 'Her homepage changes with the year. What does it look like NOW? Click the clock, set the year to this year, and open www.alitaptap.net.', 'On her newest site, scroll to the "Station 7" part and type the name of the last firefly you caught: PANGAKO.'],
+  done: ['Case closed. I am keeping the notes, though. Detectives keep their notes.'],
+};
+const QuestNotes = {
+  win: null, render: null,
+  refresh() { if (this.win && this.win.el.isConnected && this.render) this.render(); },
+};
+APPS.casefile = {
+  title: 'Case Notes', icon: 'casefile', w: 380, h: 470, minW: 260, minH: 300, single: true,
+  open(win) {
+    gameCSS('css-casefile', `
+.cn { flex: 1; min-height: 0; display: flex; flex-direction: column; background: #fdf6b8; }
+.cn-pad { flex: 1; min-height: 0; overflow-y: auto; padding: 10px 14px 14px 38px; font: 15px/24px var(--comic); color: #1a2a6a; background: linear-gradient(90deg, transparent 28px, #e89a9a 28px, #e89a9a 29px, transparent 29px), repeating-linear-gradient(#fdf6b8 0 23px, #b8cfe8 23px 24px); background-attachment: local; }
+.cn-pad h3 { font: 700 19px/24px var(--comic); margin: 0; color: #a01818; } .cn-pad h4 { font: 700 15px/24px var(--comic); margin: 24px 0 0; text-decoration: underline; }
+.cn-pad p { margin: 0; } .cn-pad small { font-size: 12px; color: #5a5a7a; }
+.cn-lights { display: flex; flex-wrap: wrap; gap: 4px 10px; } .cn-lights span { white-space: nowrap; } .cn-lights b { color: #2a7a1a; letter-spacing: 1px; }
+.cn-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 1px solid #1a2a6a; margin-right: 4px; vertical-align: -1px; } .cn-dot.on { background: #e8ff5a; box-shadow: 0 0 5px 2px #c8f03a; }
+.cn-stamp { display: inline-block; border: 3px double #a01818; color: #a01818; font: 700 18px/1 var(--comic); padding: 4px 10px; transform: rotate(-6deg); margin: 6px 0 0 30px; }
+.cn-foot { flex: none; display: flex; flex-direction: column; gap: 5px; padding: 6px; background: var(--face); border-top: 1px solid var(--hi); }
+.cn-foot .row { display: flex; gap: 6px; flex-wrap: wrap; } .cn-hint { background: var(--tip); border: 1px solid var(--ink); padding: 5px 7px; font-size: 12px; line-height: 1.35; }
+`);
+    const pad = h('div.cn-pad'), hintBox = h('div.cn-hint', { hidden: true }), hintB = h('button.btn', 'Ask Tuko for a hint'), folderB = h('button.btn', 'Open STATION7');
+    win.body.append(h('div.cn', pad, h('div.cn-foot', hintBox, h('div.row', hintB, folderB))));
+    const render = () => {
+      const s = Quest.s, kids = [h('h3', 'CASE NOTES: STATION 7'), h('p', h('small', 'by Tuko (detective) (also a gecko)'))];
+      if (!s.started) kids.push(h('p', 'No case yet. But I have a feeling about the C: drive.'));
+      else {
+        kids.push(h('h4', 'The five lights'), h('div.cn-lights', Q_LIGHTS.map(([w], i) => h('span', h('i.cn-dot' + (s.lights[i] ? '.on' : '')), s.lights[i] ? h('b', w) : `light ${i + 1}: ?`))));
+        kids.push(h('h4', 'What I found'));
+        for (const id of Object.keys(Q_NOTES)) if (s.leads[id]) kids.push(h('p', '• ' + Q_NOTES[id][1]));
+        const eras = Object.keys(Q_ERAS).filter(id => s.eras[id]);
+        if (eras.length) { kids.push(h('h4', 'What happened, in order'), h('p', h('small', `from her website. ${eras.length} of ${Object.keys(Q_ERAS).length} years found`))); for (const id of eras) kids.push(h('p', h('b', Q_ERAS[id][0] + ': '), Q_ERAS[id][1])); }
+        if (s.closed) kids.push(h('div.cn-stamp', 'CASE CLOSED'), h('p', { style: { marginTop: '24px' } }, h('small', s.name ? `Solved by ${s.name} and Tuko.` : 'Solved by you and Tuko.')));
+      }
+      pad.replaceChildren(...kids);
+    };
+    hintB.onclick = () => { const hnt = Quest.hint(); hintBox.hidden = false; hintBox.replaceChildren(h('b', `Tuko says (hint ${hnt.n} of ${hnt.of}): `), hnt.text); Sound.click(); };
+    folderB.onclick = () => Quest.begin();
+    WM.menubar(win, [{ label: 'Notes', items: () => [
+      { label: 'Put the case files back', action: () => WM.ask('Case Notes', 'Put fresh copies of the STATION7 folder and its files back on the C: drive?\n(Use this if you deleted something you needed. What you have found so far is kept.)', ['Yes', 'No'], 'casefile').then(r => { if (r === 'Yes') { Quest.seed(true); Desktop.render(); } }) },
+      { label: 'Forget everything and start over', action: () => WM.ask('Case Notes', 'Erase all the case notes and hide the lights again?', ['Start over', 'Cancel'], 'warn').then(r => { if (r === 'Start over') { const seen = Store.data.quest && Store.data.quest.seeded; Store.data.quest = { seeded: seen, started: true }; if (Store.data.wall === 'fireflies') Store.data.wall = 'terraces'; Quest.seed(true); Quest.save(); Wall.paint(); Desktop.render(); hintBox.hidden = true; } }) },
+      '-', { label: 'Close', action: () => WM.close(win) },
+    ] }]);
+    QuestNotes.win = win; QuestNotes.render = render; render();
+    win.onClose = () => { QuestNotes.win = null; QuestNotes.render = null; };
+  },
+};
+/* ---- 68-quest-web.js ---- */
+/* ============================================================
+   STATION 7: www.alitaptap.net, part 1 (1996 to 2001).
+
+   One address, one person, thirty years. What Torch shows at
+   www.alitaptap.net depends on the year the clock is set to, and
+   each version is built the way pages were built that year:
+   1996 bare HTML, 1997 GeoCities glitter, 1999 tables and frames.
+   Part 2 carries on with the blog, the social profile and today.
+   ============================================================ */
+const QWeb = {
+  eras: [],   // [first year, last year, page], filled in below and in part 2
+  era() { const y = News.year(); const hit = this.eras.find(e => y >= e[0] && y <= e[1]); return hit ? hit[2] : this.eras[0][2]; },
+};
+/* ---------- before 1996: nothing there yet ---------- */
+QWeb.eras.push([-1e9, 1990, {
+  title: 'No carrier',
+  html: () => `<div style="padding:18px;font:15px/1.5 var(--mono);background:#000;color:#5cff8a;min-height:100%">ATDT www.alitaptap.net<br>NO CARRIER<br><br>It is ${News.year()}.<br>The World Wide Web has not been invented yet.<br>Torch is not sure how you opened it.<br><br>Try a later year. Or a library.<span style="animation:qbl 1s steps(2) infinite">_</span><style>@keyframes qbl{50%{opacity:0}}</style></div>`,
+}]);
+QWeb.eras.push([1991, 1995, {
+  title: 'Server not found',
+  html: () => `<div style="padding:18px;font:14px/1.5 var(--ui);background:#fff;color:#000;min-height:100%">
+    <h2 style="font:700 18px var(--ui);margin:0 0 8px">Torch cannot find the server at www.alitaptap.net</h2>
+    <p>The server could not be found. Either:</p>
+    <ul><li>the address is typed wrong, or</li><li>the site <b>does not exist yet</b>. It is ${News.year()}, and most of the Web has not been built.</li></ul>
+    <p style="color:#666;font-size:12px">DNS_NOT_YET. The clock in the corner of your screen decides what year it is.</p></div>`,
+}]);
+/* ---------- 1996: her very first page. Grey, Times New Roman, made in Notepad ---------- */
+QWeb.eras.push([1996, 1996, {
+  title: "Luz's Home Page",
+  html: () => {
+    Quest.era('e96'); Quest.lead('web96');
+    return `<div class="q96" style="background:#c0c0c0;min-height:100%;padding:12px 16px;font:16px/1.35 'Times New Roman',Times,serif;color:#000">
+    <style>.q96 a{color:#0000ee;text-decoration:underline;cursor:pointer} .q96 h1{font:700 32px 'Times New Roman',serif;margin:6px 0} .q96 h3{font:700 19px 'Times New Roman',serif;margin:14px 0 4px} .q96 hr{border:0;border-top:2px groove #fff;margin:10px 0} .q96 .uc{display:inline-block;background:#ffd800;border:3px solid #000;font:700 13px Arial,sans-serif;padding:4px 10px;transform:rotate(-3deg)}</style>
+    <center><h1>Luz's Home Page</h1><span class="uc">&#9888; UNDER CONSTRUCTION &#9888;</span>
+    <p><i>Welcome to my first page on the World Wide Web!</i></p></center><hr>
+    <p>Hello. My name is Luz. I am 15. I live in Ember Village. I made this page at <b>Kubo Net Cafe</b>, on Station 7 (the one by the window), because we do not have a computer at home.</p>
+    <p>My friend Migs showed me how. He is at Station 6 right now, pretending he is not reading over my shoulder.</p>
+    <h3>Things I like</h3>
+    <ul><li>Computers</li><li>Fireflies (in our language: <i>alitaptap</i>)</li><li>Pancit canton with an egg</li><li>The moment the page finally finishes loading</li></ul>
+    <h3>Our secret word</h3>
+    <p>Migs says every page needs a secret word, so your friends know the page is really yours. Ours is:</p>
+    <center><p><tt style="font:700 26px 'Courier New',monospace;letter-spacing:6px;background:#fff;border:2px inset #fff;padding:2px 12px">SINAG</tt></p></center>
+    <p>It means <i>a ray of light</i>. He picked it. (Migs: yes, I know that putting it ON the page defeats the purpose. It's my page.)</p>
+    <h3>Links</h3>
+    <ul><li><a data-go="burn://home">SparkNet</a> (it is the only other page I know)</li><li>More links when I find more pages.</li></ul>
+    <hr><address style="font-size:13px">Last updated: September 2, 1996. Made with Notepad.<br>This page is best viewed with Netscape Navigator 2.0.<br>You are visitor number <b style="font:15px 'Courier New',monospace;background:#000;color:#0f0;padding:0 3px">000012</b> (eleven of those are me)</address></div>`;
+  },
+}]);
+/* ---------- 1997 and 1998: the GeoCities years. Stars, a marquee, a guestbook ---------- */
+QWeb.eras.push([1997, 1998, {
+  title: "~* aLiTaPtAp's cOrNeR *~",
+  html: () => {
+    const y98 = News.year() === 1998; Quest.era(y98 ? 'e98' : 'e97');
+    const box = (t, body, c = '#66ffcc') => `<table class="bx" style="border-color:${c}"><tr><th style="background:${c}">${t}</th></tr><tr><td>${body}</td></tr></table>`;
+    const gb = [['tala_migs', 'Sep 1997', 'LUZ!! i can see ur page from the library computer here!!! the city is so loud. no fireflies. back at christmas. PANGAKO.'], ['Ate Bing', 'Oct 1997', 'Luz your time is up. EXTEND?'], ['JunJun (age 11)', 'Nov 1997', 'cool page!! how do u make the stars. i will make a page 2 when my dad buys a computer'], ['cool_dude_99', 'Dec 1997', 'nice page. the firefly cursor would be better. visit mine (its not done)']];
+    if (y98) gb.push(['Ate Bing', 'Jan 1998', 'Greetings from the airport. Sold all 8 stations. A family from the village took number 7. Be good Luz.'], ['alitaptap', 'Feb 1998', '(me) migs if you are reading this: the library gives me 30 minutes. the lights are still where I left them. they just moved house.']);
+    return `<div class="q97" style="min-height:100%;color:#e8ffb0;font:15px/1.45 var(--comic);text-align:center;padding:12px;background:radial-gradient(#fff 1px,transparent 1.5px) 0 0/38px 38px,radial-gradient(#cfe 1px,transparent 1.5px) 19px 19px/38px 38px,#02041a">
+    <style>.q97 a{color:#66ffff;cursor:pointer} .q97 .mq{overflow:hidden;white-space:nowrap;background:#102050;border:2px ridge #c8ff5a;color:#fff} .q97 .mq span{display:inline-block;padding-left:100%;animation:q97m 16s linear infinite} @keyframes q97m{to{transform:translateX(-100%)}} @keyframes qbl{50%{opacity:0}}
+    .q97 .ff{display:inline-block;width:7px;height:7px;border-radius:50%;background:#f2ff9c;box-shadow:0 0 8px 4px rgba(200,255,90,.6);animation:q97g 2.2s ease-in-out infinite;margin:0 12px;vertical-align:middle} @keyframes q97g{0%,100%{opacity:.15}50%{opacity:1}}
+    .q97 .bx{margin:12px auto;max-width:440px;width:100%;border:3px ridge;border-collapse:collapse;text-align:left;background:rgba(0,0,30,.75)} .q97 .bx th{color:#000;font:700 14px var(--comic);padding:2px 6px} .q97 .bx td{padding:6px 8px}
+    .q97 .warn{border:3px dashed #ff5050;color:#ffd0d0;background:#300;max-width:440px;margin:12px auto;padding:6px 8px} .q97 .blink{animation:qbl 1s steps(2) infinite;color:#ff5050;font-weight:700}</style>
+    <h1 style="font:700 28px/1.15 var(--comic);color:#c8ff5a;text-shadow:2px 2px #0a6a2a;margin:4px 0"><i class="ff"></i>~* aLiTaPtAp's cOrNeR *~<i class="ff" style="animation-delay:-1.1s"></i></h1>
+    <div class="mq"><span>*** welcome to my corner of the web *** alitaptap means FIREFLY *** now with 100% more stars *** sign my guestbook or else *** best viewed at 640x480 in the dark ***</span></div>
+    <div class="warn">${y98
+      ? '<b>UPDATE, January 1998:</b> Kubo Net is gone. Ate Bing sold the stations. I update this page from the school library now.<br><br>If your family bought <b>STATION 7</b> (beige tower, my name scratched under the keyboard): <span class="blink">PLEASE DO NOT FORMAT IT.</span> There is something on it that is not mine to lose.'
+      : '<span class="blink">!!! SAD NEWS !!!</span><br><b>KUBO NET CAFE CLOSES DECEMBER 31.</b> Ate Bing is going abroad to work. If you ever paid for an hour here, come and say bye. Bring pancit.'}</div>
+    ${box('aBoUt mE', 'I am Luz, 16, from Ember Village. I live at <b>Station 7</b> of Kubo Net Cafe (the one by the window). I like fireflies, QBasic, pancit canton and the sound the modem makes right before it works.')}
+    ${box('mY pRoGrAmS (QBasic!!)', '<b>GUESS.BAS</b>: guess my number. It cheats.<br><b>STARS.BAS</b>: stars. That is the whole program.<br><b>JAR</b>: top secret. For M only. It only has to work once.', '#ffcc66')}
+    ${box('fOr M', 'Light number 4 used to live on this page. I took it down when the guestbook people started guessing.<br><br>But <b>you</b> saw it, the first week this page ever existed. Back when it was grey and ugly. You were there <i>then</i>.', '#ff99cc')}
+    ${box('a pOeM', '<i>the power went out<br>and the monitors went dark<br>so the window lit up instead:<br>a hundred tiny screens,<br>none of them plugged in.</i>', '#99ccff')}
+    <h2 style="color:#c8ff5a;font:700 20px var(--comic);margin:14px 0 2px">~ gUeStBoOk ~</h2>
+    <div style="max-width:440px;margin:0 auto;text-align:left">${gb.map(([n, d, m]) => `<p style="margin:0 0 6px;padding:4px 7px;background:#101a48;border:1px solid #3a4a9a"><b style="color:#ffcc66">${n}</b> <small style="color:#9ab">${d}</small><br>${m}</p>`).join('')}
+    <p style="font-size:12px;color:#9ab;text-align:center">The guestbook is closed. ${y98 ? 'The library computer will not let me run the script.' : 'Ate Bing says the script uses too much modem.'}</p></div>
+    <p style="font-size:13px">&lt;&lt; <a data-go="www.junjun-rocks.com">prev</a> | <b>The Tiny Lights Web Ring</b> | <a data-go="www.dancing-tuko.com">next</a> &gt;&gt;</p>
+    <p style="font-size:12px">You are visitor <b style="font:15px var(--mono);background:#000;color:#c8ff5a;padding:0 3px">${y98 ? '0000641' : '0000388'}</b> · made ${y98 ? 'at the school library, 30 minutes at a time' : 'at Kubo Net Cafe, Station 7'}</p></div>`;
+  },
+}]);
+/* ---------- 1999 to 2001: version 3.0. Tables, a sidebar, a Y2K countdown ---------- */
+QWeb.eras.push([1999, 2001, {
+  title: 'alitaptap.net v3.0',
+  html: () => {
+    const y = News.year(); Quest.era('e99');
+    const posts = [
+      [2001, '08.20.01', 'The dorm has a LAN', 'Ten megabits. I downloaded a whole song in four minutes and had to lie down. Second year of Computer Science starts Monday.'],
+      [2000, '01.01.00', 'Y2K', 'Nothing happened. I stayed up anyway, watching the dorm computer lab like it was a comet.'],
+      [1999, '06.15.99', 'Leaving', 'I got in. Computer Science, at the university in the city. I leave Ember Village in two weeks.<br><br>Yes, the same city he moved to. No, I do not know where he lives. The phone number I had stopped working in \'98, and there are a lot of people called Reyes in a city.'],
+      [1999, '03.02.99', 'FAQ, because you keep e-mailing', '<b>Q: What is "the jar"?</b><br>A program I wrote in 1997, for a friend, on a cafe computer. Five words open it.<br><br><b>Q: Where were the words?</b><br>All over that computer. One I "deleted", so the owner would not read it (deleted things do not go far: they sit in the Recycle Bin until somebody empties it). One you could only see with <tt>DIR /A</tt>. The others were harder.<br><br><b>Q: Where is the computer now?</b><br>If I knew, this page would be a lot shorter.'],
+      [1999, '01.10.99', 'The pawnshop', 'Walked past where Kubo Net used to be. It is a pawnshop now. There is a rice cooker in the window, exactly where Station 7 was.'],
+    ].filter(p => p[0] <= y);
+    const y2k = y < 2000 ? `<b>Y2K COUNTDOWN</b><br><span style="font:700 20px var(--mono);color:#c00">${y === 1999 ? '00' : '01'}</span> year(s) to go.<br>I have a flashlight.` : '<b>Y2K STATUS</b><br>We survived.<br>The flashlight was not needed.';
+    return `<div class="q99" style="min-height:100%;background:#fff;color:#000;font:12px/1.45 Verdana,Arial,sans-serif">
+    <style>.q99 a{color:#003399;cursor:pointer} .q99 .nav{background:#003366;color:#fff;padding:3px 8px;font-size:11px} .q99 .nav b{color:#ffcc00} .q99 td{vertical-align:top} .q99 .side{background:#e6ecf5;border-right:1px solid #99aacc;width:132px;padding:8px;font-size:11px} .q99 .side div{border:1px solid #99aacc;background:#fff;padding:5px;margin-bottom:8px} .q99 h2{font:700 13px Verdana,sans-serif;color:#fff;background:#336699;margin:0 0 4px;padding:2px 6px} .q99 .post{margin:0 0 12px;border:1px solid #c8d2e4} .q99 .post p{margin:0;padding:6px 8px}</style>
+    <div style="background:linear-gradient(90deg,#003366,#336699);color:#fff;padding:8px 10px"><span style="font:700 22px Verdana,sans-serif">alitaptap<span style="color:#ffcc00">.net</span></span> <span style="font-size:10px">v3.0 · a small light on the information superhighway</span></div>
+    <div class="nav"><b>home</b> | about | programs | links | guestbook (broken) | <span style="color:#9bd">skip intro</span></div>
+    <table cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse"><tr>
+    <td class="side"><div><b>WHO</b><br>Luz, ${y - 1981}.<br>Used to live at Station 7.</div><div>${y2k}</div><div><b>LINKS</b><br><a data-go="burn://home">SparkNet</a><br><a data-go="www.junjun-rocks.com">JunJun's page</a><br><a data-go="www.y2k-ready.com">Y2K test</a></div><div style="text-align:center;font-size:9px">Best viewed at<br><b>800 x 600</b><br>Internet Explorer 4+<br><br>hits: <b style="font-family:var(--mono);font-size:13px">${String(2000 + (y - 1999) * 3141).padStart(6, '0')}</b></div></td>
+    <td style="padding:10px"><p style="margin:0 0 10px;font-size:11px;color:#555">Welcome to version 3.0. The stars are gone. I am told this is what a professional site looks like.</p>
+    ${posts.map(([, d, t, b]) => `<div class="post"><h2>${d} :: ${t}</h2><p>${b}</p></div>`).join('')}
+    <p style="font-size:10px;color:#777;text-align:center">&copy; 1996-${y} Luz N. · If you bought a beige computer from a cafe in Ember Village in 1998, <u>e-mail me</u>.</p></td></tr></table></div>`;
+  },
+}]);
+/* ---- 68-quest-web2.js ---- */
+/* ============================================================
+   STATION 7: www.alitaptap.net, part 2 (2002 to today).
+   The blog years, the social network years, and the site as it
+   is now, which is where the case gets closed.
+   ============================================================ */
+/* ---------- 2002 to 2007: a blog. Date headers, comments, a blogroll ---------- */
+QWeb.eras.push([2002, 2007, {
+  title: 'a small light :: the alitaptap blog',
+  html: () => {
+    const y = News.year(); Quest.era('e02'); if (y >= 2004) Quest.era('e04');
+    const reunion = `<div class="cm"><b>3 comments</b>
+      <p><b>migs_r</b> said...<br>Luz. It's Migs. I searched "alitaptap" on a whim at 2 in the morning.<br><br>I went back, you know. January '98. The road reopened and I took the first bus up. The cafe was empty and there was a SOLD sign on the door. I stood at Station 7's window for an hour like an idiot.<br><br>I still don't know what the jar says.</p>
+      <p><b>luz</b> said...<br>MIGS.<br>EIGHT YEARS.<br>Check your e-mail. CHECK YOUR E-MAIL.</p>
+      <p><b>anonymous</b> said...<br>i don't know either of you and i am crying at work</p></div>`;
+    const posts = [
+      [2007, 'Tuesday, March 6, 2007', 'employed', 'First real job. I get paid to make a cartoon fish jump over things. Mama still tells the neighbours I "fix computers".', '11:02 PM', 5, ''],
+      [2006, 'Sunday, April 2, 2006', 'we went back', 'Migs and I took the bus up to Ember Village. Eight hours. He complained for six of them.<br><br>The rooftop is still there. The pawnshop man let us go up. He does not remember who bought the stations: "some families, a school, I think one went to a church."<br><br>So Station 7 is still out there, with the jar still shut. Neither of us has ever seen it open. I wrote it, and I honestly can\'t remember what the last part says.', '9:40 PM', 12, ''],
+      [2005, 'Friday, April 15, 2005', 'graduated', 'Bachelor of Science in Computer Science. It took five years and one thesis about pathfinding for fireflies. (They are bad at it. That is the thesis.)', '6:15 PM', 9, ''],
+      [2004, 'Saturday, August 14, 2004', 'eight years since the brownout', 'August 14, 1996: the power went out in an internet cafe and a boy said the fireflies looked like tiny monitors. I think about that sentence more than is healthy.<br><br>I never found him in this city. I never found the computer either. Happy anniversary, Station 7, wherever you are.', '11:58 PM', 3, reunion],
+      [2003, 'Monday, September 8, 2003', 'things I can do now', 'I can make a linked list cry. I can make a compiler say things about my mother. Third year.', '1:12 AM', 2, ''],
+      [2002, 'Thursday, November 21, 2002', 'things I never finished', 'Found my old QBasic book at the bottom of a box, which made me think of the jar again.<br><br>My favourite of the five hiding places was the picture. I drew the night we met, and to anyone else it looked like nothing: a plain black rectangle. But the word was in there, painted in a black that was just barely not the same black. You had to <i>pour light into it</i>. One click with the paint bucket on the sky, any bright colour, and the word would just be standing there.<br><br>I was sixteen and I thought that was the cleverest thing anyone had ever done.', '12:31 AM', 1, ''],
+      [2002, 'Wednesday, July 3, 2002', 'hello, blog', 'Everyone in the dorm has one of these now, so here is mine. I have had a homepage at this address since 1996. It has been grey, then covered in stars, then "professional". Now it is a diary again, which is what it always was.', '10:05 PM', 0, ''],
+    ].filter(p => p[0] <= y);
+    return `<div class="q02" style="min-height:100%;background:#f3efe4;color:#333;font:13px/1.55 Georgia,'Times New Roman',serif;padding:0 0 16px">
+    <style>.q02 a{color:#5588aa;cursor:pointer} .q02 .wrap{max-width:560px;margin:0 auto;padding:0 12px} .q02 .hd{border:1px solid #ccc;background:#fff;margin:12px 0;padding:14px;text-align:center} .q02 .hd h1{font:400 26px Georgia,serif;letter-spacing:3px;text-transform:uppercase;margin:0;color:#666} .q02 .hd p{margin:4px 0 0;font:11px 'Trebuchet MS',Verdana,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#999}
+    .q02 .date{font:11px 'Trebuchet MS',Verdana,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#999;margin:18px 0 4px} .q02 h3{font:400 18px Georgia,serif;color:#cc6600;margin:0 0 4px} .q02 .ft{font:10px 'Trebuchet MS',Verdana,sans-serif;letter-spacing:1px;text-transform:uppercase;color:#999;border-bottom:1px dotted #ccc;padding-bottom:10px;margin-top:6px}
+    .q02 .cm{background:#fff;border:1px solid #ddd;margin:8px 0 0;padding:8px 10px;font-size:12px} .q02 .cm p{margin:8px 0 0;border-top:1px dotted #ccc;padding-top:6px} .q02 .sb{font:11px/1.5 'Trebuchet MS',Verdana,sans-serif;color:#666;border-top:1px dotted #999;margin-top:14px;padding-top:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px} .q02 .sb b{letter-spacing:2px;text-transform:uppercase;color:#999;font-weight:400}</style>
+    <div class="wrap"><div class="hd"><h1>a small light</h1><p>alitaptap.net · online since 1996</p></div>
+    ${posts.map(([, d, t, b, tm, n, extra]) => `<div class="date">${d}</div><h3>${t}</h3><div>${b}</div><div class="ft">posted by luz at ${tm} | ${extra ? '3' : n} comments</div>${extra}`).join('')}
+    <div class="sb"><div><b>about me</b><br>Luz, ${y - 1981}. Computer person. Nicknamed after a bug.</div><div><b>archives</b><br>${[2007, 2006, 2005, 2004, 2003, 2002].filter(a => a <= y).join(' · ')}<br>1996-2001: see the Wayback of my heart</div><div><b>currently</b><br>mood: ${y >= 2004 ? 'found' : 'looking'}<br>music: four notes, on repeat</div></div>
+    <p style="text-align:center;font:10px 'Trebuchet MS',Verdana,sans-serif;color:#aaa;margin-top:14px">powered by Blogster · template: Minimal</p></div></div>`;
+  },
+}]);
+/* ---------- 2008 to 2015: a profile on a social network that no longer exists ---------- */
+QWeb.eras.push([2008, 2015, {
+  title: 'Luz Navarro | Friendzy',
+  html: () => {
+    const y = News.year(); Quest.era('e08');
+    const c = (who, text) => `<div class="c"><b>${who}</b> ${text}</div>`;
+    const posts = [
+      [2015, 'March 2015', 'Friendzy is shutting down next month, so this wall is going away. That\'s fine. I\'ve had the same address since 1996 and I have moved house four times on it. Find me at alitaptap.net. I\'ll leave a light on.', 41, ''],
+      [2014, 'June 2014', 'Migs is officially a godfather. He cried more than the baby did.', 96, c('Migs Reyes', 'I had something in my eye') + c('Luz Navarro', 'for forty minutes')],
+      [2012, 'October 2012', 'We quit our jobs. We shipped a game. It\'s called BROWNOUT, it\'s about fireflies coming in through a window, and it has 37 downloads. Thirty of them are my mother.', 58, c('Migs Reyes', 'the other 7 are my mother')],
+      [2011, 'Throwback Thursday, 2011', 'Found my 1997 diary. I wrote Migs a song that year, in a tracker, on a cafe computer: four notes, over and over. I was SO proud of the trick. It was never just a song. <b>The notes spell a word.</b> Every note has a letter name. You just read them, left to right.', 73, c('Migs Reyes', 'I NEVER GOT TO HEAR IT. where is station 7') + c('Luz Navarro', 'somewhere out there, a beige tower is holding my best work hostage') + c('Ate Bing', 'I told you no saving on the stations')],
+      [2009, 'May 2009', 'The first game I worked on is in an actual store. My name is in the credits. It is spelled wrong.', 22, ''],
+      [2008, 'February 2008', '<i>Luz Navarro is now friends with <b>Migs Reyes</b>.</i>', 14, c('Migs Reyes', 'took you long enough. it has only been 4 years since the blog')],
+      [2008, 'January 2008', '<i>Luz Navarro joined Friendzy.</i>', 3, ''],
+    ].filter(p => p[0] <= y);
+    return `<div class="q08" style="min-height:100%;background:#e9ebee;color:#1c1e21;font:12px/1.4 'Lucida Grande',Tahoma,Verdana,sans-serif">
+    <style>.q08 .top{background:#3b5998;color:#fff;padding:6px 10px;display:flex;gap:10px;align-items:center} .q08 .top b{font:700 20px Tahoma,sans-serif;letter-spacing:-1px} .q08 .top span{flex:1;background:#fff;color:#999;padding:2px 6px;font-size:11px;max-width:200px}
+    .q08 .wrap{max-width:560px;margin:0 auto;padding:10px} .q08 .fc{background:#fff;border:1px solid #c4cde0;margin-bottom:10px;padding:8px 10px} .q08 .who{display:flex;gap:10px;align-items:center} .q08 .av{width:56px;height:56px;flex:none;background:#0a1030 radial-gradient(circle at 60% 45%,#f2ff9c 0 4px,rgba(200,255,90,.5) 5px 9px,transparent 14px)} .q08 h1{font:700 17px Tahoma,sans-serif;margin:0;color:#3b5998}
+    .q08 .ftabs{display:flex;gap:2px;margin:0 0 10px} .q08 .ftabs i{font-style:normal;background:#d8dfea;border:1px solid #c4cde0;padding:3px 10px;color:#3b5998} .q08 .ftabs i.on{background:#fff;font-weight:700;border-bottom-color:#fff}
+    .q08 .meta{color:#90949c;font-size:11px;margin:4px 0} .q08 .meta u{color:#3b5998;text-decoration:none} .q08 .c{background:#edeff4;border-top:1px solid #fff;padding:4px 6px;margin-top:1px} .q08 .c b{color:#3b5998} .q08 input{width:100%;box-sizing:border-box;border:1px solid #bdc7d8;padding:4px;font:12px Tahoma,sans-serif;background:#f7f7f7}</style>
+    <div class="top"><b>friendzy</b><span>Search for friends</span></div>
+    <div class="wrap"><div class="fc who"><div class="av"></div><div><h1>Luz Navarro</h1><div>${y >= 2012 ? 'Co-founder at <b>Alitaptap Games</b>' : 'Game Programmer at a studio with a fish for a logo'} · From <b>Ember Village</b><br><span style="color:#90949c">${y >= 2012 ? 'is making small games about light.' : 'is debugging a fish.'}</span></div></div></div>
+    <div class="ftabs"><i class="on">Wall</i><i>Info</i><i>Photos (7)</i></div>
+    <div class="fc"><input disabled value="Write on Luz's wall... (you must be logged in)"></div>
+    ${posts.map(([, d, b, likes, cm]) => `<div class="fc"><div><b style="color:#3b5998">Luz Navarro</b> ${b}</div><div class="meta">${d} · <u>Like</u> · <u>Comment</u> · ${likes} people like this</div>${cm}</div>`).join('')}
+    <p style="text-align:center;color:#90949c;font-size:10px">Friendzy &copy; ${y} · About · Advertising · Developers · Poke everyone</p></div></div>`;
+  },
+}]);
+/* ---------- 2016 to now: the studio. Dark, big type, a cookie notice. And a form ---------- */
+QWeb.eras.push([2016, 1e9, {
+  title: 'Alitaptap Games: small games about light',
+  letter(name) {
+    const yrs = News.max() - 1997;
+    return `<div class="reply"><div class="rh"><b>Luz Navarro</b> <span>replied · just now</span></div>
+      <p>${name ? esc(name) + ',' : 'Hello, whoever you are,'}</p>
+      <p>I had to read your message three times.</p>
+      <p>It worked? JAR.EXE actually ran? After ${yrs} years?</p>
+      <p>I had forgotten that the last one was <i>Pangako</i>. I was sixteen, and so sure he would be back before the cafe closed. He did come back, you know. January 1998: the road reopened and he took the first bus up. The cafe was already empty. He stood at Station 7's window for an hour, and then he went home, and we lost each other for seven years.</p>
+      <p>He found my blog in 2004. These days he writes the music for our games, and he is godfather to my daughter. I just called him. He is laughing, and also definitely crying. He says: <i>"Tell them the rooftop is still there."</i></p>
+      <p>So that is the whole story. You opened a jar that two people have been wondering about for most of their lives.</p>
+      <p>I can't give you much from here. But I have sent the fireflies back down the wire to Station 7. Look at your desktop. They know the way home.</p>
+      <p>Keep the machine. Don't let anyone format it.</p>
+      <p>Luz<br><span style="opacity:.6">alitaptap, still</span></p></div>`;
+  },
+  html() {
+    const y = News.year(), s = Quest.s; Quest.era('e16');
+    const game = (t, yr, d, hue) => `<div class="g"><div class="th" style="background:radial-gradient(circle at ${30 + hue % 40}% ${40 + hue % 30}%,hsl(${hue},100%,80%) 0 3px,hsla(${hue},100%,60%,.45) 4px 9px,transparent 16px),radial-gradient(circle at 72% 30%,#f2ff9c 0 2px,rgba(200,255,90,.4) 3px 7px,transparent 12px),linear-gradient(#0a1030,#16224a)"></div><b>${t}</b> <span>${yr}</span><p>${d}</p></div>`;
+    return `<div class="q16" style="min-height:100%;background:#0b0f1a;color:#e8ecf4;font:15px/1.6 system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+    <style>.q16 a{color:#d8ff7a;cursor:pointer;text-decoration:none} .q16 .in{max-width:620px;margin:0 auto;padding:0 18px} .q16 nav{display:flex;justify-content:space-between;align-items:center;padding:14px 0;font-size:13px;gap:10px;flex-wrap:wrap} .q16 nav b{font-size:15px;letter-spacing:.3px} .q16 nav b::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:#e8ff7a;box-shadow:0 0 10px 3px rgba(200,255,90,.7);margin-right:8px} .q16 nav span{opacity:.7}
+    .q16 .eyebrow{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:#8a94ac;margin:34px 0 10px} .q16 h1{font:700 clamp(30px,8vw,46px)/1.05 system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:-1.5px;margin:0 0 12px} .q16 h2{font:700 22px/1.2 system-ui,sans-serif;letter-spacing:-.5px;margin:0 0 8px} .q16 p{margin:0 0 12px;color:#b8c0d2}
+    .q16 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:8px 0 6px} .q16 .g{background:#131a2c;border:1px solid #232c44;border-radius:14px;padding:10px 12px 4px} .q16 .g .th{height:84px;border-radius:9px;margin-bottom:8px} .q16 .g span{color:#8a94ac;font-size:12px} .q16 .g p{font-size:13px;line-height:1.45;margin:4px 0 8px}
+    .q16 .s7{background:#131a2c;border:1px solid #2c3a1a;border-radius:16px;padding:18px;margin:10px 0 0} .q16 form{display:grid;gap:8px;margin-top:10px} .q16 input{background:#0b0f1a;border:1px solid #2a3450;border-radius:9px;color:#e8ecf4;font:15px system-ui,sans-serif;padding:10px 12px;min-width:0} .q16 button{background:#d8ff7a;color:#0b0f1a;border:0;border-radius:999px;font:600 15px system-ui,sans-serif;padding:10px 18px;cursor:pointer;justify-self:start}
+    .q16 .out{color:#ffd28a;font-size:14px;min-height:20px} .q16 .reply{background:#0b0f1a;border:1px solid #2c3a1a;border-radius:12px;padding:14px 16px;margin-top:6px} .q16 .reply p{color:#e8ecf4} .q16 .rh{margin-bottom:10px;font-size:13px} .q16 .rh span{color:#8a94ac} .q16 .rh b::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:#e8ff7a;box-shadow:0 0 10px 3px rgba(200,255,90,.7);margin-right:8px}
+    .q16 footer{font-size:12px;color:#6a748c;padding:26px 0 14px} .q16 .ck{background:#1a2238;border-radius:10px;padding:8px 12px;font-size:12px;color:#b8c0d2;display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:12px}</style>
+    <div class="in"><nav><b>alitaptap games</b><span>Games · About · Station 7</span></nav>
+    <div class="eyebrow">Independent studio · est. 2012</div><h1>Small games about light.</h1>
+    <p>Short, quiet games you can finish in an evening. Made by two people and one cat, in a room with a very good window.</p>
+    <div class="eyebrow">Games</div><div class="grid">
+      ${game('Brownout', '2012', 'The power goes out. Fireflies come in through the window. That is the whole game.', 75)}
+      ${game('Two Tails', '2017', 'Watch a comet from a rooftop, next to someone you are about to miss.', 200)}
+      ${y >= 2021 ? game('Extend?', '2021', 'Run an internet cafe with eight stations and one very loud owner.', 30) : ''}
+      ${game('Station 7', 'since 1997', 'In development. We are missing one file.', 110)}</div>
+    <div class="eyebrow">About</div>
+    <p><b style="color:#e8ecf4">Luz Navarro</b> learned to program at fifteen, on a rented computer by a window, thirty pesos an hour. She has been trying to get back to that feeling ever since. Music and sound are by <b style="color:#e8ecf4">Migs Reyes</b>, whom she met during a power cut in 1996.</p>
+    <div class="eyebrow">Station 7</div>
+    <div class="s7"><h2>${s.closed ? 'Station 7 has been found.' : 'Still looking for Station 7.'}</h2>
+      ${s.closed ? this.letter(s.name) : `<p>In December 1997 I left a program on a cafe computer in Ember Village, for a friend. The cafe closed and the computer was sold before he could open it. Neither of us has ever seen what it says. I wrote it, and I no longer remember.</p>
+      <p>It is a beige tower with <b style="color:#e8ecf4">STATION 7</b> on the side in marker. If you have it, and you got the jar open: tell me the name of the last firefly. That is how I will know it is really you.</p>
+      <form data-s7><input name="n" maxlength="24" placeholder="Your name (so I know who to thank)" aria-label="Your name" autocomplete="off"><input name="w" maxlength="24" placeholder="The name of the last firefly" aria-label="The name of the last firefly" autocomplete="off" autocapitalize="off"><button>Send to Luz</button></form><div class="out" data-out role="status"></div>`}
+    </div>
+    <footer>&copy; 1996-${y} Alitaptap Games. This site has lived at the same address since 1996. Try doing that with an app.
+      <div class="ck"><span>This site uses cookies. In 1997 that meant something you could eat.</span><a data-ck>OK</a></div></footer></div></div>`;
+  },
+  wire(root) {
+    const ck = root.querySelector('[data-ck]'); if (ck) ck.onclick = () => ck.parentNode.remove();
+    const f = root.querySelector('[data-s7]'), out = root.querySelector('[data-out]'); if (!f) return;
+    f.onsubmit = (e) => {
+      e.preventDefault(); const v = f.w.value.trim().toLowerCase(); if (!v) return;
+      if (!/^(pangako|promise|a promise)$/.test(v)) { out.textContent = 'Hmm. That is not what I remember hiding. (No hard feelings. I get a lot of guesses.)'; Sound.ding(); return; }
+      if (!Quest.s.caught) { out.textContent = '...that IS the word. But you would only know it for certain if the jar had really opened. Run JAR.EXE to the very end and catch every firefly. Then come back and tell me.'; Sound.ding(); return; }
+      const name = f.n.value; Quest.close(name);
+      const box = root.querySelector('.s7'); box.innerHTML = '<h2>Station 7 has been found.</h2>' + this.letter(Quest.s.name); box.scrollIntoView({ block: 'start', behavior: calm() ? 'auto' : 'smooth' });
+    };
+  },
+}]);
+/* the address itself: whatever year it is, that is the page you get */
+WEB_PAGES['www.alitaptap.net'] = {
+  get title() { return QWeb.era().title; },
+  html: () => QWeb.era().html(),
+  wire(root, nav) { const e = QWeb.era(); if (e.wire) e.wire(root, nav); },
+};
+/* ---- 68-quest-jar.js ---- */
+/* ============================================================
+   STATION 7: JAR.EXE, the program Luz wrote in QBasic in 1997.
+   A DOS text screen (40 columns, 16 colours) with fireflies drawn
+   over it. Type the five lights and the jar opens; then there is
+   a letter, and two more fireflies to catch by hand.
+   ============================================================ */
+const JAR_LETTER = [
+  ['MIGS.', '', "If you're reading this, you came back.", 'I knew it.', '', "(If you're not Migs: hello, stranger.", 'You must be patient, and a little', 'nosy. I like you already.)', '', 'I wanted to say this on the rooftop,', "but I'm better at typing."],
+  ['The night of the brownout, I thought', 'the dark was the worst thing that', 'could happen to an internet cafe.', '', 'Then the fireflies came in, and you', 'said they looked like tiny monitors,', 'and I have not been bored one single', 'day since.'],
+  ["You're going to do big things in the", "city. I'm going to stay here a while", 'and learn how to make these machines', 'do what I tell them.', '', "Someday I'll make games. Real ones.", 'This jar is the first.'],
+  ['I named the lights, so you could', 'carry them with you:', '', '~NINGNING  for the first time my page', '          finished loading.', '~KISLAP    for the comet.', '~LIWANAG   for the night the power', '          came back on.', '~SINAG     because you picked it.', '~BAGA      because embers keep, even', '          after the fire is out.'],
+  ['There are two more in the jar.', "I didn't hide those.", '', 'You have to catch them yourself.', '', '', '- Luz', '  Station 7, Kubo Net Cafe', '  December 30, 1997'],
+];
+const JAR_END = ["That's all of them.", '', '~PANGAKO means promise.', 'He made one. I kept it in here.', '', '', 'JAR.EXE finished. Fireflies: 7 of 7.', '(C) 1997 L. Navarro, Station 7.', 'Made with QBasic and too much', 'pancit canton.', '', '', 'If you are not Migs:', 'somebody should tell her it worked.', "She said she'd still be alitaptap,", 'wherever the web goes.', '~Whenever the web goes.'];
+const JAR_FLIES = [...Q_LIGHTS, ['TALA', 'a star. That one is you.'], ['PANGAKO', 'a promise.']];
+APPS.jar = {
+  title: 'JAR.EXE', icon: 'jar', w: 460, h: 580, minW: 270, minH: 320, single: true,
+  open(win) {
+    gameCSS('css-jar', `
+.jar { flex: 1; min-height: 0; display: flex; flex-direction: column; background: #000; }
+.jar.touch { flex-direction: column-reverse; }   /* on a phone the typing bar sits on top, clear of the keyboard */
+.jar-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.jar-scr { flex: 1; min-height: 0; position: relative; overflow: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.jar-scr canvas { display: block; width: 100%; height: 100%; }
+.jar-bar { flex: none; display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 4px 8px 6px; background: #000; color: #aaaaaa; font: 20px/1 var(--mono); }
+.jar-bar input { flex: 1; min-width: 0; background: #000; color: #ffff55; border: 0; outline: 0; font: 20px/1 var(--mono); text-transform: uppercase; caret-color: #ffff55; padding: 2px 0; border-radius: 0; }
+.jar-bar button { background: #aaaaaa; color: #000; border: 0; border-radius: 0; font: 18px/1 var(--mono); padding: 5px 10px; cursor: pointer; } .jar-bar button:active { background: #ffff55; }
+`);
+    const COLS = 40, ROWS = 22, PAL = { w: '#aaaaaa', W: '#ffffff', Y: '#ffff55', d: '#555555', C: '#55ffff', G: '#55ff55', R: '#ff5555' };
+    const cv = h('canvas', { 'aria-label': 'JAR.EXE screen' }), scr = h('div.jar-scr', cv), bar = h('div.jar-bar');
+    const sr = h('div.jar-sr', { role: 'status', 'aria-live': 'polite' }), tell = (s) => { sr.textContent = s; };   // the screen is a canvas, so say what it shows for screen readers
+    win.body.append(h('div.jar' + (isTouch() ? '.touch' : ''), scr, bar, sr));
+    const g = cv.getContext('2d'), S = Quest.s;
+    let cw = 10, chh = 20, ox = 0, oy = 0, font = '20px monospace', raf = 0, last = 0, t = 0, scene = '', sceneT = 0;
+    let buf = [], title = ['', ''], msg = [], flies = [], page = 0, typed = 0, lines = [], caughtMsg = ['', ''], input = null, endTuko = false;
+    /* ---- a tiny text screen ---- */
+    const cls = () => { buf = Array.from({ length: ROWS }, () => []); };
+    const at = (x, y, text, col = 'w') => { if (y < 0 || y >= ROWS) return; for (let i = 0; i < text.length; i++) if (x + i >= 0 && x + i < COLS && text[i] !== ' ') buf[y][x + i] = [text[i], col]; };
+    const mid = (y, text, col) => at(Math.floor((COLS - text.length) / 2), y, text, col);
+    const wrap = (text, n = 38) => { const out = []; for (const para of String(text).split('\n')) { let line = ''; for (const w of para.split(' ')) { if ((line + ' ' + w).trim().length > n) { out.push(line); line = w; } else line = (line + ' ' + w).trim(); } out.push(line); } return out; };
+    function fit() {
+      const W = scr.clientWidth, H = scr.clientHeight; if (W < 20 || H < 20) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      cw = Math.min(cv.width / COLS, cv.height / ROWS / 2); chh = cw * 2; ox = (cv.width - cw * COLS) / 2; oy = 0;
+      const fam = getComputedStyle(document.documentElement).getPropertyValue('--mono').trim() || 'monospace';
+      g.font = `100px ${fam}`; const adv = g.measureText('M').width / 100 || 0.6;
+      font = `${Math.floor(Math.min(chh * 0.98, cw / adv * 0.98))}px ${fam}`;
+    }
+    function draw() {
+      g.fillStyle = '#000'; g.fillRect(0, 0, cv.width, cv.height);
+      g.fillStyle = '#0000aa'; g.fillRect(ox, oy, cw * COLS, chh);
+      g.font = font; g.textAlign = 'center'; g.textBaseline = 'middle';
+      const put = (x, y, c, col) => { g.fillStyle = PAL[col] || col; g.fillText(c, ox + (x + 0.5) * cw, oy + (y + 0.52) * chh); };
+      for (let i = 0; i < title[0].length; i++) put(1 + i, 0, title[0][i], 'W');
+      for (let i = 0; i < title[1].length; i++) put(COLS - 1 - title[1].length + i, 0, title[1][i], 'Y');
+      for (let y = 0; y < ROWS; y++) { const row = buf[y]; for (let x = 0; x < COLS; x++) if (row[x]) put(x, y, row[x][0], row[x][1]); }
+      for (const f of flies) {   // a firefly: a soft glow, a brighter halo, and a hot little dot
+        if (f.gone) continue;
+        const a = (f.dim ? 0.12 : 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * f.rate + f.ph))) * (f.fade ?? 1), px = ox + f.x * cw, py = oy + f.y * chh, r = cw * (f.big ? 1.5 : 1);
+        for (const [k, al] of [[2.8, 0.09], [1.6, 0.24]]) { g.fillStyle = `rgba(200,255,90,${al * a})`; g.beginPath(); g.arc(px, py, r * k, 0, 7); g.fill(); }
+        g.fillStyle = `rgba(244,255,170,${Math.min(1, a + 0.1)})`; g.beginPath(); g.arc(px, py, r * 0.55, 0, 7); g.fill();
+      }
+    }
+    /* ---- the bar under the screen: a place to type, or a button or two ---- */
+    function setBar(kind) {
+      input = null;
+      if (kind === 'input') {
+        input = h('input', { type: 'text', maxlength: 16, autocomplete: 'off', autocapitalize: 'characters', spellcheck: false, 'aria-label': 'Type a light' });
+        input.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { const v = input.value; input.value = ''; tryLight(v); } else Sound.key(); });
+        const ok = h('button', 'ENTER'); ok.onclick = () => { const v = input.value; input.value = ''; tryLight(v); if (!isTouch()) input.focus(); };
+        bar.replaceChildren(h('span', 'LIGHT?'), input, ok); if (!isTouch()) setTimeout(() => input && input.focus(), 60);
+      } else if (kind === 'next') { const b = h('button', 'NEXT >'); b.onclick = advance; bar.replaceChildren(h('span', { style: { flex: 1 } }, isTouch() ? 'TAP TO GO ON' : 'PRESS ENTER'), b); }
+      else if (kind === 'menu') { const a = h('button', 'READ THE LETTER'), b = h('button', 'THE FIREFLIES'); a.onclick = () => go('letter'); b.onclick = () => go('catch'); bar.replaceChildren(a, b); }
+      else bar.replaceChildren(h('span', ' '));
+    }
+    /* ---- scene 1: the shut jar, waiting for five words ---- */
+    const JAR_ART = ['    _________    ', '   [_________]   ', '   /         \\   ', '  |           |  ', '  |           |  ', '  |           |  ', '  |           |  ', '  |           |  ', '  |           |  ', '   \\_________/   '];
+    const SLOTS = [[16, 6.2], [22.5, 5.6], [19.4, 7.7], [15.6, 9.4], [22.8, 9.3]];
+    function paintJar(lift = 0) {
+      cls(); title = ['JAR.EXE  v1.0', '(C) 1997 ALITAPTAP'];
+      JAR_ART.forEach((row, i) => { const y = 2 + i - (i < 2 ? Math.round(lift) : 0); if (y >= 1) at(11, y, row, i < 2 ? 'W' : 'C'); });   // the lid lifts off and out of sight
+      const n = S.lights.filter(Boolean).length;
+      if (scene === 'jar') { mid(13, 'LIGHTS  ' + S.lights.map(v => v ? '*' : '.').join(' ') + `   ${n} OF 5`, 'Y'); msg.slice(0, 5).forEach((m, i) => mid(15 + i, m[0], m[1])); mid(21, 'TYPE A LIGHT, THEN PRESS ENTER', 'd'); }
+    }
+    function jarFlies() { flies = SLOTS.map(([x, y], i) => ({ x, y, hx: x, hy: y, ph: i * 1.7, rate: 1.6 + i * 0.23, dim: !S.lights[i], home: true })); }
+    const say = (text, col = 'w') => { msg = wrap(text, 36).map(l => [l, col]); paintJar(); tell(text); if (isTouch() && input) input.blur(); };   // on a phone, put the keyboard away so the answer can be seen
+    function tryLight(v) {
+      const w = String(v).toUpperCase().replace(/[^A-Z]/g, ''); if (!w || scene !== 'jar') return;
+      const i = Q_LIGHTS.findIndex(l => l[0] === w);
+      if (i >= 0 && S.lights[i]) return say(`${w} is already glowing.`, 'd');
+      if (i >= 0) {
+        Quest.light(i); flies[i].dim = false; Sound.beep(660 + i * 110, 0.14, { type: 'triangle', vol: 0.14 }); Sound.beep(990 + i * 110, 0.22, { type: 'triangle', vol: 0.12 }, 0.11);
+        const left = S.lights.filter(v2 => !v2).length;
+        say(`${w}.\nA light wakes up. (It means ${Q_LIGHTS[i][1]}.)\n${left ? left + ' to go.' : 'That is all five.'}`, 'Y');
+        if (!left) { setBar('none'); setTimeout(() => go('opening'), 1600); }
+        return;
+      }
+      const egg = { ALITAPTAP: "That's me. I'm not in the jar.", TALA: "He's not a light in this jar. He's on a bus.", PANGAKO: 'Not yet.', MIGS: 'Is that you?? Then you know the lights.', LUZ: 'Present.', HELP: 'Five lights. Any order. The clues are in READ ME MIGS.', OPEN: 'Nice try.', PLEASE: 'Nice try. Polite, though.', EXTEND: 'Wrong program, Ate Bing.' }[w];
+      Sound.beep(150, 0.12, { type: 'square', vol: 0.05 }); say(egg || pick(['The jar stays dark.', 'Not a light.', 'Nothing happens. The jar is patient.']), egg ? 'C' : 'R');
+    }
+    /* ---- scene 2: the lid comes off ---- */
+    function opening(dt) {
+      paintJar(Math.min(6, sceneT * 2.4));
+      for (const f of flies) { f.home = false; f.vy = (f.vy || -0.5) - dt * (3 + f.ph * 0.4); f.y += f.vy * dt; f.x += Math.sin(t * 2 + f.ph) * dt * 2.2; if (f.y < -2) f.gone = true; }
+      if (sceneT > 3) { S.opened = S.opened || Date.now(); Quest.lead('jar'); Quest.save(); go('letter'); }
+    }
+    /* ---- scene 3: the letter, typed out a page at a time ---- */
+    function paintText(src, y0 = 2) {
+      cls(); let left = Math.floor(typed);
+      src.forEach((raw, i) => { const hot = raw[0] === '~', line = hot ? raw.slice(1) : raw; if (left <= 0) return; const shown = line.slice(0, left); left -= line.length + 1; at(1, y0 + i, shown, hot ? 'Y' : 'W'); });
+      return left > 0;   // true once the whole page is showing
+    }
+    const pageLen = (src) => src.reduce((n, l) => n + l.length + 1, 0);
+    /* ---- scene 4: catch them ---- */
+    function startCatch() {
+      title = ['ALITAPTAP.BAS', 'CAUGHT 0 OF 7']; caughtMsg = [isTouch() ? 'TAP A FIREFLY TO CATCH IT' : 'CLICK A FIREFLY TO CATCH IT', isTouch() ? '' : '(or press Space)'];
+      flies = JAR_FLIES.slice(0, 6).map(([name, means], i) => ({ name, means, x: 5 + (i * 6.1) % 30, y: 4 + (i * 3.7) % 12, vx: rand(-2.4, 2.4), vy: rand(-1.2, 1.2), ph: i * 1.3, rate: 1.4 + i * 0.3 }));
+    }
+    function catchStep(dt) {
+      cls(); const n = flies.filter(f => f.caught).length; title[1] = `CAUGHT ${n} OF 7`;
+      for (const f of flies) {
+        if (f.caught) { f.fade = Math.max(0, f.fade - dt * 1.6); f.y -= dt * 3; if (f.fade <= 0) f.gone = true; continue; }
+        f.vx += rand(-1, 1) * dt * 5; f.vy += rand(-1, 1) * dt * 3; const sp = f.big ? 1.3 : 3; f.vx = clamp(f.vx, -sp, sp); f.vy = clamp(f.vy, -sp / 2, sp / 2);
+        f.x += f.vx * dt; f.y += f.vy * dt;
+        if (f.x < 2) { f.x = 2; f.vx = Math.abs(f.vx); } if (f.x > COLS - 2) { f.x = COLS - 2; f.vx = -Math.abs(f.vx); } if (f.y < 2.5) { f.y = 2.5; f.vy = Math.abs(f.vy); } if (f.y > 16.5) { f.y = 16.5; f.vy = -Math.abs(f.vy); }
+      }
+      mid(19, caughtMsg[0], 'Y'); mid(20, caughtMsg[1], 'W');
+    }
+    function grab(e) {
+      const r = cv.getBoundingClientRect(), k = cv.width / r.width, px = (e.clientX - r.left) * k, py = (e.clientY - r.top) * k, reach = Math.max(34 * k, cw * 3.4);
+      let best = null, bd = reach;
+      for (const f of flies) { if (f.caught) continue; const d = Math.hypot(ox + f.x * cw - px, oy + f.y * chh - py); if (d < bd) { bd = d; best = f; } }
+      if (!best) return;
+      best.caught = true; best.fade = 1; const n = flies.filter(f => f.caught).length;
+      Sound.beep(520 + n * 90, 0.12, { type: 'triangle', vol: 0.14 }); Sound.beep(780 + n * 90, 0.2, { type: 'triangle', vol: 0.1 }, 0.09);
+      caughtMsg = [best.name, 'It means ' + best.means]; tell(`Caught ${best.name}. It means ${best.means} ${n} of 7.`);
+      if (n === 6) setTimeout(() => { if (scene !== 'catch') return; flies.push({ name: 'PANGAKO', means: 'a promise.', x: COLS / 2, y: 9, vx: 0.6, vy: 0.2, ph: 0, rate: 1.1, big: true }); caughtMsg = ['ONE LEFT.', 'It was hiding behind the others.']; }, 1500);
+      if (n === 7) { [523, 659, 784, 1047, 1319].forEach((f, i) => Sound.beep(f, 0.3, { type: 'triangle', vol: 0.12 }, 0.2 + i * 0.13)); S.caught = S.caught || Date.now(); Quest.lead('caught'); Quest.save(); setTimeout(() => { if (scene === 'catch') go('end'); }, 2600); }
+    }
+    /* ---- moving between scenes ---- */
+    function go(name) {
+      scene = name; sceneT = 0; typed = 0; flies = [];
+      if (name === 'jar') { msg = wrap(S.lights.some(Boolean) ? 'The jar remembers the lights you already gave it.' : 'A jar. It is shut.\nIt wants five lights.').map(l => [l, 'w']); jarFlies(); paintJar(); setBar('input'); }
+      else if (name === 'opening') { jarFlies(); setBar('none'); [392, 523, 659, 784, 1047].forEach((f, i) => Sound.beep(f, 0.4, { type: 'triangle', vol: 0.12 }, i * 0.16)); }
+      else if (name === 'letter') { page = 0; lines = JAR_LETTER[0]; title = ['JAR.EXE', 'PAGE 1 OF ' + JAR_LETTER.length]; setBar('next'); tell(lines.join(' ').replace(/~/g, '')); }
+      else if (name === 'catch') { startCatch(); setBar('none'); tell('Fireflies are loose on the screen. ' + caughtMsg[0]); }
+      else if (name === 'end') { lines = JAR_END; title = ['JAR.EXE', 'THE END']; setBar('menu'); tell(lines.join(' ').replace(/~/g, '')); }
+      else if (name === 'open') { cls(); title = ['JAR.EXE  v1.0', '(C) 1997 ALITAPTAP']; mid(8, 'THE JAR IS OPEN.', 'Y'); mid(10, S.caught ? 'All seven fireflies know you now.' : 'There are fireflies still inside.', 'w'); setBar('menu'); }
+    }
+    function advance() {
+      if (scene === 'letter') {
+        if (typed < pageLen(lines)) { typed = 1e9; return; }
+        if (++page >= JAR_LETTER.length) return go('catch');
+        lines = JAR_LETTER[page]; typed = 0; title[1] = `PAGE ${page + 1} OF ${JAR_LETTER.length}`; tell(lines.join(' ').replace(/~/g, ''));
+      } else if (scene === 'end') typed = 1e9;
+    }
+    function loop(now) {
+      raf = requestAnimationFrame(loop); if (!win.el.isConnected) return cancelAnimationFrame(raf);
+      const dt = Math.min(0.05, last ? (now - last) / 1000 : 0); last = now; if (win.min) return; t += dt; sceneT += dt;
+      if (scene === 'jar') for (const f of flies) { f.x = f.hx + Math.sin(t * 0.9 + f.ph) * 0.5; f.y = f.hy + Math.cos(t * 1.3 + f.ph) * 0.22; }
+      else if (scene === 'opening') opening(dt);
+      else if (scene === 'letter' || scene === 'end') {
+        const before = Math.floor(typed); typed += dt * (scene === 'end' ? 26 : 34); if (Math.floor(typed) !== before && Math.floor(typed) % 3 === 0 && typed < pageLen(lines)) Sound.key();
+        paintText(lines, scene === 'end' ? 2 : 3);
+        if (scene === 'end' && !endTuko && typed > pageLen(lines) + 60) { endTuko = true; if (!S.closed) Tuko.say('"Whenever the web goes." ...The clock! Her homepage changes with the year. I wonder what it looks like NOW.', 14000); }
+      } else if (scene === 'catch') catchStep(dt);
+      draw();
+    }
+    scr.addEventListener('pointerdown', (e) => { if (scene === 'catch') grab(e); else if (scene === 'letter' || scene === 'end') advance(); else if (scene === 'jar' && input) input.focus(); });
+    win.el.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      if (scene === 'letter' || scene === 'end') { e.preventDefault(); advance(); }
+      else if (scene === 'catch') {   // no mouse? Space catches whichever firefly is nearest the middle
+        e.preventDefault(); const f = flies.filter(x => !x.caught).sort((a, b) => Math.hypot(a.x - 20, a.y - 9) - Math.hypot(b.x - 20, b.y - 9))[0]; if (!f) return;
+        const r = cv.getBoundingClientRect(), k = r.width / cv.width; grab({ clientX: r.left + (ox + f.x * cw) * k, clientY: r.top + (oy + f.y * chh) * k });
+      }
+    });
+    gameFocus(win);
+    const ro = new ResizeObserver(fit); ro.observe(scr); win.onResize = fit;
+    win.onClose = () => { cancelAnimationFrame(raf); ro.disconnect(); };
+    cls(); go(S.opened ? 'open' : S.lights.every(Boolean) ? 'jar' : 'jar');
+    if (!S.opened && S.lights.every(Boolean)) { setBar('none'); setTimeout(() => go('opening'), 1200); }
+    requestAnimationFrame(() => { fit(); raf = requestAnimationFrame(loop); });
+  },
+};
 /* ---- 89-desktop.js ---- */
 /* ============================================================
    The desktop, take two: icons sit on a grid you can rearrange,
