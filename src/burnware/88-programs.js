@@ -8,6 +8,7 @@ const HOSTED = [
   { id: 'pebble', title: 'WRC 1988', icon: 'car', src: 'apps/wrc-1988.html', w: 1020, h: 640, blurb: 'Flat out on loose gravel. Season 1988.' },
   { id: 'sizzle', title: 'Sizzle Sand', icon: 'pan', src: 'apps/sizzle-sand.html', w: 960, h: 700, blurb: 'A kitchen where every grain is simulated.' },
   { id: 'studio', title: 'Burn Studio', icon: 'studio', src: 'apps/burn-studio.html', w: 1080, h: 720, blurb: 'Make a song: drums, bass, keys, synths and loops.' },
+  { id: 'dream', title: 'Dream Machine', icon: 'dream', src: 'apps/dream-machine.html', w: 1100, h: 700, blurb: 'Press Generate. A different surreal world every time.' },
   { id: 'kaiju', title: 'Kaiju Rampage', icon: 'gecko', src: 'apps/kaiju-rampage.html', w: 1100, h: 680, blurb: 'Tuko, 40 metres tall, loose in a city made of blocks.' },
 ];
 const Host = {
@@ -103,7 +104,7 @@ APPS.video.single = true;
 APPS.video.reopen = (w, a) => { if (a && a.autoplay && w.playNow) w.playNow(); };
 
 /* the new programs go first in the Start menu, and on the desktop right after the system icons */
-APP_ORDER.unshift('studio', 'omni', 'pebble', 'sizzle', 'video', 'kaiju');
+APP_ORDER.unshift('dream', 'studio', 'omni', 'pebble', 'sizzle', 'video', 'kaiju');
 APP_ORDER.push('datetime');
 APPS.rainwav = Object.assign({}, APPS.video, { title: 'Rain.wav', open(win) { APPS.video.open(win, { src: 'media/rain-wav.mp4', title: 'rain-wav.mp4', autoplay: true }); } });
 Desktop.items.splice(3, 0,
@@ -112,4 +113,7 @@ Desktop.items.splice(3, 0,
   { label: 'Sizzle Sand', icon: 'pan', open: () => WM.open('sizzle') },
   { label: 'Rain.wav', icon: 'video', open: () => WM.open('video', { src: 'media/rain-wav.mp4', title: 'rain-wav.mp4', autoplay: true }) },
   { label: 'Kaiju Rampage', icon: 'gecko', open: () => WM.open('kaiju') },
+  { label: 'Dream Machine', icon: 'dream', open: () => WM.open('dream') },
   { label: 'Burn Studio', icon: 'studio', open: () => WM.open('studio') });
+/* programs in their own pages (same site) can reach a few things here, e.g. Dream Machine setting the wallpaper */
+window.BW = { Store, Wall, Sound };

@@ -1,0 +1,86 @@
+<title>Dream Machine</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Inter:wght@400;500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+/* Dream Machine: a quiet, night-time look. The world fills the screen; controls float over it on
+   smoked glass, and get out of the way (Hide) when you just want to look. One deliberate dark theme. */
+:root {
+  color-scheme: dark;
+  --ink: #07080f; --glass: rgba(14, 16, 28, .72); --glass2: rgba(255, 255, 255, .06); --line: rgba(255, 255, 255, .12);
+  --txt: #eef0f8; --mute: #9aa2bc; --hot: #ffd9a0; --on: #f3e6c8; --onTxt: #12131c;
+  --serif: "Cormorant Garamond", "Iowan Old Style", Georgia, serif; --ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --gl: max(16px, env(safe-area-inset-left, 0px)); --gr: max(16px, env(safe-area-inset-right, 0px));
+  --gt: max(14px, env(safe-area-inset-top, 0px)); --gb: max(14px, env(safe-area-inset-bottom, 0px));
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--ink); color: var(--txt); font: 400 13px/1.35 var(--ui); overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; }
+#view { position: fixed; inset: 0; touch-action: none; cursor: grab; }
+#view:active { cursor: grabbing; }
+#view canvas { display: block; width: 100%; height: 100%; }
+
+/* the dream's name, top left, like a title card */
+#title { position: fixed; left: var(--gl); top: var(--gt); right: 150px; pointer-events: none; text-shadow: 0 2px 18px rgba(0,0,0,.6); transition: opacity .6s; }
+#title small { display: block; font: 500 10.5px/1 var(--ui); letter-spacing: .22em; text-transform: uppercase; color: var(--mute); margin-bottom: 7px; }
+#title h1 { margin: 0; font: italic 600 clamp(24px, 4.4vw, 40px)/1.02 var(--serif); letter-spacing: -.01em; max-width: 16em; }
+#title p { margin: 6px 0 0; font: italic 500 15px/1.3 var(--serif); color: #c9cde0; max-width: 30em; }
+.fade #title { opacity: 0; }
+.light #title { color: #171a26; text-shadow: 0 1px 14px rgba(255,255,255,.7); } .light #title p { color: #3a3f55; } .light #title small { color: #4a4f66; }
+.light #hint { color: rgba(20,22,34,.6); }
+
+/* top right: little round buttons */
+#corner { position: fixed; right: var(--gr); top: var(--gt); display: flex; gap: 8px; }
+.rb { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); display: grid; place-items: center; cursor: pointer; font-size: 16px; }
+.rb:hover { background: rgba(40, 44, 66, .85); } .rb[aria-pressed="true"] { background: var(--on); color: var(--onTxt); border-color: var(--on); }
+.rb svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* the control panel */
+#panel { position: fixed; left: var(--gl); right: var(--gr); bottom: var(--gb); margin: 0 auto; max-width: 860px; background: var(--glass); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); border: 1px solid var(--line); border-radius: 18px; padding: 12px 12px 12px; box-shadow: 0 18px 50px rgba(0,0,0,.45); transition: transform .45s cubic-bezier(.2,.8,.2,1), opacity .35s; }
+.hidden #panel { transform: translateY(calc(100% + 30px)); opacity: 0; pointer-events: none; }
+.hidden #title { opacity: 0; }
+#bar { display: flex; gap: 8px; align-items: center; }
+#gen { flex: none; height: 42px; padding: 0 20px; border-radius: 999px; border: 0; background: linear-gradient(180deg, #fff3dc, #f1d9a8); color: #1a1408; font: 600 14px var(--ui); cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 22px rgba(255, 210, 140, .28); }
+#gen:active { transform: translateY(1px); }
+#gen svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#seedbox { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; height: 42px; padding: 0 6px 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--glass2); }
+#seedbox label { color: var(--mute); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; flex: none; }
+#seed { flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; color: var(--txt); font: 500 14px var(--ui); }
+.pill { flex: none; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--glass2); cursor: pointer; color: var(--txt); font: 500 12.5px var(--ui); white-space: nowrap; }
+.pill:hover { background: rgba(255,255,255,.12); }
+#more { flex: none; }
+
+#rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; margin-top: 12px; }
+.rule b { display: block; font: 500 10.5px/1 var(--ui); letter-spacing: .16em; text-transform: uppercase; color: var(--mute); margin: 0 0 6px 2px; }
+.seg { display: flex; flex-wrap: wrap; gap: 4px; }
+.seg button { height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line); background: transparent; cursor: pointer; font: 500 12px var(--ui); color: #d6d9e8; white-space: nowrap; }
+.seg button:hover { background: rgba(255,255,255,.08); }
+.seg button.on { background: var(--on); color: var(--onTxt); border-color: var(--on); }
+.seg button:focus-visible, .pill:focus-visible, .rb:focus-visible, #gen:focus-visible { outline: 2px solid var(--hot); outline-offset: 2px; }
+.collapsed #rules { display: none; }
+
+#toast { position: fixed; left: 50%; top: calc(var(--gt) + 52px); transform: translate(-50%, -8px); background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 8px 14px; border-radius: 999px; font-size: 12.5px; opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; white-space: nowrap; max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+#hint { position: fixed; left: 50%; bottom: calc(var(--gb) + 8px); transform: translateX(-50%); color: rgba(255,255,255,.55); font-size: 11.5px; pointer-events: none; opacity: 0; transition: opacity .5s; white-space: nowrap; }
+.hidden #hint { opacity: 1; }
+#veil { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .5s; }
+#veil.on { opacity: 1; }
+#loading { position: fixed; inset: 0; display: grid; place-items: center; font: italic 500 22px var(--serif); color: var(--mute); }
+
+@media (max-width: 720px) {
+  #rules { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px 10px; }
+  #title { right: 140px; } #title p { display: none; }
+  #seedbox label { display: none; }
+}
+@media (max-width: 460px) {
+  #panel { padding: 10px; border-radius: 16px; }
+  #rules { grid-template-columns: minmax(0, 1fr); max-height: 38vh; overflow-y: auto; }
+  #gen { padding: 0 14px; } #gen span { display: none; } #gen { width: 42px; padding: 0; justify-content: center; }
+  .seg button { height: 27px; padding: 0 9px; font-size: 11.5px; }
+  #corner { gap: 6px; } .rb { width: 34px; height: 34px; }
+  #title { right: 130px; } #title h1 { font-size: 23px; }
+}
+@media (prefers-reduced-motion: reduce) { #panel, #title, #toast, #veil { transition: none; } }
+</style>
