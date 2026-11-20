@@ -1,7 +1,7 @@
 /* ============================================================
    Dream Machine, part 1: the rules of a dream, colour palettes,
-   names, and a seeded random number generator so the same seed
-   and the same rules always give exactly the same dream.
+   names, and seeded randomness. A seed picks the world; the world
+   itself is endless and worked out on the fly (part 2 and 3).
    ============================================================ */
 const $ = (s) => document.querySelector(s);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -42,59 +42,41 @@ const PALETTES = {
   vapor: { top: '#14082e', hor: '#ff6ac8', low: '#2a0a40', fog: '#7a3a9a', stone: '#6ad8e8', stone2: '#b85ad8', glow: '#ffe86a', moon: '#ffb0e8', moon2: '#8af0ff', mist: '#ff9ae0', speck: '#ffffff', sea: '#3a1060', stars: 0.8, mood: 'major' },
 };
 /* "Random" mixes a palette from scratch, still keeping it readable: a dark or light sky, and stone that stands out from it */
+function hsl(H, S, L) {
+  H = ((H % 360) + 360) % 360 / 360; const q = L < 0.5 ? L * (1 + S) : L + S - L * S, p = 2 * L - q;
+  const ch = (t) => { t = (t + 1) % 1; return t < 1 / 6 ? p + (q - p) * 6 * t : t < 0.5 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p; };
+  return '#' + [ch(H + 1 / 3), ch(H), ch(H - 1 / 3)].map(v => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
+}
 function randomPalette(r) {
-  const h = r() * 360, h2 = (h + r.range(120, 240)) % 360, dark = r.chance(0.75), c = (H, S, L) => new THREE.Color().setHSL(((H % 360) + 360) % 360 / 360, S, L).getStyle();
+  const h = r() * 360, h2 = (h + r.range(120, 240)) % 360, dark = r.chance(0.75), c = hsl;
   return dark
     ? { top: c(h, 0.5, 0.06), hor: c(h + 20, 0.45, 0.42), low: c(h, 0.4, 0.1), fog: c(h + 20, 0.35, 0.28), stone: c(h2, 0.25, 0.55), stone2: c(h2, 0.2, 0.32), glow: c(h2 + 30, 0.95, 0.65), moon: c(h2 + 10, 0.6, 0.86), moon2: c(h + 40, 0.4, 0.8), mist: c(h + 20, 0.4, 0.62), speck: c(h2, 0.6, 0.88), sea: c(h, 0.4, 0.14), stars: 0.8, mood: r.pick(['minor', 'major', 'sus']) }
     : { light: true, fogK: 0.6, top: c(h, 0.4, 0.62), hor: c(h + 15, 0.5, 0.86), low: c(h, 0.3, 0.7), fog: c(h + 15, 0.35, 0.8), stone: c(h2, 0.3, 0.86), stone2: c(h2, 0.25, 0.6), glow: c(h2 + 30, 0.9, 0.3), moon: c(h2, 0.5, 0.3), moon2: c(h, 0.3, 0.45), mist: c(h + 15, 0.4, 0.95), speck: c(h2, 0.5, 0.4), sea: c(h, 0.3, 0.74), stars: 0, mood: r.pick(['major', 'sus']) };
 }
+const rgb = (hex) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255);
 
 /* A name for each dream: "The Patient Lighthouse at Low Tide" */
 const NAME_A = ['Drowned', 'Patient', 'Hollow', 'Upside-Down', 'Forgotten', 'Humming', 'Weightless', 'Borrowed', 'Sleeping', 'Endless', 'Quiet', 'Second', 'Inside-Out', 'Unfinished', 'Lantern-Lit', 'Paper', 'Salt-White', 'Last', 'Folded', 'Echoing'];
 const NAME_N = ['Staircase', 'Lighthouse', 'Door', 'Harbour', 'Archive', 'Bell Tower', 'Garden', 'Observatory', 'Cathedral', 'Hallway', 'Clockworks', 'Aqueduct', 'Library', 'Station', 'Window', 'Orchard', 'Theatre', 'Bridge', 'Waiting Room', 'Well'];
 const NAME_C = ['at Low Tide', 'of the Third Moon', 'on a Tuesday', 'Nobody Built', 'Above the Fog', 'Under Your Old School', 'Before the Last Train', 'of Salt and Rain', 'at the End of the Hall', 'Where the Stairs Give Up', 'of Slow Light', 'in the Year Without Summer', 'You Have Been Before', 'Past the Edge of the Map', 'That Hums at Night'];
 const LINES = {
-  gravity: { down: '', up: 'Everything hangs from the sea above.', side: 'The world has fallen on its side.', none: 'Nothing here remembers which way is down.', inward: 'It is a world small enough to walk around.' },
-  time: { still: 'Time has stopped. Nothing minds.', back: 'Time is running backwards.', fast: 'The hours go by like birds.', slow: '', normal: '' },
-  scale: { giant: 'The buildings are enormous.', tiny: 'You are a giant here.', mixed: 'Nothing is the size it should be.', human: '' },
-  geometry: { impossible: 'The architecture does not quite agree with itself.', echo: 'Every shape repeats, smaller and smaller.', melted: 'The stone is soft and slowly sliding.', crystal: 'Everything has edges.', plain: '' },
+  gravity: { down: '', up: 'The world curls up around you, like the inside of a bowl.', side: 'The horizon stands on its end.', none: 'Nothing falls here. You can fly.', inward: 'The world is so small you can see it curving away.' },
+  time: { still: 'Time has stopped. Even the sea.', back: 'Time is running backwards.', fast: 'The hours go by like birds.', slow: '', normal: '' },
+  scale: { giant: 'Everything here was built for someone bigger.', tiny: 'You are a giant here.', mixed: 'Nothing is the size it should be.', human: '' },
+  geometry: { impossible: 'Every monument has a twin hanging upside down in the sky.', echo: 'Every shape repeats, smaller and smaller.', melted: 'The land and the stone are soft and slowly sliding.', crystal: 'Everything has edges.', plain: '' },
 };
 function dreamName(r) { return `The ${r.pick(NAME_A)} ${r.pick(NAME_N)} ${r.pick(NAME_C)}`; }
 const SEED_WORDS = ['moth', 'tide', 'lantern', 'salt', 'velvet', 'ember', 'cello', 'quartz', 'harbor', 'sleep', 'comet', 'ivory', 'nocturne', 'willow', 'static', 'marble', 'echo', 'drift', 'hollow', 'paper'];
 function newSeed() { const r = rng((Math.random() * 4294967296) >>> 0); return r.pick(SEED_WORDS) + '-' + r.pick(SEED_WORDS) + '-' + r.int(10, 99); }
 
-/* ---- textures, painted once on canvases ---- */
-const Tex = {
-  /* weathered stone: soft blotches and thin horizontal strata, greyscale so each material can tint it */
-  stone() {
-    if (this._stone) return this._stone;
-    const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), r = rng(7);
-    g.fillStyle = '#c8c8c8'; g.fillRect(0, 0, 256, 256);
-    for (let i = 0; i < 1400; i++) { const v = r.int(150, 235), s = r.range(2, 18); g.fillStyle = `rgba(${v},${v},${v},${r.range(0.08, 0.3)})`; g.beginPath(); g.arc(r() * 256, r() * 256, s, 0, 7); g.fill(); }
-    for (let y = 0; y < 256; y += r.int(4, 14)) { g.fillStyle = `rgba(60,60,60,${r.range(0.08, 0.22)})`; g.fillRect(0, y, 256, r.range(1, 2.4)); }
-    for (let i = 0; i < 2600; i++) { const v = r.int(80, 255); g.fillStyle = `rgba(${v},${v},${v},.35)`; g.fillRect(r() * 256, r() * 256, 1, 1); }
-    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return (this._stone = t);
-  },
-  /* a soft round glow: for moons, mist and lights */
-  glow() {
-    if (this._glow) return this._glow;
-    const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-    gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.25, 'rgba(255,255,255,.55)'); gr.addColorStop(0.6, 'rgba(255,255,255,.12)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-    g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return (this._glow = new THREE.CanvasTexture(c));
-  },
-  /* a wide, flat bank of mist */
-  mist() {
-    if (this._mist) return this._mist;
-    const c = document.createElement('canvas'); c.width = 256; c.height = 128; const g = c.getContext('2d'), r = rng(11);
-    for (let i = 0; i < 60; i++) { const x = r.range(40, 216), y = r.range(44, 84), s = r.range(18, 46), gr = g.createRadialGradient(x, y, 0, x, y, s); gr.addColorStop(0, 'rgba(255,255,255,.22)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 128); }
-    return (this._mist = new THREE.CanvasTexture(c));
-  },
-  /* a moon: craters and maria, lit from one side */
-  moon(seed) {
-    const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), r = rng(seed);
-    g.fillStyle = '#fff'; g.fillRect(0, 0, 256, 256);
-    for (let i = 0; i < 9; i++) { const x = r() * 256, y = r() * 256, s = r.range(20, 70), gr = g.createRadialGradient(x, y, 0, x, y, s); gr.addColorStop(0, 'rgba(120,120,130,.35)'); gr.addColorStop(1, 'rgba(120,120,130,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); }
-    for (let i = 0; i < 70; i++) { const x = r() * 256, y = r() * 256, s = r.range(1.5, 9); g.fillStyle = 'rgba(90,90,100,.28)'; g.beginPath(); g.arc(x, y, s, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.5)'; g.beginPath(); g.arc(x - s * 0.25, y - s * 0.25, s * 0.7, 0, 7); g.fill(); }
-    return new THREE.CanvasTexture(c);
-  },
-};
+/* ---- the same noise the GPU uses (part 2), so the ground you walk on is the ground you see ----
+   The hash is exact whole-number arithmetic; Math.fround keeps the rest in 32-bit floats, like the graphics card. */
+const F = Math.fround, fract = (v) => F(v - Math.floor(v));
+const perm = (x) => { const v = (x * 34 + 1) * x; return v - 289 * Math.floor(v / 289); };
+function hash12(x, y) { x = Math.floor(x); y = Math.floor(y); x -= 289 * Math.floor(x / 289); y -= 289 * Math.floor(y / 289); return perm(perm(x) + y) / 289; }
+function vnoise(x, y) {
+  const ix = Math.floor(x), iy = Math.floor(y), fx = F(x - ix), fy = F(y - iy), ux = F(fx * fx * F(3 - 2 * fx)), uy = F(fy * fy * F(3 - 2 * fy));
+  const a = hash12(ix, iy), b = hash12(ix + 1, iy), c = hash12(ix, iy + 1), d = hash12(ix + 1, iy + 1);
+  return F(F(a + F((b - a) * ux)) + F(F(F(c + F((d - c) * ux)) - F(a + F((b - a) * ux))) * uy));
+}
+function fbm(x, y, oct) { let s = 0, a = 0.5, n = 0; for (let i = 0; i < oct; i++) { s += a * vnoise(x, y); n += a; x = F(x * 2.03 + 1.7); y = F(y * 2.03 + 9.2); a *= 0.5; } return s / n; }

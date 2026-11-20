@@ -103,7 +103,7 @@ JS="10-core.js 20-synth.js 30-seq.js 40-ui.js 50-play.js 55-chords.js 60-extras.
 
 # ---------- Dream Machine ----------
 D=src/dream-machine
-JS="10-core.js 20-shapes.js 30-world.js 40-motion.js 50-app.js 99-main.js"
+JS="10-core.js 20-shader.js 30-world.js 50-app.js 99-main.js"
 {
   open_page "Dream Machine: a surreal world generator. A different dream every time." "$BASE_BW" "../"
   head_part $D/00-head.html

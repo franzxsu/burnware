@@ -8,7 +8,7 @@ const HOSTED = [
   { id: 'pebble', title: 'WRC 1988', icon: 'car', src: 'apps/wrc-1988.html', w: 1020, h: 640, blurb: 'Flat out on loose gravel. Season 1988.' },
   { id: 'sizzle', title: 'Sizzle Sand', icon: 'pan', src: 'apps/sizzle-sand.html', w: 960, h: 700, blurb: 'A kitchen where every grain is simulated.' },
   { id: 'studio', title: 'Burn Studio', icon: 'studio', src: 'apps/burn-studio.html', w: 1080, h: 720, blurb: 'Make a song: drums, bass, keys, synths and loops.' },
-  { id: 'dream', title: 'Dream Machine', icon: 'dream', src: 'apps/dream-machine.html', w: 1100, h: 700, blurb: 'Press Generate. A different surreal world every time.' },
+  { id: 'dream', title: 'Dream Machine', icon: 'dream', src: 'apps/dream-machine.html', w: 1100, h: 700, blurb: 'Walk around an endless dream world, worked out as you go.' },
   { id: 'kaiju', title: 'Kaiju Rampage', icon: 'gecko', src: 'apps/kaiju-rampage.html', w: 1100, h: 680, blurb: 'Tuko, 40 metres tall, loose in a city made of blocks.' },
 ];
 const Host = {

@@ -1,19 +1,19 @@
-<div id="view" aria-label="The dream. Drag to look around, scroll or pinch to move closer."></div>
+<div id="view" aria-label="The dream. Walk with WASD or the arrow keys (or your left thumb); drag to look around."></div>
 <div id="loading">falling asleep…</div>
 <div id="veil"></div>
 <header id="title" aria-live="polite"><small id="dreamNo">Dream</small><h1 id="dreamName">…</h1><p id="dreamLine"></p></header>
 <div id="corner">
-  <button class="rb" id="bTour" aria-pressed="true" title="Drift (the camera wanders on its own)" aria-label="Drift"><svg viewBox="0 0 24 24"><path d="M3 12c3-5 6-5 9 0s6 5 9 0"/></svg></button>
+  <button class="rb" id="bTour" aria-pressed="true" title="Sleepwalk (you wander on your own when you let go)" aria-label="Sleepwalk"><svg viewBox="0 0 24 24"><path d="M3 12c3-5 6-5 9 0s6 5 9 0"/></svg></button>
   <button class="rb" id="bSound" aria-pressed="false" title="Dream sounds" aria-label="Dream sounds"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9c1.5 1.5 1.5 4.5 0 6"/></svg></button>
   <button class="rb" id="bHide" aria-pressed="false" title="Hide the controls (H)" aria-label="Hide the controls"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
 </div>
 <section id="panel" aria-label="Dream controls">
   <div id="bar">
-    <button id="gen" title="A new dream (Space)"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></svg><span>Generate</span></button>
+    <button id="gen" title="A new dream (G)"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></svg><span>Generate</span></button>
     <div id="seedbox"><label for="seed">Seed</label><input id="seed" maxlength="40" autocomplete="off" spellcheck="false" aria-label="Seed: the same seed and rules always give the same dream"><button class="pill" id="bSurprise" title="Shuffle every rule too">Surprise me</button></div>
     <button class="pill" id="more" aria-expanded="true" aria-controls="rules">Rules ▾</button>
   </div>
   <div id="rules"></div>
 </section>
 <div id="toast" role="status"></div>
-<div id="hint">Drag to look around · press H or the eye to bring the controls back</div>
+<div id="hint"></div>

@@ -12,10 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Inter:wght@400;500;600&display=swap">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-/* Dream Machine: a quiet, night-time look. The world fills the screen; controls float over it on
-   smoked glass, and get out of the way (Hide) when you just want to look. One deliberate dark theme. */
+/* Dream Machine: a quiet, night-time look. The world (one fragment shader) fills the screen; controls
+   float over it on smoked glass, and get out of the way (Hide) when you just want to walk. */
 :root {
   color-scheme: dark;
   --ink: #07080f; --glass: rgba(14, 16, 28, .72); --glass2: rgba(255, 255, 255, .06); --line: rgba(255, 255, 255, .12);
@@ -73,7 +72,15 @@ button { font: inherit; color: inherit; }
 #toast { position: fixed; left: 50%; top: calc(var(--gt) + 52px); transform: translate(-50%, -8px); background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 8px 14px; border-radius: 999px; font-size: 12.5px; opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; white-space: nowrap; max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis; }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 #hint { position: fixed; left: 50%; bottom: calc(var(--gb) + 8px); transform: translateX(-50%); color: rgba(255,255,255,.55); font-size: 11.5px; pointer-events: none; opacity: 0; transition: opacity .5s; white-space: nowrap; }
-.hidden #hint { opacity: 1; }
+.hidden #hint, .hinting #hint { opacity: 1; }
+.hinting:not(.hidden) #hint { bottom: calc(var(--gb) + 96px); }
+/* phone: a thumb-stick appears where your left thumb lands; jump (and fly down) on the right */
+#stick { position: fixed; width: 110px; height: 110px; margin: -55px 0 0 -55px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.35); background: rgba(10,12,22,.25); display: grid; place-items: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
+#stick.on { opacity: 1; } #knob { width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,.55); }
+#pad { position: fixed; right: var(--gr); bottom: calc(var(--gb) + 76px); display: none; flex-direction: column; gap: 10px; }
+.touch #pad { display: flex; } .hidden #pad { bottom: var(--gb); }
+#pad button { width: 66px; height: 66px; border-radius: 50%; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: var(--txt); font: 600 13px var(--ui); touch-action: none; }
+#pad button:active { background: var(--on); color: var(--onTxt); } #pad button[hidden] { display: none; }
 #veil { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .5s; }
 #veil.on { opacity: 1; }
 #loading { position: fixed; inset: 0; display: grid; place-items: center; font: italic 500 22px var(--serif); color: var(--mute); }
@@ -95,31 +102,31 @@ button { font: inherit; color: inherit; }
 </style>
 </head>
 <body>
-<div id="view" aria-label="The dream. Drag to look around, scroll or pinch to move closer."></div>
+<div id="view" aria-label="The dream. Walk with WASD or the arrow keys (or your left thumb); drag to look around."></div>
 <div id="loading">falling asleep…</div>
 <div id="veil"></div>
 <header id="title" aria-live="polite"><small id="dreamNo">Dream</small><h1 id="dreamName">…</h1><p id="dreamLine"></p></header>
 <div id="corner">
-  <button class="rb" id="bTour" aria-pressed="true" title="Drift (the camera wanders on its own)" aria-label="Drift"><svg viewBox="0 0 24 24"><path d="M3 12c3-5 6-5 9 0s6 5 9 0"/></svg></button>
+  <button class="rb" id="bTour" aria-pressed="true" title="Sleepwalk (you wander on your own when you let go)" aria-label="Sleepwalk"><svg viewBox="0 0 24 24"><path d="M3 12c3-5 6-5 9 0s6 5 9 0"/></svg></button>
   <button class="rb" id="bSound" aria-pressed="false" title="Dream sounds" aria-label="Dream sounds"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9c1.5 1.5 1.5 4.5 0 6"/></svg></button>
   <button class="rb" id="bHide" aria-pressed="false" title="Hide the controls (H)" aria-label="Hide the controls"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
 </div>
 <section id="panel" aria-label="Dream controls">
   <div id="bar">
-    <button id="gen" title="A new dream (Space)"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></svg><span>Generate</span></button>
+    <button id="gen" title="A new dream (G)"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></svg><span>Generate</span></button>
     <div id="seedbox"><label for="seed">Seed</label><input id="seed" maxlength="40" autocomplete="off" spellcheck="false" aria-label="Seed: the same seed and rules always give the same dream"><button class="pill" id="bSurprise" title="Shuffle every rule too">Surprise me</button></div>
     <button class="pill" id="more" aria-expanded="true" aria-controls="rules">Rules ▾</button>
   </div>
   <div id="rules"></div>
 </section>
 <div id="toast" role="status"></div>
-<div id="hint">Drag to look around · press H or the eye to bring the controls back</div>
+<div id="hint"></div>
 <script>
 /* ---- 10-core.js ---- */
 /* ============================================================
    Dream Machine, part 1: the rules of a dream, colour palettes,
-   names, and a seeded random number generator so the same seed
-   and the same rules always give exactly the same dream.
+   names, and seeded randomness. A seed picks the world; the world
+   itself is endless and worked out on the fly (part 2 and 3).
    ============================================================ */
 const $ = (s) => document.querySelector(s);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -160,595 +167,548 @@ const PALETTES = {
   vapor: { top: '#14082e', hor: '#ff6ac8', low: '#2a0a40', fog: '#7a3a9a', stone: '#6ad8e8', stone2: '#b85ad8', glow: '#ffe86a', moon: '#ffb0e8', moon2: '#8af0ff', mist: '#ff9ae0', speck: '#ffffff', sea: '#3a1060', stars: 0.8, mood: 'major' },
 };
 /* "Random" mixes a palette from scratch, still keeping it readable: a dark or light sky, and stone that stands out from it */
+function hsl(H, S, L) {
+  H = ((H % 360) + 360) % 360 / 360; const q = L < 0.5 ? L * (1 + S) : L + S - L * S, p = 2 * L - q;
+  const ch = (t) => { t = (t + 1) % 1; return t < 1 / 6 ? p + (q - p) * 6 * t : t < 0.5 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p; };
+  return '#' + [ch(H + 1 / 3), ch(H), ch(H - 1 / 3)].map(v => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
+}
 function randomPalette(r) {
-  const h = r() * 360, h2 = (h + r.range(120, 240)) % 360, dark = r.chance(0.75), c = (H, S, L) => new THREE.Color().setHSL(((H % 360) + 360) % 360 / 360, S, L).getStyle();
+  const h = r() * 360, h2 = (h + r.range(120, 240)) % 360, dark = r.chance(0.75), c = hsl;
   return dark
     ? { top: c(h, 0.5, 0.06), hor: c(h + 20, 0.45, 0.42), low: c(h, 0.4, 0.1), fog: c(h + 20, 0.35, 0.28), stone: c(h2, 0.25, 0.55), stone2: c(h2, 0.2, 0.32), glow: c(h2 + 30, 0.95, 0.65), moon: c(h2 + 10, 0.6, 0.86), moon2: c(h + 40, 0.4, 0.8), mist: c(h + 20, 0.4, 0.62), speck: c(h2, 0.6, 0.88), sea: c(h, 0.4, 0.14), stars: 0.8, mood: r.pick(['minor', 'major', 'sus']) }
     : { light: true, fogK: 0.6, top: c(h, 0.4, 0.62), hor: c(h + 15, 0.5, 0.86), low: c(h, 0.3, 0.7), fog: c(h + 15, 0.35, 0.8), stone: c(h2, 0.3, 0.86), stone2: c(h2, 0.25, 0.6), glow: c(h2 + 30, 0.9, 0.3), moon: c(h2, 0.5, 0.3), moon2: c(h, 0.3, 0.45), mist: c(h + 15, 0.4, 0.95), speck: c(h2, 0.5, 0.4), sea: c(h, 0.3, 0.74), stars: 0, mood: r.pick(['major', 'sus']) };
 }
+const rgb = (hex) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255);
 
 /* A name for each dream: "The Patient Lighthouse at Low Tide" */
 const NAME_A = ['Drowned', 'Patient', 'Hollow', 'Upside-Down', 'Forgotten', 'Humming', 'Weightless', 'Borrowed', 'Sleeping', 'Endless', 'Quiet', 'Second', 'Inside-Out', 'Unfinished', 'Lantern-Lit', 'Paper', 'Salt-White', 'Last', 'Folded', 'Echoing'];
 const NAME_N = ['Staircase', 'Lighthouse', 'Door', 'Harbour', 'Archive', 'Bell Tower', 'Garden', 'Observatory', 'Cathedral', 'Hallway', 'Clockworks', 'Aqueduct', 'Library', 'Station', 'Window', 'Orchard', 'Theatre', 'Bridge', 'Waiting Room', 'Well'];
 const NAME_C = ['at Low Tide', 'of the Third Moon', 'on a Tuesday', 'Nobody Built', 'Above the Fog', 'Under Your Old School', 'Before the Last Train', 'of Salt and Rain', 'at the End of the Hall', 'Where the Stairs Give Up', 'of Slow Light', 'in the Year Without Summer', 'You Have Been Before', 'Past the Edge of the Map', 'That Hums at Night'];
 const LINES = {
-  gravity: { down: '', up: 'Everything hangs from the sea above.', side: 'The world has fallen on its side.', none: 'Nothing here remembers which way is down.', inward: 'It is a world small enough to walk around.' },
-  time: { still: 'Time has stopped. Nothing minds.', back: 'Time is running backwards.', fast: 'The hours go by like birds.', slow: '', normal: '' },
-  scale: { giant: 'The buildings are enormous.', tiny: 'You are a giant here.', mixed: 'Nothing is the size it should be.', human: '' },
-  geometry: { impossible: 'The architecture does not quite agree with itself.', echo: 'Every shape repeats, smaller and smaller.', melted: 'The stone is soft and slowly sliding.', crystal: 'Everything has edges.', plain: '' },
+  gravity: { down: '', up: 'The world curls up around you, like the inside of a bowl.', side: 'The horizon stands on its end.', none: 'Nothing falls here. You can fly.', inward: 'The world is so small you can see it curving away.' },
+  time: { still: 'Time has stopped. Even the sea.', back: 'Time is running backwards.', fast: 'The hours go by like birds.', slow: '', normal: '' },
+  scale: { giant: 'Everything here was built for someone bigger.', tiny: 'You are a giant here.', mixed: 'Nothing is the size it should be.', human: '' },
+  geometry: { impossible: 'Every monument has a twin hanging upside down in the sky.', echo: 'Every shape repeats, smaller and smaller.', melted: 'The land and the stone are soft and slowly sliding.', crystal: 'Everything has edges.', plain: '' },
 };
 function dreamName(r) { return `The ${r.pick(NAME_A)} ${r.pick(NAME_N)} ${r.pick(NAME_C)}`; }
 const SEED_WORDS = ['moth', 'tide', 'lantern', 'salt', 'velvet', 'ember', 'cello', 'quartz', 'harbor', 'sleep', 'comet', 'ivory', 'nocturne', 'willow', 'static', 'marble', 'echo', 'drift', 'hollow', 'paper'];
 function newSeed() { const r = rng((Math.random() * 4294967296) >>> 0); return r.pick(SEED_WORDS) + '-' + r.pick(SEED_WORDS) + '-' + r.int(10, 99); }
 
-/* ---- textures, painted once on canvases ---- */
-const Tex = {
-  /* weathered stone: soft blotches and thin horizontal strata, greyscale so each material can tint it */
-  stone() {
-    if (this._stone) return this._stone;
-    const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), r = rng(7);
-    g.fillStyle = '#c8c8c8'; g.fillRect(0, 0, 256, 256);
-    for (let i = 0; i < 1400; i++) { const v = r.int(150, 235), s = r.range(2, 18); g.fillStyle = `rgba(${v},${v},${v},${r.range(0.08, 0.3)})`; g.beginPath(); g.arc(r() * 256, r() * 256, s, 0, 7); g.fill(); }
-    for (let y = 0; y < 256; y += r.int(4, 14)) { g.fillStyle = `rgba(60,60,60,${r.range(0.08, 0.22)})`; g.fillRect(0, y, 256, r.range(1, 2.4)); }
-    for (let i = 0; i < 2600; i++) { const v = r.int(80, 255); g.fillStyle = `rgba(${v},${v},${v},.35)`; g.fillRect(r() * 256, r() * 256, 1, 1); }
-    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return (this._stone = t);
-  },
-  /* a soft round glow: for moons, mist and lights */
-  glow() {
-    if (this._glow) return this._glow;
-    const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-    gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.25, 'rgba(255,255,255,.55)'); gr.addColorStop(0.6, 'rgba(255,255,255,.12)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-    g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return (this._glow = new THREE.CanvasTexture(c));
-  },
-  /* a wide, flat bank of mist */
-  mist() {
-    if (this._mist) return this._mist;
-    const c = document.createElement('canvas'); c.width = 256; c.height = 128; const g = c.getContext('2d'), r = rng(11);
-    for (let i = 0; i < 60; i++) { const x = r.range(40, 216), y = r.range(44, 84), s = r.range(18, 46), gr = g.createRadialGradient(x, y, 0, x, y, s); gr.addColorStop(0, 'rgba(255,255,255,.22)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 128); }
-    return (this._mist = new THREE.CanvasTexture(c));
-  },
-  /* a moon: craters and maria, lit from one side */
-  moon(seed) {
-    const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), r = rng(seed);
-    g.fillStyle = '#fff'; g.fillRect(0, 0, 256, 256);
-    for (let i = 0; i < 9; i++) { const x = r() * 256, y = r() * 256, s = r.range(20, 70), gr = g.createRadialGradient(x, y, 0, x, y, s); gr.addColorStop(0, 'rgba(120,120,130,.35)'); gr.addColorStop(1, 'rgba(120,120,130,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); }
-    for (let i = 0; i < 70; i++) { const x = r() * 256, y = r() * 256, s = r.range(1.5, 9); g.fillStyle = 'rgba(90,90,100,.28)'; g.beginPath(); g.arc(x, y, s, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.5)'; g.beginPath(); g.arc(x - s * 0.25, y - s * 0.25, s * 0.7, 0, 7); g.fill(); }
-    return new THREE.CanvasTexture(c);
-  },
-};
-/* ---- 20-shapes.js ---- */
+/* ---- the same noise the GPU uses (part 2), so the ground you walk on is the ground you see ----
+   The hash is exact whole-number arithmetic; Math.fround keeps the rest in 32-bit floats, like the graphics card. */
+const F = Math.fround, fract = (v) => F(v - Math.floor(v));
+const perm = (x) => { const v = (x * 34 + 1) * x; return v - 289 * Math.floor(v / 289); };
+function hash12(x, y) { x = Math.floor(x); y = Math.floor(y); x -= 289 * Math.floor(x / 289); y -= 289 * Math.floor(y / 289); return perm(perm(x) + y) / 289; }
+function vnoise(x, y) {
+  const ix = Math.floor(x), iy = Math.floor(y), fx = F(x - ix), fy = F(y - iy), ux = F(fx * fx * F(3 - 2 * fx)), uy = F(fy * fy * F(3 - 2 * fy));
+  const a = hash12(ix, iy), b = hash12(ix + 1, iy), c = hash12(ix, iy + 1), d = hash12(ix + 1, iy + 1);
+  return F(F(a + F((b - a) * ux)) + F(F(F(c + F((d - c) * ux)) - F(a + F((b - a) * ux))) * uy));
+}
+function fbm(x, y, oct) { let s = 0, a = 0.5, n = 0; for (let i = 0; i < oct; i++) { s += a * vnoise(x, y); n += a; x = F(x * 2.03 + 1.7); y = F(y * 2.03 + 9.2); a *= 0.5; } return s / n; }
+/* ---- 20-shader.js ---- */
 /* ============================================================
-   Dream Machine, part 2: the building blocks. Islands, spires,
-   rings, stairs, doors, towers, clocks, a tiny person. Each one is
-   built with its base at y = 0 and grows upward; the world (part 3)
-   decides where it goes. The Geometry rule reshapes them here:
-   Crystal makes them faceted, Melted makes the stone sag.
+   Dream Machine, part 2: the world, as one fragment shader.
+   For every pixel, a ray goes out from your eye and marches
+   through a world described only by distance functions: noise
+   terrain, a sea of moving waves, and surreal monuments placed
+   on an endless grid of cells (each cell rolls its own dice).
+   Nothing is stored, so the world never ends.
    ============================================================ */
-const Shapes = {
-  ctx: null,   // { r: random, mode: geometry rule, pal: palette, mats }
-  begin(r, mode, pal) {
-    const crystal = mode === 'crystal', stone = Tex.stone();
-    const mat = (col, extra) => new THREE.MeshStandardMaterial(Object.assign({ color: col, map: stone, roughness: crystal ? 0.45 : 0.95, metalness: crystal ? 0.15 : 0, flatShading: crystal }, extra));
-    this.ctx = {
-      r, mode, pal, seg: crystal ? 0.4 : 1,
-      mats: {
-        stone: mat(pal.stone), stone2: mat(pal.stone2), dark: new THREE.MeshStandardMaterial({ color: new THREE.Color(pal.stone2).multiplyScalar(0.35), roughness: 1, flatShading: crystal }),
-        glow: new THREE.MeshBasicMaterial({ color: pal.glow }), figure: new THREE.MeshBasicMaterial({ color: new THREE.Color(pal.stone2).multiplyScalar(0.12) }),
-        orb: new THREE.MeshStandardMaterial({ color: pal.moon2, roughness: 0.15, metalness: 0.6, flatShading: crystal }),
-        leaf: new THREE.MeshStandardMaterial({ color: new THREE.Color(pal.stone2).lerp(new THREE.Color('#3a7a4a'), 0.5), roughness: 0.9, flatShading: true }),
-      },
-    };
-  },
-  seg(n) { return Math.max(3, Math.round(n * this.ctx.seg)); },
-  /* Melted: stone slumps outward near the bottom and sways near the top. Crystal: a little jitter so facets catch the light. */
-  shape(geo, height) {
-    const { mode, r } = this.ctx, p = geo.attributes.position, H = height || 10, ph = r() * 6.28;
-    if (mode === 'melted') for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i), y = p.getY(i), z = p.getZ(i), k = clamp(y / H, -1, 1);
-      const sway = Math.sin(k * 3 + ph) * H * 0.06 * Math.max(0, k), slump = 1 + Math.max(0, 0.35 - Math.abs(k)) * 0.5;
-      p.setXYZ(i, x * slump + sway, y - Math.max(0, k) * k * H * 0.08 + Math.sin(x * 0.4 + ph) * H * 0.02, z * slump + sway * 0.5);
-    }
-    if (mode === 'crystal') for (let i = 0; i < p.count; i++) p.setXYZ(i, p.getX(i) + r.range(-0.12, 0.12) * H * 0.05, p.getY(i) + r.range(-0.1, 0.1) * H * 0.05, p.getZ(i) + r.range(-0.12, 0.12) * H * 0.05);
-    geo.computeVertexNormals(); return geo;
-  },
-  mesh(geo, mat, height) { const m = new THREE.Mesh(this.shape(geo, height), mat); m.castShadow = false; return m; },
-  /* a floating island: a flat top and a rough cone of rock hanging underneath */
-  island(rad, depth) {
-    const { r } = this.ctx, pts = [];
-    const prof = [[0, -depth], [0.12, -depth * 0.85], [0.3, -depth * 0.6], [0.55, -depth * 0.35], [0.82, -depth * 0.14], [0.98, -depth * 0.04], [1, -0.4], [1, 0], [0.94, 0.3], [0, 0.3]];
-    for (const [k, y] of prof) pts.push(new THREE.Vector2(k * rad * (k > 0 && k < 1 ? r.range(0.85, 1.12) : 1), y));
-    const geo = new THREE.LatheGeometry(pts, this.seg(20)), p = geo.attributes.position, wob = Array.from({ length: 7 }, () => r.range(-0.12, 0.12));
-    for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), a = Math.atan2(z, x), y = p.getY(i); let k = 1; wob.forEach((w, j) => { k += w * Math.sin(a * (j + 1) + j); }); const low = y < -0.5 ? r.range(0.92, 1.08) : 1; p.setXYZ(i, x * k * low, y, z * k * low); }
-    geo.computeVertexNormals();
-    const m = this.mesh(geo, r.chance(0.5) ? this.ctx.mats.stone : this.ctx.mats.stone2, depth);
-    return m;
-  },
-  /* a tall, knobbly spire, like a termite tower or a chess piece left out in the rain */
-  spire(hgt, rad) {
-    const { r } = this.ctx, pts = [], n = 14, bumps = r.range(2, 5), ph = r() * 6;
-    for (let i = 0; i <= n; i++) { const t = i / n, w = rad * Math.pow(1 - t, r.range(0.55, 0.9)) * (1 + 0.16 * Math.sin(t * bumps * 6.28 + ph)); pts.push(new THREE.Vector2(Math.max(0.01, w), t * hgt)); }
-    const g = new THREE.Group(); g.add(this.mesh(new THREE.LatheGeometry(pts, this.seg(12)), this.ctx.mats.stone2, hgt));
-    if (r.chance(0.45)) { const win = new THREE.Mesh(new THREE.BoxGeometry(rad * 0.22, rad * 0.4, 0.2), this.ctx.mats.glow); win.position.set(0, hgt * r.range(0.25, 0.6), rad * 0.62); win.rotation.y = 0; const holder = new THREE.Group(); holder.add(win); holder.rotation.y = r() * 6.28; g.add(holder); }
-    return g;
-  },
-  /* the great ring: a stone circle standing on its edge, with a slab behind and steps up to it */
-  ring(R, tube) {
-    const g = new THREE.Group(), { r, mats } = this.ctx;
-    const ring = this.mesh(new THREE.TorusGeometry(R, tube, this.seg(10), this.seg(48)), mats.stone, R * 2); ring.position.y = R + tube * 0.6; g.add(ring);
-    const slab = this.mesh(new THREE.BoxGeometry(tube * 1.8, R * 2.6, tube * 1.6, 1, this.seg(8), 1), mats.stone2, R * 2.6); slab.position.set(-R * 0.55, R * 1.3, -tube * 1.4); slab.rotation.z = r.range(-0.08, 0.08); g.add(slab);
-    const steps = this.stairs(R * 0.9, R * 0.1, 9, 0, R * 0.9); steps.position.set(R * 0.2, 0, tube * 1.6); g.add(steps);
-    for (const s of [-1, 1]) { const d = this.door(tube * 0.9, tube * 1.4); d.position.set(s * R * 0.42, 0, tube * 0.75); g.add(d); }
-    return g;
-  },
-  /* a run of steps; with turn > 0 they curl round into a spiral */
-  stairs(len, rise, count, turn, width) {
-    const g = new THREE.Group(), { mats } = this.ctx, geo = new THREE.BoxGeometry(width * 0.35 || 1.2, rise * 0.9, len / count * 1.15);
-    const im = new THREE.InstancedMesh(geo, mats.stone, count), o = new THREE.Object3D();
-    for (let i = 0; i < count; i++) {
-      if (turn) { const a = i / count * turn, rr = width; o.position.set(Math.cos(a) * rr, rise * (i + 0.5), Math.sin(a) * rr); o.rotation.set(0, -a, 0); }
-      else { o.position.set(0, rise * (i + 0.5), -len / 2 + (i + 0.5) * len / count); o.rotation.set(0, 0, 0); }
-      o.updateMatrix(); im.setMatrixAt(i, o.matrix);
-    }
-    g.add(im); return g;
-  },
-  /* a doorway with warm light inside */
-  door(w, hgt) {
-    const g = new THREE.Group(), { mats } = this.ctx, t = w * 0.18;
-    const panel = new THREE.Mesh(new THREE.PlaneGeometry(w, hgt), mats.glow); panel.position.y = hgt / 2; g.add(panel);
-    const top = new THREE.Mesh(new THREE.CircleGeometry(w / 2, 16, 0, Math.PI), mats.glow); top.position.y = hgt; g.add(top);
-    for (const s of [-1, 1]) { const post = this.mesh(new THREE.BoxGeometry(t, hgt + w / 2, t * 1.4), mats.stone2, hgt); post.position.set(s * (w / 2 + t / 2), (hgt + w / 2) / 2, 0); g.add(post); }
-    g.userData.glow = true; return g;
-  },
-  /* a round tower with a pointed roof and a few lit windows */
-  tower(hgt, rad) {
-    const g = new THREE.Group(), { r, mats } = this.ctx;
-    const body = this.mesh(new THREE.CylinderGeometry(rad * 0.88, rad, hgt, this.seg(14), 4), mats.stone, hgt); body.position.y = hgt / 2; g.add(body);
-    const roof = this.mesh(new THREE.ConeGeometry(rad * 1.25, hgt * 0.45, this.seg(14)), mats.dark, hgt * 0.45); roof.position.y = hgt + hgt * 0.22; g.add(roof);
-    for (let i = 0; i < r.int(1, 4); i++) { const a = r() * 6.28, w = new THREE.Mesh(new THREE.BoxGeometry(rad * 0.18, rad * 0.32, rad * 0.18), mats.glow); w.position.set(Math.cos(a) * rad * 0.9, hgt * r.range(0.3, 0.85), Math.sin(a) * rad * 0.9); w.lookAt(0, w.position.y, 0); g.add(w); }
-    return g;
-  },
-  /* a narrow stone bridge from a to b (both in the parent's space), with posts going down into the fog */
-  bridge(a, b, w) {
-    const g = new THREE.Group(), { mats } = this.ctx, len = a.distanceTo(b), mid = a.clone().add(b).multiplyScalar(0.5);
-    const deck = this.mesh(new THREE.BoxGeometry(w, w * 0.25, len, 1, 1, this.seg(16)), mats.stone2, len); g.add(deck);
-    const sag = deck.geometry.attributes.position; for (let i = 0; i < sag.count; i++) { const z = sag.getZ(i) / len; sag.setY(i, sag.getY(i) - (0.25 - z * z) * len * 0.06); } deck.geometry.computeVertexNormals();
-    g.position.copy(mid); g.lookAt(b); return g;
-  },
-  /* a stopped (or running) clock face, the size of a building */
-  clock(R) {
-    const g = new THREE.Group(), { mats } = this.ctx;
-    g.add(this.mesh(new THREE.TorusGeometry(R, R * 0.07, this.seg(8), this.seg(40)), mats.stone, R * 2));
-    const face = new THREE.Mesh(new THREE.CircleGeometry(R * 0.96, 40), new THREE.MeshStandardMaterial({ color: mats.stone.color.clone().multiplyScalar(0.6), roughness: 1, side: THREE.DoubleSide })); face.position.z = -0.05; g.add(face);
-    for (let i = 0; i < 12; i++) { const t = new THREE.Mesh(new THREE.BoxGeometry(R * 0.05, R * 0.16, R * 0.05), mats.dark); const a = i / 12 * 6.28; t.position.set(Math.sin(a) * R * 0.82, Math.cos(a) * R * 0.82, 0.1); t.rotation.z = -a; g.add(t); }
-    const hand = (len, wid) => { const p = new THREE.Group(), m = new THREE.Mesh(new THREE.BoxGeometry(wid, len, wid * 0.6), mats.dark); m.position.y = len / 2; p.add(m); p.position.z = 0.2; g.add(p); return p; };
-    g.userData.hands = [hand(R * 0.75, R * 0.05), hand(R * 0.5, R * 0.08)]; g.userData.clock = true;
-    return g;
-  },
-  monolith(hgt) { const m = this.mesh(new THREE.BoxGeometry(hgt * 0.22, hgt, hgt * 0.05, 1, this.seg(6), 1), this.ctx.mats.dark, hgt); m.position.y = hgt / 2; const g = new THREE.Group(); g.add(m); return g; },
-  orb(R) { const m = this.mesh(new THREE.SphereGeometry(R, this.seg(32), this.seg(20)), this.ctx.mats.orb, R * 2); m.position.y = R * 0.6; const g = new THREE.Group(); g.add(m); return g; },
-  tree(hgt) {
-    const g = new THREE.Group(), { r, mats } = this.ctx; const trunk = this.mesh(new THREE.CylinderGeometry(hgt * 0.03, hgt * 0.06, hgt * 0.6, 6), mats.dark, hgt); trunk.position.y = hgt * 0.3; g.add(trunk);
-    for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(new THREE.IcosahedronGeometry(hgt * r.range(0.2, 0.32), 0), mats.leaf); b.position.set(r.range(-0.15, 0.15) * hgt, hgt * r.range(0.6, 0.85), r.range(-0.15, 0.15) * hgt); g.add(b); }
-    return g;
-  },
-  /* the dreamer: a tiny dark figure, for scale. Sometimes carrying a light. */
-  figure(hgt, lantern) {
-    const g = new THREE.Group(), { mats } = this.ctx;
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(hgt * 0.13, hgt * 0.17, hgt * 0.72, 8), mats.figure); body.position.y = hgt * 0.36; g.add(body);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(hgt * 0.11, 10, 8), mats.figure); head.position.y = hgt * 0.84; g.add(head);
-    if (lantern) { const l = new THREE.Sprite(new THREE.SpriteMaterial({ map: Tex.glow(), color: this.ctx.pal.glow, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); l.scale.setScalar(hgt * 1.4); l.position.set(hgt * 0.25, hgt * 0.5, 0); g.add(l); }
-    g.userData.figure = true; return g;
-  },
-};
+const VERT = 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }';
+const FRAG = `
+precision highp float;
+uniform vec2 uRes; uniform float uTime, uFov, uBend, uGeo, uPhys, uScale, uSteps, uShadow, uFogK, uStars, uLightPal;
+uniform vec3 uCam, uSun; uniform mat3 uRot; uniform vec2 uSeed;
+uniform vec3 uTop, uHor, uLow, uFogC, uStone, uStone2, uGlow, uMoon, uSea, uMist;
+const float CS = 300.0;
+vec3 gRd; float gMat;
+
+/* a hash built only from whole numbers below 2^24, so the graphics card and JavaScript get exactly the same answer */
+float perm(float x){ return mod((x * 34. + 1.) * x, 289.); }
+float hash12(vec2 p){ p = mod(floor(p), 289.); return perm(perm(p.x) + p.y) / 289.; }
+float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p), u = f * f * (3. - 2. * f);
+  float a = hash12(i), b = hash12(i + vec2(1., 0.)), c = hash12(i + vec2(0., 1.)), d = hash12(i + vec2(1., 1.));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y); }
+float fbm(vec2 p, float oct){ float s = 0., a = .5, n = 0.; for (int i = 0; i < 6; i++) { if (float(i) >= oct) break; s += a * vnoise(p); n += a; p = p * 2.03 + vec2(1.7, 9.2); a *= .5; } return s / n; }
+mat2 rot(float a){ float c = cos(a), s = sin(a); return mat2(c, s, -s, c); }
+
+/* ---- the land: rolling noise, ridges on the high ground; melted = warped, crystal = terraced ---- */
+float terrain(vec2 xz, float oct){
+  vec2 q = xz * .0021 + uSeed;
+  if (uGeo > 2.5 && uGeo < 3.5) q += (vec2(vnoise(q * 2.), vnoise(q * 2. + 7.)) - .5) * .6;
+  float n = fbm(q, oct), h = (n - .47) * 260.;
+  float r = 1. - abs(vnoise(q * 3.1 + 3.) * 2. - 1.); h += r * r * 60. * smoothstep(.45, .7, n);
+  if (uGeo > 3.5) { float k = h / 16.; h = (floor(k) + smoothstep(.55, 1., fract(k))) * 16.; }
+  return h;
+}
+/* ---- the sea: a few long swells and a choppy layer, moving with dream time ---- */
+float water(vec2 xz){
+  float t = uTime;
+  return sin(dot(xz, vec2(.045, .015)) + t * 1.1) * 1.6 + sin(dot(xz, vec2(-.022, .052)) + t * 1.4) * 1.1 + sin(dot(xz, vec2(.09, -.07)) + t * 2.2) * .45 + (vnoise(xz * .04 + t * .12) - .5) * 2. - 2.;
+}
+float sdBox(vec3 p, vec3 b){ vec3 q = abs(p) - b; return length(max(q, 0.)) + min(max(q.x, max(q.y, q.z)), 0.); }
+float sdCyl(vec3 p, float r, float h){ vec2 d = abs(vec2(length(p.xz), p.y)) - vec2(r, h); return min(max(d.x, d.y), 0.) + length(max(d, 0.)); }
+vec2 U(vec2 a, vec2 b){ return a.x < b.x ? a : b; }   // union that remembers which material was closer
+
+/* ---- the monuments. q is in the monument's own space: ground at y = 0. Materials: 3 stone, 4 dark stone, 5 light ---- */
+vec2 shape(float type, vec3 q, float ch){
+  vec2 r = vec2(1e5, 3.);
+  if (type < .5) {   // the great ring, standing on its edge, with a slab behind it
+    vec3 o = q - vec3(0., 47., 0.);
+    r = vec2(length(vec2(length(o.xy) - 40., o.z)) - 7., 3.);
+    r = U(r, vec2(sdBox(q - vec3(0., 3., 0.), vec3(34., 3., 12.)), 4.));
+    r = U(r, vec2(sdBox(q - vec3(-26., 52., -17.), vec3(6.5, 52., 6.5)), 4.));
+    r = U(r, vec2(sdBox(q - vec3(18., 6., 9.), vec3(2.2, 6., .4)), 5.));
+    if (uGeo > .5 && uGeo < 1.5) r = U(r, vec2(length(vec2(length(o.zy) - 40., o.x)) - 7., 3.));
+    if (uGeo > 1.5 && uGeo < 2.5) { r = U(r, vec2(length(vec2(length(o.zy) - 24., o.x)) - 4.5, 3.)); r = U(r, vec2(length(vec2(length(o.xy) - 13., o.z)) - 2.6, 4.)); }
+  } else if (type < 1.5) {   // a spire like a termite tower left out in the rain
+    float y = clamp(q.y / 150., 0., 1.), rad = 15. * pow(1. - y, .7) * (1. + .18 * sin(q.y * .12 + ch * 20.));
+    r = vec2(max(max((length(q.xz) - rad) * .7, -q.y), q.y - 150.), 4.);
+    r = U(r, vec2(sdBox(q - vec3(rad * .9, 70., 0.), vec3(.6, 4., 2.2)), 5.));
+    if (uGeo > 1.5 && uGeo < 2.5) { vec3 e = (q - vec3(26., 0., 10.)) * 2.; float ey = clamp(e.y / 150., 0., 1.); r = U(r, vec2(max(max((length(e.xz) - 15. * pow(1. - ey, .7)) * .7, -e.y), e.y - 150.) * .5, 4.)); }
+  } else if (type < 2.5) {   // a floating island with a little tower and a lit window
+    vec3 o = q - vec3(0., 130. + ch * 90., 0.);
+    float d = (length(o / vec3(40., 70., 40.)) - 1.) * 36.;
+    d = max(d, o.y) + (vnoise(o.xz * .08) - .5) * 5.;
+    r = vec2(d, 3.);
+    r = U(r, vec2(sdCyl(o - vec3(10., 16., 0.), 5., 16.), 4.));
+    r = U(r, vec2(sdBox(o - vec3(15.2, 22., 0.), vec3(.4, 3., 1.6)), 5.));
+  } else if (type < 3.5) {   // a monolith with a lit doorway cut into it
+    r = vec2(sdBox(q - vec3(0., 55., 0.), vec3(6., 55., 20.)), 4.);
+    r = U(r, vec2(sdBox(q - vec3(6.2, 12., 0.), vec3(.4, 12., 4.)), 5.));
+  } else if (type < 4.5) {   // a gate to nowhere, with a light hanging in it
+    r = vec2(min(sdBox(q - vec3(26., 40., 0.), vec3(6., 40., 6.)), sdBox(q - vec3(-26., 40., 0.), vec3(6., 40., 6.))), 3.);
+    r = U(r, vec2(sdBox(q - vec3(0., 84., 0.), vec3(36., 5., 8.)), 4.));
+    r = U(r, vec2(length(q - vec3(0., 58. + sin(uTime + ch * 9.) * 3., 0.)) - 4., 5.));
+  } else if (type < 5.5) {   // a lighthouse
+    r = vec2(sdCyl(q - vec3(0., 45., 0.), 11., 45.), 3.);
+    r = U(r, vec2(max((length(q.xz) - 13. * (1. - (q.y - 100.) / 26.)) * .7, max(100. - q.y, q.y - 126.)), 4.));
+    r = U(r, vec2(sdCyl(q - vec3(0., 95., 0.), 9.5, 5.), 5.));
+  } else {   // stairs that climb to a door and stop
+    float k = clamp(floor(q.x / 7. + .5), 0., 24.);
+    float k2 = clamp(k + 1., 0., 24.);   // each step is a solid column from the ground up; check this step and the next
+    r = vec2(min(sdBox(q - vec3(k * 7., (k * 5. + 5.) * .5, 0.), vec3(3.6, (k * 5. + 5.) * .5, 10.)), sdBox(q - vec3(k2 * 7., (k2 * 5. + 5.) * .5, 0.), vec3(3.6, (k2 * 5. + 5.) * .5, 10.))), 4.);
+    r = U(r, vec2(sdBox(q - vec3(172., 135., 0.), vec3(.4, 10., 5.)), 5.));
+    r = U(r, vec2(sdBox(q - vec3(172., 147., 0.), vec3(1.5, 2., 7.)), 4.));
+  }
+  return r;
+}
+/* each cell of the grid rolls its dice: is there a monument, which one, where, how big, which way it faces */
+vec2 monuments(vec3 p){
+  vec2 id = floor(p.xz / CS), res = vec2(1e5, 3.);
+  float ch = hash12(id + uSeed * 7.); if (ch < .3) return res;
+  float type = floor(hash12(id + vec2(5., 1.)) * 7.);
+  vec2 c = (id + .5) * CS + (vec2(hash12(id + 3.), hash12(id + 7.)) - .5) * CS * .3;
+  float sc = uScale > 2.5 ? .4 + hash12(id + 2.) * 2.2 : uScale > 1.5 ? 1. : uScale > .5 ? 2.2 : 1.;
+  if (type > 5.5) sc = min(sc, 1.);   // the stairs are long: keep them inside their cell
+  float base = max(terrain(c, 3.), -3.), ang = hash12(id + 11.) * 6.283, t = uTime, ph = ch * 6.283;
+  vec3 q = p - vec3(c.x, base, c.y);
+  if (uPhys > 1.5 && uPhys < 2.5) ang += t * .25;                                   // orbiting: they turn
+  q.xz = rot(ang) * q.xz;
+  float floaty = type > 1.5 && type < 2.5 ? 1. : 0.;
+  if (uPhys < .5) q.y -= sin(t * .5 + ph) * (floaty * 7. + 1.2) * sc;                 // floating: they bob
+  if (uPhys > 2.5 && uPhys < 3.5 && (floaty > .5 || type > 2.5 && type < 3.5)) q.y -= mod(-t * 28. + ph * 120., 760.) - 260.;   // falling, forever
+  if (uPhys > 3.5) sc *= 1. + .08 * sin(t * .9 + ph);                                // breathing
+  if (uGeo > 2.5 && uGeo < 3.5) { q.x += sin(q.y * .035 + t * .3) * q.y * .1; q.z += cos(q.y * .05) * q.y * .05; }   // melted
+  res = shape(type, q / sc, ch); res.x *= sc * .75;
+  if (uGeo > .5 && uGeo < 1.5) { vec2 tw = shape(type, vec3(q.x, 430. * sc - q.y, -q.z) / sc, ch); tw.x *= sc * .75; res = U(res, tw); }   // impossible: an upside-down twin above
+  return res;
+}
+/* the whole world: land, sea, monuments. Bend lifts (or drops) everything with distance from you. */
+vec2 map(vec3 p){
+  float dd = dot(p.xz - uCam.xz, p.xz - uCam.xz); p.y -= uBend * dd;
+  vec2 r = vec2((p.y - terrain(p.xz, 5.)) * .45, 1.);
+  r = U(r, vec2((p.y - water(p.xz)) * .6, 2.));
+  return U(r, monuments(p));
+}
+/* how far along the ray until it leaves this cell: never step over a neighbour's monument */
+float cellExit(vec2 p, vec2 d){
+  vec2 id = floor(p / CS), lo = id * CS, hi = lo + CS;
+  vec2 t = vec2(d.x > 0. ? (hi.x - p.x) / d.x : d.x < 0. ? (lo.x - p.x) / d.x : 1e5, d.y > 0. ? (hi.y - p.y) / d.y : d.y < 0. ? (lo.y - p.y) / d.y : 1e5);
+  return min(t.x, t.y);
+}
+vec3 sky(vec3 rd){
+  float y = rd.y;
+  vec3 c = y > 0. ? mix(uHor, uTop, pow(clamp(y, 0., 1.), .5)) : mix(uHor, uLow, pow(clamp(-y * 2.5, 0., 1.), .6));
+  float md = dot(rd, uSun);
+  c += uMoon * (pow(max(md, 0.), 420.) * .6 + pow(max(md, 0.), 18.) * .12);
+  if (md > .9988) { float cr = vnoise(rd.xy * 160.) * .5 + vnoise(rd.yz * 60.) * .5; c = mix(c, uMoon * (.75 + .35 * cr), smoothstep(.9988, .99915, md)); }
+  if (uStars > 0. && y > 0.) { vec3 g = floor(rd * 220.); float h = hash12(g.xy * 3. + g.z * 17.); c += vec3(smoothstep(.9965, 1., h)) * uStars * smoothstep(0., .25, y) * (.6 + .4 * sin(uTime * 2. + h * 90.)); }
+  if (y > .01) {   // clouds, drifting on a ceiling far above
+    vec2 cp = uCam.xz + rd.xz * (900. - uCam.y) / y;
+    float cl = smoothstep(.5, .78, fbm(cp * .0011 + vec2(uTime * .006, 0.), 4.)) * smoothstep(.01, .2, y);
+    c = mix(c, mix(uHor, uMoon, .35) * (.7 + .3 * y), cl * .6);
+  }
+  return c;
+}
+float shadow(vec3 ro, vec3 rd){
+  float s = 1., t = 2.;
+  for (int i = 0; i < 28; i++) { if (float(i) >= uShadow) break; float h = map(ro + rd * t).x; s = min(s, 10. * h / t); t += clamp(h, 2., 40.); if (s < .02 || t > 600.) break; }
+  return clamp(s, 0., 1.);
+}
+void main(){
+  vec2 uv = (gl_FragCoord.xy * 2. - uRes) / uRes.y;
+  vec3 rd = normalize(uRot * vec3(uv * uFov, -1.)), ro = uCam; gRd = rd;
+  float t = .5, far = 2600.; vec2 hit = vec2(-1.);
+  for (int i = 0; i < 220; i++) {
+    if (float(i) >= uSteps) break;
+    vec3 p = ro + rd * t; vec2 r = map(p);
+    if (r.x < .0015 * t + .02) { hit = vec2(t, r.y); break; }
+    t += min(r.x, cellExit(p.xz, rd.xz) + .5);
+    if (t > far) break;
+  }
+  vec3 col;
+  if (hit.x < 0.) col = sky(rd);
+  else {
+    vec3 p = ro + rd * hit.x, n; float m = hit.y, e = max(.02, .0016 * hit.x);
+    if (m < 1.5) { vec2 xz = p.xz; float h0 = terrain(xz, 5.); n = normalize(vec3(h0 - terrain(xz + vec2(e, 0.), 5.), e, h0 - terrain(xz + vec2(0., e), 5.))); }
+    else if (m < 2.5) { vec2 xz = p.xz; float w0 = water(xz) + vnoise(xz * .5 + uTime * .5) * .25; n = normalize(vec3(w0 - water(xz + vec2(e, 0.)) - vnoise((xz + vec2(e, 0.)) * .5 + uTime * .5) * .25, e, w0 - water(xz + vec2(0., e)) - vnoise((xz + vec2(0., e)) * .5 + uTime * .5) * .25)); }
+    else { vec2 k = vec2(1., -1.) * e; n = normalize(k.xyy * map(p + k.xyy).x + k.yyx * map(p + k.yyx).x + k.yxy * map(p + k.yxy).x + k.xxx * map(p + k.xxx).x); }
+    if (uGeo > 3.5) n = normalize(floor(n * 2.6 + .5));   // crystal: every surface snaps to a facet
+    float dif = max(dot(n, uSun), 0.), sh = dif > 0. && uShadow > 0. ? shadow(p + n * 1.5, uSun) : 1.;
+    vec3 amb = mix(uLow, uTop, n.y * .5 + .5) * .55 + uHor * .25;
+    if (m < 1.5) {
+      float hh = p.y - uBend * dot(p.xz - uCam.xz, p.xz - uCam.xz), v = .8 + .4 * vnoise(p.xz * .05);
+      vec3 base = mix(uStone2, uStone, smoothstep(-10., 90., hh)) * v;
+      base = mix(base * .7, base, smoothstep(.55, .85, n.y));
+      base = mix(mix(base, uMist, .35), base, smoothstep(0., 6., hh));
+      col = base * (amb + uMoon * dif * sh * 1.1);
+    } else if (m < 2.5) {
+      float fr = .04 + .96 * pow(1. - max(dot(-rd, n), 0.), 5.); vec3 rf = reflect(rd, n);
+      col = mix(uSea * (.35 + .65 * dif), sky(rf), fr) + uMoon * pow(max(dot(rf, uSun), 0.), 140.) * 1.6 * sh;
+    } else if (m < 4.5) {
+      vec3 base = (m < 3.5 ? uStone : uStone2) * (.86 + .14 * sin(p.y * .9)) * (.85 + .3 * vnoise(p.xz * .3 + p.y * .2));
+      col = base * (amb + uMoon * dif * sh * 1.1);
+    } else col = uGlow * 1.6;
+    float fog = 1. - exp(-hit.x * uFogK);
+    vec3 fc = mix(uFogC, uHor, .5) + uMoon * pow(max(dot(rd, uSun), 0.), 8.) * .25;
+    col = mix(col, fc, fog);
+  }
+  vec2 sv = gl_FragCoord.xy / uRes; col *= .82 + .18 * pow(16. * sv.x * sv.y * (1. - sv.x) * (1. - sv.y), .25);   // a soft vignette
+  col += (hash12(gl_FragCoord.xy + floor(fract(uTime * 7.) * 97.)) - .5) * .03;                                                  // and a little grain
+  gl_FragColor = vec4(col, 1.);
+}`;
 /* ---- 30-world.js ---- */
 /* ============================================================
-   Dream Machine, part 3: putting a dream together.
-   World.build(seed, rules) clears the scene and lays out a new one:
-   sky, moons, light, fog, a central monument, islands around it,
-   spires in the sea of mist, bridges, drifting debris, specks in
-   the air, and one small person. Gravity decides which way all of
-   it points; Scale and Geometry decide how it's made.
+   Dream Machine, part 3: the world, as the computer (not the
+   graphics card) sees it. The same land, sea and monuments as the
+   shader, worked out only where you are standing: so you can walk
+   on the ground, climb the stairs, stand on a floating island,
+   bump into a spire, and know when you have found somewhere new.
    ============================================================ */
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const GEO = { plain: 0, impossible: 1, echo: 2, melted: 3, crystal: 4 }, PHYS = { float: 0, still: 1, orbit: 2, fall: 3, breathe: 4 }, SCALE = { human: 0, giant: 1, tiny: 2, mixed: 3 };
 const World = {
-  scene: null, root: null, land: null, sky: null, stars: null, moons: [], bodies: [], clocks: [], specks: null, gvec: new THREE.Vector3(0, -1, 0),
-  info: { size: 1, look: new THREE.Vector3(), dist: 100, phi: 1.2 },
-  init(scene) { this.scene = scene; },
-  clear() {
-    if (!this.root) return;
-    this.scene.remove(this.root);
-    this.root.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) { const ms = Array.isArray(o.material) ? o.material : [o.material]; ms.forEach(m => { if (m.map && m.map !== Tex._stone && m.map !== Tex._glow && m.map !== Tex._mist) m.map.dispose(); m.dispose(); }); } });
-    this.root = null;
+  CS: 300, seed: [0, 0], geo: 0, phys: 0, scale: 0, t: 0,
+  set(seedStr, rules) {
+    const h = hashStr(seedStr); this.seed = [3 + (h % 250), 3 + ((h >>> 10) % 250)];
+    this.geo = GEO[rules.geometry]; this.phys = PHYS[rules.physics]; this.scale = SCALE[rules.scale]; this.seedStr = seedStr;
   },
-  build(seed, rules) {
-    this.clear();
-    const r = rng(hashStr(seed + '|' + rules.gravity + rules.scale + rules.geometry + rules.palette)), rLook = rng(hashStr(seed));
-    const pal = rules.palette === 'random' ? randomPalette(rng(hashStr(seed + 'colour'))) : PALETTES[rules.palette];
-    this.pal = pal; this.rules = rules; this.bodies = []; this.clocks = []; this.moons = []; this.lights = [];
-    const root = this.root = new THREE.Group(); this.scene.add(root);
-    Shapes.begin(r, rules.geometry, pal);
-    this.buildSky(r, pal);
-    const land = this.land = new THREE.Group(); root.add(land);
-    const G = rules.gravity;
-    if (G === 'inward') this.planet(r, rules); else if (G === 'none') this.adrift(r, rules); else this.archipelago(r, rules);
-    /* gravity: turn the whole world so that its "up" is away from gravity */
-    if (G === 'up') { land.rotation.x = Math.PI; this.gvec.set(0, 1, 0); }
-    else if (G === 'side') { land.rotation.z = -Math.PI / 2; this.gvec.set(-1, 0, 0); }
-    else if (G === 'none') this.gvec.set(0, 0, 0);
-    else if (G === 'inward') this.gvec.set(0, 0, 0);
-    else this.gvec.set(0, -1, 0);
-    land.updateMatrixWorld(true);
-    this.addSpecks(r, pal);
-    this.lightUp(r, pal);
-    /* how the camera should frame it */
-    const size = this.info.size;
-    this.info.dist = G === 'inward' ? size * 2.35 : G === 'side' || G === 'none' ? size * 1.35 : size * 1.05; this.info.phi = G === 'up' ? 1.95 : G === 'side' ? 1.3 : G === 'inward' ? 1.1 : 1.28;
-    this.info.look.set(0, G === 'up' ? -size * 0.12 : G === 'down' ? size * 0.12 : 0, 0); if (G === 'side') this.info.look.set(size * 0.12, 0, 0);
-    this.scene.fog = new THREE.FogExp2(pal.fog, (G === 'inward' ? 0.9 : 1.6) * (pal.fogK || 1) / (size * 10));
-    return { name: dreamName(rLook), pal };
+  terrain(x, z, oct = 5) {
+    let qx = F(F(x * 0.0021) + this.seed[0]), qz = F(F(z * 0.0021) + this.seed[1]);
+    if (this.geo === 3) { const wx = vnoise(F(qx * 2), F(qz * 2)), wz = vnoise(F(qx * 2 + 7), F(qz * 2 + 7)); qx = F(qx + (wx - 0.5) * 0.6); qz = F(qz + (wz - 0.5) * 0.6); }
+    const n = fbm(qx, qz, oct); let h = (n - 0.47) * 260;
+    const r = 1 - Math.abs(vnoise(F(qx * 3.1 + 3), F(qz * 3.1 + 3)) * 2 - 1); h += r * r * 60 * smooth(0.45, 0.7, n);
+    if (this.geo === 4) { const k = h / 16; h = (Math.floor(k) + smooth(0.55, 1, k - Math.floor(k))) * 16; }
+    return h;
   },
-  /* ---- sky, stars, moons ---- */
-  buildSky(r, pal) {
-    const sky = new THREE.Mesh(new THREE.SphereGeometry(1800, 32, 16), new THREE.ShaderMaterial({
-      side: THREE.BackSide, depthWrite: false, fog: false,
-      uniforms: { top: { value: new THREE.Color(pal.top) }, hor: { value: new THREE.Color(pal.hor) }, low: { value: new THREE.Color(pal.low) } },
-      vertexShader: 'varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-      fragmentShader: 'uniform vec3 top; uniform vec3 hor; uniform vec3 low; varying vec3 vP; void main(){ float y = vP.y; vec3 c = y > 0.0 ? mix(hor, top, pow(clamp(y, 0.0, 1.0), 0.55)) : mix(hor, low, pow(clamp(-y * 2.5, 0.0, 1.0), 0.6)); gl_FragColor = vec4(c, 1.0); }',
-    }));
-    sky.renderOrder = -10; this.root.add(sky); this.sky = sky;
-    if (pal.stars > 0) {
-      const n = Math.round(1800 * pal.stars), pos = new Float32Array(n * 3);
-      for (let i = 0; i < n; i++) { const u = r() * 2 - 1, a = r() * 6.28, s = Math.sqrt(1 - u * u); pos.set([Math.cos(a) * s * 1600, Math.abs(u) * 1600 * (r() < 0.85 ? 1 : -0.3), Math.sin(a) * s * 1600], i * 3); }
-      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      this.stars = new THREE.Points(g, new THREE.PointsMaterial({ color: pal.speck, size: 1.6, sizeAttenuation: false, transparent: true, opacity: 0.85, fog: false, depthWrite: false }));
-      this.root.add(this.stars);
-    } else this.stars = null;
-    const count = r.pick([1, 1, 2, 2, 3]);
-    for (let i = 0; i < count; i++) {
-      const big = i === 0, R = big ? r.range(70, 120) : r.range(18, 45), a = r.range(-1.2, 1.2) + (i ? r.range(1, 2.4) * r.sign() : 0), el = r.range(0.12, big ? 0.38 : 0.6), d = 1300;
-      const col = big ? pal.moon : pal.moon2, g = new THREE.Group();
-      g.position.set(Math.sin(a) * Math.cos(el) * d, Math.sin(el) * d, -Math.cos(a) * Math.cos(el) * d);
-      const body = new THREE.Mesh(new THREE.SphereGeometry(R, 32, 20), new THREE.MeshBasicMaterial({ map: Tex.moon(r.int(1, 1e6)), color: col, fog: false }));
-      g.add(body);
-      const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: Tex.glow(), color: col, transparent: true, opacity: 0.55, depthWrite: false, fog: false, blending: THREE.AdditiveBlending })); halo.scale.setScalar(R * 6); g.add(halo);
-      if (!big && r.chance(0.4)) { const ring = new THREE.Mesh(new THREE.RingGeometry(R * 1.5, R * 2.3, 48), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.5, side: THREE.DoubleSide, fog: false })); ring.rotation.set(r.range(1, 1.5), r.range(-0.4, 0.4), 0); g.add(ring); }
-      g.userData = { a, el, d, speed: r.range(0.004, 0.012) * r.sign() };
-      this.root.add(g); this.moons.push(g);
+  water(x, z) { const t = this.t; return Math.sin(x * 0.045 + z * 0.015 + t * 1.1) * 1.6 + Math.sin(-x * 0.022 + z * 0.052 + t * 1.4) * 1.1 + Math.sin(x * 0.09 - z * 0.07 + t * 2.2) * 0.45 + (vnoise(F(x * 0.04 + t * 0.12), F(z * 0.04 + t * 0.12)) - 0.5) * 2 - 2; },
+  /* the monument in one cell, if there is one: the same dice the shader rolls */
+  cell(ix, iz) {
+    const s = this.seed, ch = hash12(ix + s[0] * 7, iz + s[1] * 7); if (ch < 0.3) return null;
+    const type = Math.floor(hash12(ix + 5, iz + 1) * 7), CS = this.CS;
+    const cx = (ix + 0.5) * CS + (hash12(ix + 3, iz + 3) - 0.5) * CS * 0.3, cz = (iz + 0.5) * CS + (hash12(ix + 7, iz + 7) - 0.5) * CS * 0.3;
+    let sc = this.scale === 3 ? 0.4 + hash12(ix + 2, iz + 2) * 2.2 : this.scale === 1 ? 2.2 : 1; if (type === 6) sc = Math.min(sc, 1);
+    let ang = hash12(ix + 11, iz + 11) * 6.283; if (this.phys === 2) ang += this.t * 0.25;
+    const base = Math.max(this.terrain(cx, cz, 3), -3), ph = ch * 6.283;
+    let lift = this.phys === 0 ? Math.sin(this.t * 0.5 + ph) * ((type === 2 ? 7 : 0) + 1.2) * sc : 0;
+    if (this.phys === 3 && (type === 2 || type === 3)) { const v = -this.t * 28 + ph * 120; lift += ((v % 760) + 760) % 760 - 260; }
+    return { ix, iz, type, cx, cz, sc, ang, base, ch, lift };
+  },
+  /* a point in a monument's own space (the same turn the shader applies) */
+  local(c, x, z) { const dx = x - c.cx, dz = z - c.cz, co = Math.cos(c.ang), si = Math.sin(c.ang); return [(co * dx - si * dz) / c.sc, (si * dx + co * dz) / c.sc]; },
+  /* the height you can stand at here: the ground, the sea (you can walk on it), stairs, the top of a slab, a floating island */
+  floor(x, z, feetY) {
+    let g = Math.max(this.terrain(x, z), this.water(x, z));
+    const ix = Math.floor(x / this.CS), iz = Math.floor(z / this.CS), c = this.cell(ix, iz);
+    if (c && this.geo !== 3) {
+      const [lx, lz] = this.local(c, x, z), y0 = c.base + c.lift, top = (h) => { const y = y0 + h * c.sc; if (feetY >= y - 4 * c.sc - 1.5) g = Math.max(g, y); };
+      if (c.type === 6 && Math.abs(lz) < 10 && lx > -3.6 && lx < 175.6) top(Math.min(24, Math.max(0, Math.floor(lx / 7 + 0.5))) * 5 + 5);
+      if (c.type === 0 && Math.abs(lx) < 34 && Math.abs(lz) < 12) top(6);
+      if (c.type === 2 && lx * lx + lz * lz < 34 * 34) top(130 + c.ch * 90);
+      if (c.type === 4 && Math.abs(lx) < 36 && Math.abs(lz) < 8) top(89);
     }
+    return g;
   },
-  lightUp(r, pal) {
-    const hemi = new THREE.HemisphereLight(pal.hor, pal.sea, 1.15); this.root.add(hemi);
-    const key = new THREE.DirectionalLight(pal.moon, 1.15); key.position.copy(this.moons[0].position).normalize().multiplyScalar(100); this.root.add(key);
-    const fill = new THREE.DirectionalLight(pal.top, 0.25); fill.position.set(-key.position.x, 40, -key.position.z); this.root.add(fill);
-    this.root.add(new THREE.AmbientLight(pal.fog, 0.4));
-    /* warm light spilling out of the first few doorways */
-    let n = 0; this.land.traverse(o => { if (o.userData.glow && n < 3) { const l = new THREE.PointLight(pal.glow, 1.4, this.info.size * 0.35, 2); l.position.set(0, 2, 2); o.add(l); n++; } });
-  },
-  /* drifting specks: dust, snow, embers or fireflies, depending on the palette */
-  addSpecks(r, pal) {
-    const n = 900, S = this.info.size * 1.4, pos = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) pos.set([r.range(-S, S), r.range(-S * 0.6, S * 0.6), r.range(-S, S)], i * 3);
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const p = new THREE.Points(g, new THREE.PointsMaterial({ color: pal.speck, size: this.info.size * 0.006, map: Tex.glow(), transparent: true, opacity: 0.75, depthWrite: false, blending: THREE.AdditiveBlending }));
-    p.userData = { S, phase: Float32Array.from({ length: n }, () => r() * 6.28) }; this.root.add(p); this.specks = p;
-  },
-  /* ---- the three layouts ---- */
-  scaleRule(r) { const s = this.rules.scale; return s === 'giant' ? { mono: 2.4, isl: 1.3, fig: 1.8 } : s === 'tiny' ? { mono: 0.8, isl: 1, fig: 16 } : s === 'mixed' ? { mono: r.range(0.6, 2), isl: 1, fig: r.pick([0.9, 1.8, 9]), mixed: true } : { mono: 1, isl: 1, fig: 1.8 }; },
-  /* a body is anything that moves under the Physics rule */
-  body(obj, opts = {}) { this.bodies.push(Object.assign({ obj, p0: obj.position.clone(), r0: obj.rotation.clone(), s0: obj.scale.clone(), ph: Math.random() * 6.28, amp: 1, anchor: false }, opts)); return obj; },
-  /* the centrepiece: one of several monuments, chosen by the seed */
-  monument(r, sc) {
-    const kind = r.pick(['ring', 'ring', 'clock', 'spiral', 'orb', 'towers', 'doors']), mode = this.rules.geometry, g = new THREE.Group(), R = 13 * sc.mono;
-    const make = (k) => {
-      if (k === 'ring') return Shapes.ring(R, R * 0.2);
-      if (k === 'clock') { const c = Shapes.clock(R * 1.05); c.position.y = R * 1.3; this.clocks.push(c); const w = new THREE.Group(); w.add(c); const base = Shapes.stairs(R, R * 0.12, 8, 0, R); base.position.z = R * 0.8; w.add(base); return w; }
-      if (k === 'spiral') { const w = new THREE.Group(); const s = Shapes.stairs(0, R * 0.16, 44, Math.PI * 4, R * 0.55); w.add(s); const top = Shapes.door(R * 0.18, R * 0.3); top.position.set(R * 0.55, R * 0.16 * 44, 0); w.add(top); const col = Shapes.spire(R * 7.4, R * 0.2); w.add(col); return w; }
-      if (k === 'orb') { const w = Shapes.orb(R * 0.9); const d = Shapes.door(R * 0.2, R * 0.35); d.position.set(0, 0, R * 0.95); w.add(d); return w; }
-      if (k === 'towers') { const w = new THREE.Group(); for (let i = 0; i < 5; i++) { const t = Shapes.tower(R * r.range(0.9, 2.2), R * r.range(0.18, 0.32)); const a = i / 5 * 6.28 + r.range(-0.3, 0.3); t.position.set(Math.cos(a) * R * 0.5 * (i ? 1 : 0), 0, Math.sin(a) * R * 0.5 * (i ? 1 : 0)); w.add(t); } return w; }
-      const w = new THREE.Group(); for (let i = 0; i < 4; i++) { const d = Shapes.door(R * 0.28, R * 0.55); d.position.set((i - 1.5) * R * 0.5, 0, 0); d.rotation.y = r.range(-0.3, 0.3); w.add(d); } const lin = Shapes.monolith(R * 2.4); lin.position.z = -R * 0.6; w.add(lin); return w;
-    };
-    g.add(make(kind));
-    if (mode === 'echo') {   // the same thing again, smaller, turned, nested inside or beside
-      for (const [k, s] of [[0.55, 1], [0.3, 2]]) { const e = make(kind); e.scale.setScalar(k); e.rotation.y = s * Math.PI / 2; e.position.set(kind === 'ring' ? 0 : s * R * 0.9, kind === 'ring' ? R * (1 - k) * 1.05 : 0, 0); g.add(e); }
-    }
-    if (mode === 'impossible' && (kind === 'ring' || kind === 'clock')) { const e = make(kind); e.rotation.y = Math.PI / 2; g.add(e); }   // two rings through each other
-    g.userData.kind = kind; return { g, R };
-  },
-  decorate(isl, rad, r, sc, i) {
-    const pal = this.pal, mode = this.rules.geometry, mixed = () => (sc.mixed ? r.range(0.35, 2.6) : 1);
-    const roll = r();
-    if (roll < 0.35) for (let k = 0; k < r.int(1, 3); k++) { const s = Shapes.spire(rad * r.range(1.4, 3.2) * mixed(), rad * r.range(0.14, 0.26)); s.position.set(r.range(-0.4, 0.4) * rad, 0, r.range(-0.4, 0.4) * rad); isl.add(s); if (mode === 'echo') { const e = s.clone(); e.scale.setScalar(0.5); e.position.x += rad * 0.3; isl.add(e); } }
-    else if (roll < 0.55) { const t = Shapes.tower(rad * r.range(0.8, 1.6) * mixed(), rad * 0.22); isl.add(t); }
-    else if (roll < 0.7) { const d = Shapes.door(rad * 0.18, rad * 0.32); d.rotation.y = r() * 6.28; isl.add(d); }
-    else if (roll < 0.8) { const st = Shapes.stairs(rad * 0.8, rad * 0.08, 10, 0, rad); st.rotation.y = r() * 6.28; isl.add(st); }
-    else if (roll < 0.9) { const m = Shapes.monolith(rad * r.range(0.9, 1.6) * mixed()); m.rotation.y = r() * 6.28; isl.add(m); }
-    else { const c = Shapes.clock(rad * 0.5); c.position.y = rad * 0.65; c.rotation.y = r() * 6.28; isl.add(c); this.clocks.push(c); }
-    if (pal === PALETTES.verdant || r.chance(0.18)) for (let k = 0; k < r.int(1, 4); k++) { const t = Shapes.tree(rad * r.range(0.4, 0.8)); t.position.set(r.range(-0.6, 0.6) * rad, 0, r.range(-0.6, 0.6) * rad); isl.add(t); }
-    if (mode === 'impossible' && r.chance(0.5)) { const s = Shapes.spire(rad * r.range(1, 2), rad * 0.18); s.rotation.x = Math.PI; s.position.y = -rad * 0.9; isl.add(s); }   // spires growing down out of the rock
-  },
-  /* Down / Up / Sideways: a central island, a ring of islands, spires standing in a sea of mist */
-  archipelago(r, rules) {
-    const sc = this.scaleRule(r), land = this.land, size = 100 * Math.max(1, sc.mono * 0.8); this.info.size = size;
-    const { g: mono, R } = this.monument(r, sc);
-    const centre = new THREE.Group(); const cIsl = Shapes.island(R * 1.7 * Math.max(1, sc.mono * 0.6), R * 2.2); centre.add(cIsl); centre.add(mono);
-    const fig = Shapes.figure(sc.fig, r.chance(0.6) || this.pal === PALETTES.ember); fig.position.set(R * 0.25, 0.25, R * 1.35); fig.rotation.y = r.range(-0.6, 0.6); centre.add(fig);
-    land.add(this.body(centre, { anchor: true, amp: 0.4 }));
-    if (rules.geometry === 'impossible') {   // the same island again, upside down, hanging in the sky above
-      const twin = centre.clone(); twin.rotation.x = Math.PI; twin.rotation.y = r() * 6.28; twin.position.y = R * 6.2; land.add(this.body(twin, { anchor: true, amp: 0.4 }));
-      twin.traverse(o => { if (o.userData.clock) this.clocks.push(o); });
-      const st = Shapes.stairs(0, R * 0.2, 30, Math.PI * 2.5, R * 1.5); st.position.y = 0.3; land.add(st);
-    }
-    const n = r.int(7, 12), isles = [];
-    for (let i = 0; i < n; i++) {
-      const a = i / n * 6.28 + r.range(-0.25, 0.25), d = r.range(0.4, 1.25) * size, rad = r.range(5, 13) * sc.isl * (sc.mixed ? r.range(0.4, 2) : 1);
-      const isl = new THREE.Group(); isl.add(Shapes.island(rad, rad * r.range(1.4, 2.6))); this.decorate(isl, rad, r, sc, i);
-      isl.position.set(Math.cos(a) * d, r.range(-0.12, 0.3) * size, Math.sin(a) * d); isl.rotation.y = r() * 6.28;
-      land.add(this.body(isl, { amp: r.range(0.6, 1.6) })); isles.push({ isl, d, rad });
-      if (rules.geometry === 'echo') { const sat = new THREE.Group(); sat.add(Shapes.island(rad * 0.35, rad * 0.6)); sat.position.copy(isl.position).add(new THREE.Vector3(rad * 1.6, rad * 0.8, 0)); land.add(this.body(sat, { amp: 2 })); }
-    }
-    /* bridges from the centre out to the nearest islands */
-    isles.slice().sort((a, b) => a.d - b.d).slice(0, r.int(1, 3)).forEach(({ isl }) => { const a = new THREE.Vector3(0, 0, 0), b = isl.position.clone(); b.y += 0.2; const dir = b.clone().sub(a).setY(0).normalize(); a.addScaledVector(dir, R * 1.4); b.addScaledVector(dir, -6); if (b.y - a.y < size * 0.2) land.add(Shapes.bridge(a, b, 2.4)); });
-    /* the sea of mist below, and spires standing in it */
-    const seaY = -size * 0.42;
-    const sea = new THREE.Mesh(new THREE.CircleGeometry(size * 9, 48), new THREE.MeshStandardMaterial({ color: this.pal.sea, roughness: 1 })); sea.rotation.x = -Math.PI / 2; sea.position.y = seaY; land.add(sea);
-    for (let i = 0; i < r.int(16, 30); i++) {
-      const a = r() * 6.28, d = r.range(0.5, 3.4) * size, h = r.range(0.25, 0.75) * size * (sc.mixed ? r.range(0.5, 1.6) : 1), s = Shapes.spire(h, h * r.range(0.07, 0.13));
-      s.position.set(Math.cos(a) * d, seaY - h * 0.1, Math.sin(a) * d); land.add(s);
-      if (r.chance(0.35)) { const cap = new THREE.Group(); cap.add(Shapes.island(h * 0.12, h * 0.08)); cap.position.set(s.position.x, s.position.y + h * 0.9, s.position.z); land.add(cap); }
-    }
-    for (let i = 0; i < 26; i++) {   // banks of mist lying on the sea
-      const a = r() * 6.28, d = r.range(0.2, 3) * size, m = new THREE.Sprite(new THREE.SpriteMaterial({ map: Tex.mist(), color: this.pal.mist, transparent: true, opacity: r.range(0.35, 0.7), depthWrite: false }));
-      m.scale.set(size * r.range(1.2, 2.6), size * r.range(0.35, 0.6), 1); m.position.set(Math.cos(a) * d, seaY + size * r.range(0.02, 0.14), Math.sin(a) * d); land.add(m);
-    }
-    this.debris(r, size, sc);
-  },
-  /* None: nothing has a floor; islands tumble slowly in every direction */
-  adrift(r, rules) {
-    const sc = this.scaleRule(r), land = this.land, size = 100 * Math.max(1, sc.mono * 0.8); this.info.size = size;
-    const { g: mono, R } = this.monument(r, sc); const centre = new THREE.Group(); centre.add(Shapes.island(R * 1.6, R * 2)); centre.add(mono);
-    const fig = Shapes.figure(sc.fig, true); fig.position.set(R * 0.2, 0.25, R * 1.3); centre.add(fig); centre.rotation.set(r.range(-0.3, 0.3), 0, r.range(-0.3, 0.3)); land.add(this.body(centre, { anchor: true, spin: 0.02 }));
-    for (let i = 0; i < r.int(12, 20); i++) {
-      const rad = r.range(4, 12) * (sc.mixed ? r.range(0.4, 2) : 1), isl = new THREE.Group(); isl.add(Shapes.island(rad, rad * 1.8)); this.decorate(isl, rad, r, sc, i);
-      const u = r() * 2 - 1, a = r() * 6.28, d = r.range(0.45, 1.5) * size, s = Math.sqrt(1 - u * u);
-      isl.position.set(Math.cos(a) * s * d, u * d * 0.7, Math.sin(a) * s * d); isl.rotation.set(r() * 6.28, r() * 6.28, r() * 6.28);
-      land.add(this.body(isl, { spin: r.range(0.02, 0.08) * r.sign(), amp: 2 }));
-    }
-    for (let i = 0; i < 14; i++) { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: Tex.glow(), color: this.pal.mist, transparent: true, opacity: 0.12, depthWrite: false })); m.scale.setScalar(size * r.range(0.8, 1.6)); m.position.set(r.range(-1, 1) * size * 1.6, r.range(-1, 1) * size, r.range(-1, 1) * size * 1.6); land.add(m); }
-    this.debris(r, size, sc, 30);
-  },
-  /* Inward: a little planet, everything standing up off its surface */
-  planet(r, rules) {
-    const sc = this.scaleRule(r), land = this.land, P = 42, size = 70; this.info.size = size;
-    const ball = Shapes.mesh(new THREE.IcosahedronGeometry(P, rules.geometry === 'crystal' ? 2 : 4), Shapes.ctx.mats.stone, P * 2);
-    const bp = ball.geometry.attributes.position; for (let i = 0; i < bp.count; i++) { const v = new THREE.Vector3().fromBufferAttribute(bp, i), k = 1 + 0.035 * Math.sin(v.x * 0.2) * Math.cos(v.z * 0.17) + 0.02 * Math.sin(v.y * 0.3); v.multiplyScalar(k); bp.setXYZ(i, v.x, v.y, v.z); } ball.geometry.computeVertexNormals();
-    const world = new THREE.Group(); world.add(ball); land.add(this.body(world, { anchor: true, spinY: 0.015 }));
-    const place = (obj, u, a) => { const s = Math.sqrt(1 - u * u), n = new THREE.Vector3(Math.cos(a) * s, u, Math.sin(a) * s); obj.position.copy(n).multiplyScalar(P * 0.985); obj.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n); world.add(obj); return obj; };
-    const { g: mono } = this.monument(r, { mono: 0.7 * sc.mono, isl: 1, fig: 1 }); place(mono, 0.92, 0);
-    place(Shapes.figure(sc.fig * 0.7, true), 0.86, 0.35);
-    for (let i = 0; i < r.int(26, 44); i++) {
-      const u = r.range(-0.95, 0.85), a = r() * 6.28, k = r(), m = sc.mixed ? r.range(0.4, 2.2) : 1;
-      place(k < 0.35 ? Shapes.spire(r.range(6, 22) * m, r.range(1.2, 2.6)) : k < 0.55 ? Shapes.tower(r.range(5, 12) * m, 1.6) : k < 0.75 ? Shapes.tree(r.range(4, 9) * m) : k < 0.85 ? Shapes.door(1.4, 2.6) : Shapes.monolith(r.range(5, 10) * m), u, a);
-    }
-    for (let i = 0; i < 6; i++) { const moonlet = new THREE.Group(); moonlet.add(Shapes.island(r.range(2, 5), r.range(3, 7))); const a = r() * 6.28, d = P * r.range(1.5, 2.3); moonlet.position.set(Math.cos(a) * d, r.range(-0.5, 0.5) * P, Math.sin(a) * d); land.add(this.body(moonlet, { orbitR: d, spin: 0.05 })); }
-    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: Tex.glow(), color: this.pal.mist, transparent: true, opacity: 0.35, depthWrite: false })); halo.scale.setScalar(P * 4.4); land.add(halo);
-  },
-  /* small things floating about: rocks, a door with no wall, a few stairs going nowhere */
-  debris(r, size, sc, n = 18) {
-    for (let i = 0; i < n; i++) {
-      const k = r(), o = k < 0.6 ? (() => { const g = new THREE.Group(); g.add(Shapes.island(r.range(0.8, 3), r.range(1.5, 4))); return g; })() : k < 0.8 ? Shapes.door(r.range(1.2, 2.4), r.range(2.2, 4)) : Shapes.stairs(4, 0.6, 6, 0, 3);
-      const a = r() * 6.28, d = r.range(0.25, 1.4) * size; o.position.set(Math.cos(a) * d, r.range(0.05, 0.5) * size, Math.sin(a) * d); o.rotation.set(r.range(-0.5, 0.5), r() * 6.28, r.range(-0.5, 0.5));
-      if (sc.mixed) o.scale.setScalar(r.range(0.4, 3));
-      this.land.add(this.body(o, { amp: 2.5, spin: r.range(0.03, 0.12) * r.sign(), debris: true }));
-    }
-  },
-};
-/* ---- 40-motion.js ---- */
-/* ============================================================
-   Dream Machine, part 4: how a dream moves.
-   Everything is worked out from "dream time" t, never step by step,
-   so the Time rule can slow it, stop it, or run it backwards and
-   the whole world simply rewinds.
-   ============================================================ */
-const Motion = {
-  v: new THREE.Vector3(), up: new THREE.Vector3(0, 1, 0),
-  update(t, dt) {
-    const W = World, rules = W.rules, phys = rules.physics, size = W.info.size, G = rules.gravity;
-    /* the islands and everything on them */
-    for (const b of W.bodies) {
-      const o = b.obj; o.position.copy(b.p0); o.rotation.copy(b.r0); o.scale.copy(b.s0);
-      if (b.spinY) o.rotation.y = b.r0.y + b.spinY * t;
-      if (b.spin) { o.rotation.x = b.r0.x + b.spin * t * 0.7; o.rotation.y = b.r0.y + b.spin * t; }
-      if (phys === 'still') continue;
-      if (phys === 'float' || (b.anchor && phys === 'fall')) { o.position.y += Math.sin(t * 0.45 + b.ph) * b.amp * size * 0.012; o.rotation.z += Math.sin(t * 0.3 + b.ph) * 0.02; }
-      else if (phys === 'orbit') {
-        if (b.anchor) { o.rotation.y = b.r0.y + t * 0.05; continue; }
-        const d = Math.hypot(b.p0.x, b.p0.z) || 1, a0 = Math.atan2(b.p0.z, b.p0.x), a = a0 + t * 0.9 / Math.sqrt(d);
-        o.position.x = Math.cos(a) * d; o.position.z = Math.sin(a) * d; o.position.y += Math.sin(t * 0.3 + b.ph) * size * 0.01; o.rotation.y = b.r0.y - (a - a0);
-      } else if (phys === 'fall') {
-        /* fall forever: drop out of sight below, come back in from above (or outward, with no gravity) */
-        const span = size * 2.2, k = ((t * size * 0.035 * (0.6 + b.amp * 0.3) + b.ph * 40) % span + span) % span;
-        if (G === 'none' || G === 'inward') { const dir = this.v.copy(b.p0).normalize(); o.position.addScaledVector(dir, k * 0.6 - span * 0.3); }
-        else o.position.y = b.p0.y + span * 0.45 - k;
-        o.rotation.x += t * 0.02 * b.amp;
-      } else if (phys === 'breathe') o.scale.copy(b.s0).multiplyScalar(1 + Math.sin(t * 0.8 + b.ph) * 0.07);
-    }
-    /* clocks keep dream time */
-    for (const c of W.clocks) { const [m, hr] = c.userData.hands; m.rotation.z = -t * 0.9; hr.rotation.z = -t * 0.075; }
-    /* moons drift across the sky; the stars turn */
-    for (const m of W.moons) { const u = m.userData, a = u.a + u.speed * t; m.position.set(Math.sin(a) * Math.cos(u.el) * u.d, Math.sin(u.el) * u.d, -Math.cos(a) * Math.cos(u.el) * u.d); m.children[0].rotation.y = t * 0.02; }
-    if (W.stars) W.stars.rotation.y = t * 0.004;
-    this.specks(t, dt);
-  },
-  /* specks fall with gravity (and drift a little), so you can always see which way "down" is */
-  specks(t, dt) {
-    const W = World, p = W.specks; if (!p) return;
-    const pos = p.geometry.attributes.position, a = pos.array, S = p.userData.S, ph = p.userData.phase, g = W.gvec, G = W.rules.gravity, speed = W.info.size * 0.05;
-    for (let i = 0; i < pos.count; i++) {
-      const j = i * 3, sway = Math.sin(t * 0.7 + ph[i]) * 0.4;
-      if (G === 'inward') {
-        const x = a[j], y = a[j + 1], z = a[j + 2], d = Math.hypot(x, y, z) || 1, step = dt * speed * 0.7;
-        a[j] -= x / d * step; a[j + 1] -= y / d * step; a[j + 2] -= z / d * step;
-        const nd = Math.hypot(a[j], a[j + 1], a[j + 2]);
-        if (nd < 44 && step > 0) { const k = (S * 0.9) / nd; a[j] *= k; a[j + 1] *= k; a[j + 2] *= k; } else if (nd > S && step < 0) { const k = 46 / nd; a[j] *= k; a[j + 1] *= k; a[j + 2] *= k; }
-        continue;
+  /* walls: spires, pillars, the lighthouse, the monolith. Pushes you back out if you walk into them. */
+  push(p, rad) {
+    const ix = Math.floor(p.x / this.CS), iz = Math.floor(p.z / this.CS);
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) {
+      const c = this.cell(ix + a, iz + b); if (!c || this.geo === 3) continue;
+      const feet = (p.y - p.eye - c.base - c.lift) / c.sc, posts = [];
+      if (c.type === 1 && feet < 140) posts.push([0, 0, 15 * Math.pow(1 - clamp(feet / 150, 0, 1), 0.7) + 1]);
+      if (c.type === 5 && feet < 120) posts.push([0, 0, 12]);
+      if (c.type === 4 && feet < 79) posts.push([26, 0, 7], [-26, 0, 7]);
+      if (c.type === 0 && feet < 103) posts.push([-26, -17, 8]);
+      if (c.type === 3 && feet < 109) for (let k = -16; k <= 16; k += 8) posts.push([0, k, 7]);
+      for (const [px, pz, r] of posts) {
+        const co = Math.cos(c.ang), si = Math.sin(c.ang), wx = c.cx + (co * px + si * pz) * c.sc, wz = c.cz + (-si * px + co * pz) * c.sc;
+        const dx = p.x - wx, dz = p.z - wz, d = Math.hypot(dx, dz), R = r * c.sc + rad;
+        if (d < R && d > 1e-4) { p.x = wx + dx / d * R; p.z = wz + dz / d * R; }
       }
-      a[j] += (g.x * speed + Math.cos(t * 0.3 + ph[i]) * speed * 0.25) * dt;
-      a[j + 1] += (g.y * speed + (G === 'none' ? sway * speed * 0.4 : 0)) * dt;
-      a[j + 2] += (g.z * speed + sway * speed * 0.25) * dt;
-      for (let k = 0; k < 3; k++) { const lim = k === 1 ? S * 0.6 : S; if (a[j + k] > lim) a[j + k] -= lim * 2; else if (a[j + k] < -lim) a[j + k] += lim * 2; }
     }
-    pos.needsUpdate = true;
   },
+  /* the nearest monument you are close to, for naming places as you find them */
+  near(x, z) {
+    const ix = Math.floor(x / this.CS), iz = Math.floor(z / this.CS); let best = null, bd = 1e9;
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) { const c = this.cell(ix + a, iz + b); if (!c) continue; const d = Math.hypot(x - c.cx, z - c.cz) / Math.max(1, c.sc); if (d < bd) { bd = d; best = c; } }
+    return bd < 95 ? best : null;
+  },
+  /* where to wake up: high ground with a view, facing open space (and something worth walking to) */
+  spawn(r, eye, bend = 0) {
+    /* how far you can see in a direction before a hill (or the bend of the world) gets in the way */
+    const view = (x, z, y, a) => { const dx = -Math.sin(a), dz = -Math.cos(a); let open = 0; for (let d = 8; d <= 900; d += d < 100 ? 8 : 25) { if (this.terrain(x + dx * d, z + dz * d, d < 200 ? 5 : 3) + bend * d * d > y - 3 + d * 0.035) break; open = d; } return open; };
+    let best = null;
+    for (let i = 0; i < 36; i++) {
+      const x = r.range(-500, 500), z = r.range(-500, 500), g = this.terrain(x, z); if (g < 3) continue;
+      const c = this.near(x, z); if (c && Math.hypot(x - c.cx, z - c.cz) < 60 * c.sc) continue;
+      if (this.floor(x, z, 1e9) > g + 0.5) continue;   // not on (or inside) the stairs or a slab
+      const probe = { x, z, y: g + eye, eye }; this.push(probe, 6); if (probe.x !== x || probe.z !== z) continue;   // not inside a spire or a pillar
+      if (this.inside(x, g + eye, z)) continue;
+      let yaw = 0, top = -1;
+      for (let k = 0; k < 16; k++) {
+        const a = k / 16 * 6.283, dx = -Math.sin(a), dz = -Math.cos(a); let bonus = 0;
+        const ix = Math.floor(x / this.CS), iz = Math.floor(z / this.CS);
+        for (let a2 = -3; a2 <= 3; a2++) for (let b2 = -3; b2 <= 3; b2++) { const cc = this.cell(ix + a2, iz + b2); if (!cc) continue; const vx = cc.cx - x, vz = cc.cz - z, dist = Math.hypot(vx, vz); if (dist > 120 && dist < 1000 && (vx * dx + vz * dz) / dist > 0.94) bonus = 250; }
+        const sc = view(x, z, g + eye, a) + bonus; if (sc > top) { top = sc; yaw = a; }
+      }
+      const score = top + Math.min(g, 120) * 0.5 + r() * 40; if (!best || score > best.score) best = { x, z, yaw, score };
+    }
+    return best || { x: 0, z: 0, yaw: 0 };
+  },
+  /* is this point inside the long stairs or a floating island hanging low? (the two things big enough to swallow you) */
+  inside(x, y, z) {
+    const ix = Math.floor(x / this.CS), iz = Math.floor(z / this.CS);
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) {
+      const c = this.cell(ix + a, iz + b); if (!c) continue; const [lx, lz] = this.local(c, x, z), ly = (y - c.base - c.lift) / c.sc;
+      if (c.type === 6 && lx > -12 && lx < 185 && Math.abs(lz) < 18) return true;
+      if (c.type === 2) { const oy = ly - (130 + c.ch * 90); if ((lx * lx + lz * lz) / 2000 + oy * oy / 6000 < 1.3) return true; }
+    }
+    return false;
+  },
+  placeName(c) { const r = rng(hashStr(this.seedStr + ':' + c.ix + ',' + c.iz)); return { name: dreamName(r), kind: ['The ring', 'A spire', 'A floating island', 'A monolith', 'A gate', 'A lighthouse', 'Stairs to a door'][c.type] }; },
 };
 /* ---- 50-app.js ---- */
 /* ============================================================
-   Dream Machine, part 5: the screen. The renderer and camera,
-   dragging and pinching to look around, the drifting camera,
-   the controls, dream sounds, and saving a dream (as a picture,
-   a link, or as Burnware's wallpaper).
+   Dream Machine, part 4: you, the screen and the controls.
+   Draws the shader to the screen (at a resolution that keeps it
+   smooth), walks you around (WASD or a thumb-stick), applies the
+   rules, names the places you find, and keeps dreams you like
+   (a picture, a link to the exact spot, or Burnware's wallpaper).
    ============================================================ */
 const App = {
-  rules: Object.assign({}, DEFAULT_RULES), seed: '', t: 0, last: 0, no: 1,
-  cam: { theta: 0.6, phi: 1.25, dist: 100, look: new THREE.Vector3(), want: null }, idleAt: 0, tour: true,
+  rules: Object.assign({}, DEFAULT_RULES), seed: '', last: 0, res: 0.6, ms: 16, found: new Set(),
+  me: { x: 0, y: 0, z: 0, vy: 0, yaw: 0, pitch: -0.05, eye: 3.2, ground: true }, keys: {}, stick: [0, 0], look: null, idleAt: 0, tour: true, jumpHeld: false, downHeld: false,
   init() {
-    const view = $('#view');
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75)); view.append(this.renderer.domElement);
-    this.scene = new THREE.Scene(); this.camera = new THREE.PerspectiveCamera(50, 1, 0.5, 6000); World.init(this.scene);
+    const cv = this.cv = document.createElement('canvas'); $('#view').append(cv);
+    const gl = this.gl = cv.getContext('webgl', { antialias: false, alpha: false, powerPreference: 'high-performance' }) || cv.getContext('experimental-webgl');
+    if (!gl) return this.fail('This browser has no WebGL, so the dream cannot be drawn.');
+    const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+    try {
+      const pr = this.pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VERT)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FRAG)); gl.linkProgram(pr);
+      if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
+    } catch (e) { console.error(e); return this.fail('The dream could not start on this device (' + String(e.message).split('\n')[0].slice(0, 90) + ').'); }
+    gl.useProgram(this.pr);
+    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const a = gl.getAttribLocation(this.pr, 'a'); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+    this.u = {}; for (const n of ['uRes', 'uTime', 'uFov', 'uBend', 'uGeo', 'uPhys', 'uScale', 'uSteps', 'uShadow', 'uFogK', 'uStars', 'uCam', 'uSun', 'uRot', 'uSeed', 'uTop', 'uHor', 'uLow', 'uFogC', 'uStone', 'uStone2', 'uGlow', 'uMoon', 'uSea', 'uMist']) this.u[n] = gl.getUniformLocation(this.pr, n);
+    this.touch = matchMedia('(pointer: coarse)').matches; this.res = this.touch ? 0.42 : 0.6;
     this.resize(); addEventListener('resize', () => this.resize());
-    this.controls(view); this.ui();
-    try { this.tour = localStorage.getItem('dream-tour') !== '0'; } catch (e) {}
-    $('#bTour').setAttribute('aria-pressed', String(this.tour));
+    this.ui(); this.controls();
+    try { this.tour = localStorage.getItem('dream-walk') === '1'; } catch (e) {} $('#bTour').setAttribute('aria-pressed', String(this.tour));
+    return true;
   },
-  /* the world is framed a little high, so the controls at the bottom don't cover the middle of it */
-  resize() { const w = innerWidth, h = innerHeight; this.renderer.setSize(w, h, false); this.camera.aspect = w / h; this.camera.fov = w < h ? 64 : 50; this.camera.setViewOffset(w, h, 0, h * (w < h ? 0.1 : 0.08), w, h); this.camera.updateProjectionMatrix(); },
-  /* ---- a new dream ---- */
-  dream(seed, rules, quick) {
+  fail(msg) { $('#loading').hidden = false; $('#loading').textContent = msg; return false; },
+  resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2), w = Math.max(64, Math.round(innerWidth * dpr * this.res)), hh = Math.max(64, Math.round(innerHeight * dpr * this.res));
+    if (this.cv.width !== w || this.cv.height !== hh) { this.cv.width = w; this.cv.height = hh; this.gl.viewport(0, 0, w, hh); }
+  },
+  /* ---- a new dream: a new world, and you dropped into it ---- */
+  dream(seed, rules, at) {
     this.seed = seed || newSeed(); if (rules) Object.assign(this.rules, rules);
-    $('#seed').value = this.seed; this.paintRules();
+    $('#seed').value = this.seed; this.paintRules(); this.found.clear();
     const veil = $('#veil'); veil.classList.add('on');
     setTimeout(() => {
-      const t0 = performance.now(), out = World.build(this.seed, this.rules), I = World.info, r = rng(hashStr(this.seed + 'cam'));
-      this.cam.look.copy(I.look); this.cam.dist = I.dist * (this.camera.aspect < 1 ? 1.35 : 1); this.cam.phi = I.phi; if (!quick) this.cam.theta = this.clearView(r.range(-0.9, 0.9));
-      this.no = (hashStr(this.seed) % 9000) + 1000;
-      $('#dreamNo').textContent = `Dream No. ${this.no}`; $('#dreamName').textContent = out.name;
-      const lines = ['gravity', 'scale', 'geometry', 'time'].map(k => LINES[k][this.rules[k]]).filter(Boolean);
-      $('#dreamLine').textContent = lines.slice(0, 2).join(' ');
-      document.title = out.name + ' · Dream Machine'; document.body.classList.toggle('light', !!out.pal.light);
-      try { history.replaceState(null, '', '#' + new URLSearchParams(Object.assign({ seed: this.seed }, this.rules)).toString()); } catch (e) {}
-      Sound.retune(out.pal.mood, hashStr(this.seed));
-      this.built = performance.now() - t0;
+      World.set(this.seed, this.rules); World.t = 0; this.applyRules();
+      const r = rng(hashStr(this.seed + 'start')), me = this.me;
+      const sp = at || World.spawn(r, me.eye, { up: 0.00045, inward: -0.0009 }[this.rules.gravity] || 0); me.x = sp.x; me.z = sp.z; me.yaw = sp.yaw; me.pitch = -0.06; me.vy = 0;
+      me.y = World.floor(me.x, me.z, 1e9) + me.eye; this.sunAz = r.range(0, 6.28);
+      this.no = (hashStr(this.seed) % 9000) + 1000; this.name = dreamName(rng(hashStr(this.seed)));
+      this.title(this.name, `Dream No. ${this.no}`); this.line();
+      document.title = this.name + ' · Dream Machine';
+      Sound.retune(this.pal.mood, hashStr(this.seed));
       $('#loading').hidden = true; requestAnimationFrame(() => veil.classList.remove('on'));
-    }, quick ? 160 : 380);
+    }, 260);
   },
-  /* start from an angle where nothing is in the way: look out from the middle and see what the line of sight hits first */
-  clearView(pref) {
-    const C = this.cam, ray = new THREE.Raycaster(), dir = new THREE.Vector3(), targets = []; World.land.traverse(o => { if (o.isMesh && o.geometry.type !== 'CircleGeometry') targets.push(o); });
-    World.land.updateMatrixWorld(true); let best = pref, bestScore = -1;
-    for (let k = 0; k < 16; k++) {
-      const theta = pref + (k === 0 ? 0 : (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 0.39);
-      dir.set(Math.sin(C.phi) * Math.sin(theta), Math.cos(C.phi), Math.sin(C.phi) * Math.cos(theta)).normalize();
-      ray.set(C.look, dir); ray.near = World.info.size * 0.18; ray.far = C.dist;
-      const hit = ray.intersectObjects(targets, false)[0], score = hit ? hit.distance / C.dist : 1.2;
-      if (score > bestScore + 0.05) { bestScore = score; best = theta; } if (score >= 1.2) break;
+  title(h1, small) { $('#dreamName').textContent = h1; $('#dreamNo').textContent = small; },
+  line() { const lines = ['gravity', 'scale', 'geometry', 'time'].map(k => LINES[k][this.rules[k]]).filter(Boolean); $('#dreamLine').textContent = lines.slice(0, 2).join(' '); },
+  /* rules are just numbers handed to the shader, so they change the world instantly */
+  applyRules() {
+    const R = this.rules, pal = this.pal = R.palette === 'random' ? randomPalette(rng(hashStr(this.seed + 'colour'))) : PALETTES[R.palette];
+    World.set(this.seed, R);
+    const gl = this.gl, u = this.u, v3 = (n, hex) => gl.uniform3fv(u[n], rgb(hex));
+    v3('uTop', pal.top); v3('uHor', pal.hor); v3('uLow', pal.low); v3('uFogC', pal.fog); v3('uStone', pal.stone); v3('uStone2', pal.stone2); v3('uGlow', pal.glow); v3('uMoon', pal.moon); v3('uSea', pal.sea); v3('uMist', pal.mist);
+    gl.uniform1f(u.uStars, pal.stars); gl.uniform1f(u.uFogK, 0.0011 * (pal.fogK || 1)); gl.uniform2f(u.uSeed, World.seed[0], World.seed[1]);
+    gl.uniform1f(u.uGeo, GEO[R.geometry]); gl.uniform1f(u.uPhys, PHYS[R.physics]); gl.uniform1f(u.uScale, SCALE[R.scale]);
+    gl.uniform1f(u.uBend, { up: 0.00045, inward: -0.0009 }[R.gravity] || 0);
+    const eye = R.scale === 'tiny' ? 42 : 3.2, me = this.me; if (me.eye !== eye) { me.y += eye - me.eye; me.eye = eye; }
+    document.body.classList.toggle('light', !!pal.light); $('#jumpBtn').textContent = R.gravity === 'none' ? '▲' : 'Jump'; $('#downBtn').hidden = R.gravity !== 'none';
+  },
+  /* ---- moving you ---- */
+  move(dt, real) {
+    const me = this.me, K = this.keys, R = this.rules, fly = R.gravity === 'none', big = me.eye / 3.2;
+    let fx = (K.KeyD || K.ArrowRight ? 1 : 0) - (K.KeyA || K.ArrowLeft ? 1 : 0) + this.stick[0], fz = (K.KeyW || K.ArrowUp ? 1 : 0) - (K.KeyS || K.ArrowDown ? 1 : 0) - this.stick[1];
+    const active = fx || fz || this.jumpHeld || this.downHeld || this.look;
+    if (active) this.idleAt = performance.now();
+    if (this.tour && performance.now() - this.idleAt > 3000) { fz = 0.55; me.yaw += Math.sin(performance.now() / 7000) * real * 0.25; me.pitch += (-0.05 - me.pitch) * real; }
+    const len = Math.hypot(fx, fz); if (len > 1) { fx /= len; fz /= len; }
+    const run = K.ShiftLeft || K.ShiftRight || Math.hypot(...this.stick) > 0.95 ? 2.6 : 1, sp = 18 * Math.sqrt(big) * run * (R.scale === 'giant' ? 1.4 : 1);
+    const sy = Math.sin(me.yaw), cy = Math.cos(me.yaw);
+    let dx = (-sy * fz + cy * fx) * sp * real, dz = (-cy * fz - sy * fx) * sp * real;
+    if (fly) {   // no gravity: you go where you look
+      const cp = Math.cos(me.pitch); dx = (-sy * cp * fz + cy * fx) * sp * 2 * real; dz = (-cy * cp * fz - sy * fx) * sp * 2 * real;
+      me.y += (Math.sin(me.pitch) * fz + (this.jumpHeld ? 1 : 0) - (this.downHeld ? 1 : 0)) * sp * 2 * real; me.vy = 0;
     }
-    return best;
+    me.x += dx; me.z += dz;
+    World.push(me, 1.4 * big);
+    const g = R.gravity === 'up' ? 9 : 42, jump = (R.gravity === 'up' ? 34 : 21) * Math.sqrt(big);
+    if (!fly) { if (this.jumpHeld && me.ground) { me.vy = jump; me.ground = false; } me.vy -= g * big * real; me.y += me.vy * real; }
+    const floor = World.floor(me.x, me.z, me.y - me.eye) + me.eye;
+    if (me.y <= floor) { if (!fly && me.y < floor - 6 * big && me.vy <= 0 && floor - me.y < 60) me.y += (floor - me.y) * Math.min(1, real * 14); else me.y = floor; me.vy = Math.max(0, me.vy); me.ground = true; }
+    else me.ground = me.y - floor < 0.3;
+    if (me.y > 4000) me.y = 4000;
   },
-  surprise() { const r = rng((Math.random() * 4294967296) >>> 0), rules = {}; for (const R of RULES) rules[R.id] = r.chance(0.35) ? R.opts[0][0] : r.pick(R.opts)[0]; this.dream(newSeed(), rules); },
-  /* ---- looking around: drag to turn, pinch or scroll to move closer ---- */
-  controls(view) {
-    const pts = new Map(); let pinch = 0;
-    view.addEventListener('pointerdown', (e) => { view.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); this.idleAt = performance.now(); if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = Math.hypot(a[0] - b[0], a[1] - b[1]); } });
-    view.addEventListener('pointermove', (e) => {
-      if (!pts.has(e.pointerId)) return; const prev = pts.get(e.pointerId), dx = e.clientX - prev[0], dy = e.clientY - prev[1]; pts.set(e.pointerId, [e.clientX, e.clientY]); this.idleAt = performance.now();
-      if (pts.size === 1) { this.cam.theta -= dx * 0.005; this.cam.phi = clamp(this.cam.phi - dy * 0.004, 0.08, Math.PI - 0.08); }
-      else if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) this.zoom(pinch / d); pinch = d; }
-    });
-    const up = (e) => { pts.delete(e.pointerId); pinch = 0; };
-    view.addEventListener('pointerup', up); view.addEventListener('pointercancel', up);
-    view.addEventListener('wheel', (e) => { e.preventDefault(); this.idleAt = performance.now(); this.zoom(Math.exp(e.deltaY * 0.0012)); }, { passive: false });
-    addEventListener('keydown', (e) => {
-      if (e.target.closest('input')) { if (e.key === 'Enter') { e.preventDefault(); this.dream(e.target.value.trim() || newSeed()); e.target.blur(); } return; }
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
-      const k = e.key.toLowerCase();
-      if (k === ' ' || k === 'g') { if (e.target.closest('button') && k === ' ') return; e.preventDefault(); this.dream(); }
-      else if (k === 'h') this.toggleHide();
-      else if (k === 'arrowleft' || k === 'arrowright') { this.cam.theta += k === 'arrowleft' ? 0.12 : -0.12; this.idleAt = performance.now(); }
-      else if (k === 'arrowup' || k === 'arrowdown') { this.zoom(k === 'arrowup' ? 0.9 : 1.1); this.idleAt = performance.now(); }
-    });
-  },
-  zoom(f) { const s = World.info.size, inward = this.rules.gravity === 'inward'; this.cam.dist = clamp(this.cam.dist * f, s * (inward ? 1.1 : 0.12), s * (inward ? 6 : 3.5)); },
-  placeCamera(realDt) {
-    const C = this.cam, cam = this.camera;
-    if (this.tour && performance.now() - this.idleAt > 2500 && !calm()) { C.theta += realDt * 0.035; C.phi = clamp(C.phi + Math.sin(performance.now() / 9000) * realDt * 0.01, 0.15, Math.PI - 0.15); }
-    cam.position.set(C.look.x + C.dist * Math.sin(C.phi) * Math.sin(C.theta), C.look.y + C.dist * Math.cos(C.phi), C.look.z + C.dist * Math.sin(C.phi) * Math.cos(C.theta));
-    cam.lookAt(C.look);
+  rotation() {
+    const me = this.me, roll = this.rules.gravity === 'side' ? Math.PI / 2 : 0;
+    const cy = Math.cos(me.yaw), sy = Math.sin(me.yaw), cp = Math.cos(me.pitch), sp = Math.sin(me.pitch), cr = Math.cos(roll), sr = Math.sin(roll);
+    /* camera space to world: yaw (around up), then pitch (around right), then roll (around forward) */
+    const Ry = [cy, 0, -sy, 0, 1, 0, sy, 0, cy], Rx = [1, 0, 0, 0, cp, sp, 0, -sp, cp], Rz = [cr, sr, 0, -sr, cr, 0, 0, 0, 1];
+    const mul = (A, B) => { const o = new Array(9); for (let c = 0; c < 3; c++) for (let r = 0; r < 3; r++) o[c * 3 + r] = A[r] * B[c * 3] + A[3 + r] * B[c * 3 + 1] + A[6 + r] * B[c * 3 + 2]; return o; };
+    return new Float32Array(mul(mul(Ry, Rx), Rz));
   },
   /* ---- the controls ---- */
+  controls() {
+    const view = $('#view'), fingers = new Map();
+    view.addEventListener('pointerdown', (e) => {
+      view.setPointerCapture(e.pointerId); this.idleAt = performance.now();
+      const stick = e.pointerType === 'touch' && e.clientX < innerWidth * 0.45 && ![...fingers.values()].some(f => f.stick);
+      fingers.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, stick });
+      if (stick) { const s = $('#stick'); s.style.left = e.clientX + 'px'; s.style.top = e.clientY + 'px'; s.classList.add('on'); } else this.look = true;
+    });
+    view.addEventListener('pointermove', (e) => {
+      const f = fingers.get(e.pointerId); if (!f) return; this.idleAt = performance.now();
+      if (f.stick) { const dx = e.clientX - f.x0, dy = e.clientY - f.y0, d = Math.hypot(dx, dy), k = Math.min(1, d / 55) / (d || 1); this.stick = [dx * k, dy * k]; $('#knob').style.transform = `translate(${this.stick[0] * 34}px, ${this.stick[1] * 34}px)`; return; }
+      const k = e.pointerType === 'touch' ? 0.006 : 0.0042; this.me.yaw -= (e.clientX - f.x) * k; this.me.pitch = clamp(this.me.pitch - (e.clientY - f.y) * k, -1.45, 1.45); f.x = e.clientX; f.y = e.clientY;
+    });
+    const up = (e) => { const f = fingers.get(e.pointerId); fingers.delete(e.pointerId); if (f && f.stick) { this.stick = [0, 0]; $('#stick').classList.remove('on'); $('#knob').style.transform = ''; } if (![...fingers.values()].some(x => !x.stick)) this.look = null; };
+    view.addEventListener('pointerup', up); view.addEventListener('pointercancel', up);
+    addEventListener('keydown', (e) => {
+      if (e.target.closest('input')) { if (e.key === 'Enter') { e.preventDefault(); this.dream(e.target.value.trim() || newSeed()); e.target.blur(); } return; }
+      if (e.ctrlKey && e.code !== 'ControlLeft' || e.metaKey || e.altKey) return;
+      if (e.code === 'KeyG') return this.dream();
+      if (e.code === 'KeyH') return this.toggleHide();
+      if (e.code === 'Space') { if (e.target.closest('button')) return; e.preventDefault(); this.jumpHeld = true; }
+      if (e.code === 'KeyC' || e.code === 'ControlLeft') this.downHeld = true;
+      if (/^(Key[WASD]|Arrow|Shift)/.test(e.code)) { this.keys[e.code] = true; if (e.code.startsWith('Arrow')) e.preventDefault(); }
+      this.idleAt = performance.now();
+    });
+    addEventListener('keyup', (e) => { this.keys[e.code] = false; if (e.code === 'Space') this.jumpHeld = false; if (e.code === 'KeyC' || e.code === 'ControlLeft') this.downHeld = false; });
+    addEventListener('blur', () => { this.keys = {}; this.jumpHeld = this.downHeld = false; });
+    const hold = (el, key) => { el.addEventListener('pointerdown', (e) => { e.preventDefault(); this[key] = true; this.idleAt = performance.now(); }); for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) el.addEventListener(ev, () => { this[key] = false; }); };
+    hold($('#jumpBtn'), 'jumpHeld'); hold($('#downBtn'), 'downHeld');
+  },
   ui() {
+    document.body.append(h('div#stick', { 'aria-hidden': 'true' }, h('div#knob')), h('div#pad', h('button#downBtn', { type: 'button', 'aria-label': 'Fly down', hidden: '' }, '▼'), h('button#jumpBtn', { type: 'button', 'aria-label': 'Jump' }, 'Jump')));
+    if (this.touch) document.body.classList.add('touch');
+    $('#hint').textContent = this.touch ? 'Left thumb: walk · right thumb: look · Jump button' : 'WASD or arrows to walk · drag to look · Space to jump · Shift to run';
+    document.body.classList.add('hinting'); setTimeout(() => document.body.classList.remove('hinting'), 9000);
     const box = $('#rules');
     for (const R of RULES) {
       const seg = h('div.seg', { role: 'radiogroup', 'aria-label': R.name });
       for (const [v, label] of R.opts) { const b = h('button', { type: 'button', role: 'radio', 'data-r': R.id, 'data-v': v }, label); b.onclick = () => this.setRule(R.id, v); seg.append(b); }
       box.append(h('div.rule', h('b', R.name), seg));
     }
-    const acts = h('div.rule', { style: 'grid-column: 1 / -1' }, h('b', 'Keep this dream'), h('div.seg', { id: 'acts' }));
-    box.append(acts);
-    const act = (label, fn, title) => { const b = h('button', { type: 'button', title }, label); b.onclick = fn; $('#acts').append(b); return b; };
+    box.append(h('div.rule', { style: 'grid-column: 1 / -1' }, h('b', 'Keep this dream'), h('div.seg', { id: 'acts' })));
+    const act = (label, fn, title) => { const b = h('button', { type: 'button', title }, label); b.onclick = fn; $('#acts').append(b); };
     act('Save picture', () => this.savePicture(), 'Download this view as a PNG');
-    act('Copy link', () => this.copyLink(), 'A link that opens this exact dream');
+    act('Copy link', () => this.copyLink(), 'A link that opens this world, at this exact spot');
     if (this.burnware()) act('Set as wallpaper', () => this.wallpaper(), 'Make this view the Burnware desktop wallpaper');
     $('#gen').onclick = () => this.dream();
     $('#bSurprise').onclick = () => this.surprise();
-    $('#more').onclick = () => { const p = $('#panel'), c = p.classList.toggle('collapsed'); $('#more').setAttribute('aria-expanded', String(!c)); $('#more').textContent = c ? 'Rules ▴' : 'Rules ▾'; try { localStorage.setItem('dream-rules', c ? '0' : '1'); } catch (e) {} };
-    let open = false; try { open = localStorage.getItem('dream-rules') === '1'; } catch (e) {}
-    if (!open) $('#more').onclick();
+    $('#more').onclick = () => { const c = $('#panel').classList.toggle('collapsed'); $('#more').setAttribute('aria-expanded', String(!c)); $('#more').textContent = c ? 'Rules ▴' : 'Rules ▾'; };
+    $('#more').onclick();
     $('#bHide').onclick = () => this.toggleHide();
-    $('#bTour').onclick = () => { this.tour = !this.tour; $('#bTour').setAttribute('aria-pressed', String(this.tour)); try { localStorage.setItem('dream-tour', this.tour ? '1' : '0'); } catch (e) {} this.toast(this.tour ? 'The camera will drift when you let go' : 'The camera stays where you put it'); };
+    $('#bTour').onclick = () => { this.tour = !this.tour; $('#bTour').setAttribute('aria-pressed', String(this.tour)); try { localStorage.setItem('dream-walk', this.tour ? '1' : '0'); } catch (e) {} this.toast(this.tour ? 'Sleepwalking: you wander on your own when you let go' : 'You stay put when you let go'); };
     $('#bSound').onclick = () => { const on = Sound.toggle(); $('#bSound').setAttribute('aria-pressed', String(on)); this.toast(on ? 'Dream sounds on' : 'Dream sounds off'); };
   },
+  surprise() { const r = rng((Math.random() * 4294967296) >>> 0), rules = {}; for (const R of RULES) rules[R.id] = r.chance(0.35) ? R.opts[0][0] : r.pick(R.opts)[0]; this.dream(newSeed(), rules); },
   paintRules() { document.querySelectorAll('#rules .seg button[data-r]').forEach(b => { const on = this.rules[b.dataset.r] === b.dataset.v; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); }); },
   setRule(id, v) {
-    if (this.rules[id] === v) return; this.rules[id] = v; this.paintRules();
-    if (id === 'time' || id === 'physics') {   // these change how the dream moves, not what is in it
-      try { history.replaceState(null, '', '#' + new URLSearchParams(Object.assign({ seed: this.seed }, this.rules)).toString()); } catch (e) {}
-      const lines = ['gravity', 'scale', 'geometry', 'time'].map(k => LINES[k][this.rules[k]]).filter(Boolean); $('#dreamLine').textContent = lines.slice(0, 2).join(' ');
-      return this.toast(id === 'time' ? { still: 'Time stops', slow: 'Time slows down', normal: 'Time runs normally', fast: 'Time speeds up', back: 'Time runs backwards' }[v] : { still: 'Everything holds still', float: 'Everything floats', orbit: 'The islands start to orbit', fall: 'Everything falls, forever', breathe: 'The world breathes' }[v]);
-    }
-    const keepCam = { theta: this.cam.theta }; this.dream(this.seed, null, true); this.cam.theta = keepCam.theta;
+    if (this.rules[id] === v) return; this.rules[id] = v; this.paintRules(); this.applyRules(); this.line();
+    const say = { gravity: { down: 'Gravity pulls down', up: 'The world curls up around you, and you jump like on the moon', side: 'The horizon tips on its end', none: 'Gravity is gone: you can fly (Space up, C down)', inward: 'The world shrinks into a little planet' }, time: { still: 'Time stops', slow: 'Time slows down', normal: 'Time runs normally', fast: 'Time speeds up', back: 'Time runs backwards' }, physics: { still: 'Everything holds still', float: 'Everything floats', orbit: 'The monuments start to turn', fall: 'The islands fall, forever', breathe: 'The world breathes' } }[id];
+    this.toast(say ? say[v] : RULES.find(r => r.id === id).opts.find(o => o[0] === v)[1]);
   },
   toggleHide() { const on = document.body.classList.toggle('hidden'); $('#bHide').setAttribute('aria-pressed', String(on)); },
-  toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(this.toastT); this.toastT = setTimeout(() => t.classList.remove('show'), 1800); },
+  toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(this.toastT); this.toastT = setTimeout(() => t.classList.remove('show'), 2200); },
+  /* ---- finding places ---- */
+  discover() {
+    const c = World.near(this.me.x, this.me.z); if (!c) return;
+    const key = c.ix + ',' + c.iz; if (this.found.has(key)) return; this.found.add(key);
+    const p = World.placeName(c); this.title(p.name, `${p.kind} · place ${this.found.size} found in dream no. ${this.no}`);
+    clearTimeout(this.nameT); this.nameT = setTimeout(() => this.title(this.name, `Dream No. ${this.no} · ${this.found.size} place${this.found.size === 1 ? '' : 's'} found`), 9000);
+  },
   /* ---- keeping a dream ---- */
-  snapshot(maxW) {
-    this.renderer.render(this.scene, this.camera);
-    const src = this.renderer.domElement; if (!maxW || src.width <= maxW) return src;
-    const c = document.createElement('canvas'), k = maxW / src.width; c.width = maxW; c.height = Math.round(src.height * k); c.getContext('2d').drawImage(src, 0, 0, c.width, c.height); return c;
+  snapshot(full) {
+    const keep = this.res; if (full) { this.res = 1; this.resize(); }
+    this.draw(true); const out = this.cv; if (!full) return out;
+    const c = document.createElement('canvas'); c.width = out.width; c.height = out.height; c.getContext('2d').drawImage(out, 0, 0);
+    this.res = keep; this.resize(); return c;
   },
   savePicture() {
-    const c = this.snapshot(), name = 'dream-' + this.seed.replace(/[^a-z0-9-]/gi, '') + '.png';
+    const c = this.snapshot(true), name = 'dream-' + this.seed.replace(/[^a-z0-9-]/gi, '') + '.png';
     c.toBlob((b) => { if (!b) return this.toast('Could not save the picture'); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); this.toast('Saved ' + name); }, 'image/png');
   },
+  link() { const me = this.me; return '#' + new URLSearchParams(Object.assign({ seed: this.seed }, this.rules, { x: Math.round(me.x), z: Math.round(me.z), yaw: me.yaw.toFixed(2) })).toString(); },
   copyLink() {
-    let url = location.href; try { if (this.burnware()) url = new URL('apps/dream-machine.html' + location.hash, parent.location.href).href; } catch (e) {}
-    const done = () => this.toast('Link copied: it opens this exact dream');
+    let url = location.href.split('#')[0] + this.link(); try { if (this.burnware()) url = new URL('apps/dream-machine.html' + this.link(), parent.location.href).href; } catch (e) {}
+    const done = () => this.toast('Link copied: it opens this world, right here');
     if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, () => this.toast(url)); else this.toast(url);
   },
   burnware() { try { return window.parent !== window && !!parent.BW && !!parent.BW.Wall; } catch (e) { return false; } },
   wallpaper() {
     try {
-      const P = parent.BW, data = this.snapshot(1600).toDataURL('image/jpeg', 0.85);
-      P.Store.data.customWall = data; P.Store.data.wall = 'custom'; P.Store.save(); P.Wall.paint();
-      this.toast('This dream is now your desktop wallpaper');
+      const big = this.snapshot(true), k = Math.min(1, 1600 / big.width), c = document.createElement('canvas'); c.width = Math.round(big.width * k); c.height = Math.round(big.height * k); c.getContext('2d').drawImage(big, 0, 0, c.width, c.height);
+      const P = parent.BW; P.Store.data.customWall = c.toDataURL('image/jpeg', 0.85); P.Store.data.wall = 'custom'; P.Store.save(); P.Wall.paint();
+      this.toast('This view is now your desktop wallpaper');
     } catch (e) { this.toast('Could not set the wallpaper (not enough room to save it)'); }
   },
   /* ---- every frame ---- */
+  draw(still) {
+    const gl = this.gl, u = this.u, me = this.me, cv = this.cv;
+    gl.uniform2f(u.uRes, cv.width, cv.height); gl.uniform1f(u.uTime, World.t); gl.uniform1f(u.uFov, Math.tan((innerWidth < innerHeight ? 72 : 58) * Math.PI / 360));
+    gl.uniform3f(u.uCam, me.x, me.y, me.z); gl.uniformMatrix3fv(u.uRot, false, this.rotation());
+    const az = this.sunAz + World.t * 0.01, el = 0.26; gl.uniform3f(u.uSun, Math.cos(el) * Math.sin(az), Math.sin(el), -Math.cos(el) * Math.cos(az));
+    gl.uniform1f(u.uSteps, still ? 220 : this.res < 0.45 ? 130 : 170); gl.uniform1f(u.uShadow, still ? 28 : this.res < 0.5 ? 0 : 18);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  },
   frame(now) {
     requestAnimationFrame((n) => this.frame(n));
-    const real = Math.min(0.05, this.last ? (now - this.last) / 1000 : 0); this.last = now;
-    if (document.hidden || !World.root) return;
-    const dt = real * TIME_SPEED[this.rules.time]; this.t += dt;
-    Motion.update(this.t, dt); this.placeCamera(real);
-    this.renderer.render(this.scene, this.camera);
+    const real = Math.min(0.05, this.last ? (now - this.last) / 1000 : 0); if (this.last) this.ms = this.ms * 0.94 + (now - this.last) * 0.06; this.last = now;
+    if (document.hidden || this.paused || !this.seed || !World.seedStr) return;
+    World.t += real * TIME_SPEED[this.rules.time];
+    this.move(real, real); this.discover(); this.draw();
+    /* keep it smooth: render fewer pixels when the frame takes too long, more when there is room */
+    if ((this.adaptT = (this.adaptT || 0) + real) > 0.8) { this.adaptT = 0; const before = this.res; if (this.ms > 30) this.res = Math.max(0.28, this.res * 0.86); else if (this.ms < 18) this.res = Math.min(1, this.res * 1.08); if (Math.abs(before - this.res) > 0.01) this.resize(); }
   },
 };
 /* a tiny element helper: h('div.cls#id', {attrs}, ...children) */
@@ -791,15 +751,16 @@ const Sound = {
 };
 /* ---- 99-main.js ---- */
 /* ============================================================
-   Dream Machine: start-up. Open the dream in the link if there is
-   one (so shared links work), otherwise a new one.
+   Dream Machine: start-up. A new world every time, unless you
+   followed a link to a particular dream (and spot).
    ============================================================ */
 (function start() {
-  if (typeof THREE === 'undefined') { $('#loading').textContent = 'The dream needs a connection to load (three.js could not be reached).'; return; }
-  App.init();
+  if (!App.init()) return;
   const q = new URLSearchParams(location.hash.slice(1)), rules = {};
   for (const R of RULES) { const v = q.get(R.id); if (v && R.opts.some(o => o[0] === v)) rules[R.id] = v; }
-  App.dream(q.get('seed') || newSeed(), rules);
+  const at = q.has('x') ? { x: +q.get('x') || 0, z: +q.get('z') || 0, yaw: +q.get('yaw') || 0 } : null;
+  App.dream(q.get('seed') || newSeed(), rules, at);
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}   // a reload is a new dream
   requestAnimationFrame((n) => App.frame(n));
 })();
 </script>
